@@ -3,6 +3,7 @@ import { Renderer } from './Renderer'
 import type { VNodeData, ServerMessage } from './types'
 import { PatchApplicationError, applyPatches } from './runtime/applyPatch'
 import { navigationAction, type NavigationSource } from './runtime/navigation'
+import { createReconnectController } from './runtime/reconnect'
 
 type WsStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
 
@@ -184,8 +185,6 @@ export default function App() {
   }, [stylePreset])
 
   useEffect(() => {
-    let reconnectTimer: ReturnType<typeof setTimeout>
-
     function connect() {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws'
       const ws = new WebSocket(`${proto}://${location.host}/events?path=${encodeURIComponent(window.location.pathname)}`)
@@ -193,6 +192,7 @@ export default function App() {
       setStatus('connecting')
 
       ws.onopen = () => {
+        reconnectController.opened()
         setStatus('connected')
         setError(null)
       }
@@ -239,7 +239,7 @@ export default function App() {
       ws.onclose = () => {
         setStatus('disconnected')
         setPendingEvents(new Map())
-        reconnectTimer = setTimeout(connect, 2500)
+        reconnectController.closed()
       }
 
       ws.onerror = () => {
@@ -249,6 +249,7 @@ export default function App() {
       }
     }
 
+    const reconnectController = createReconnectController(connect)
     connect()
 
     const handlePopstate = () => navigateTo(
@@ -258,7 +259,7 @@ export default function App() {
     window.addEventListener('popstate', handlePopstate)
 
     return () => {
-      clearTimeout(reconnectTimer)
+      reconnectController.dispose()
       if (frameRef.current !== null) {
         window.cancelAnimationFrame(frameRef.current)
       }
