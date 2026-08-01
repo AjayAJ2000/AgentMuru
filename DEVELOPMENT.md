@@ -66,6 +66,18 @@ npx tsc --noEmit
 root HTML response, and then shuts it down. Use this as the main "does the repo
 still run?" check before demos and release work.
 
+Exercise the real WebSocket protocol with concurrent, state-changing sessions:
+
+```bash
+python scripts/runtime_resilience.py
+```
+
+The check starts the counter example on an isolated port, connects 20 sessions,
+performs three click-and-render cycles per session, and exits within a bounded
+deadline. It fails on protocol errors, incomplete events, or excessive p95
+latency. Use `--help` to tune the load, deadline, port, or latency threshold for
+slower development machines.
+
 ## Frontend build
 
 ```bash
