@@ -14,9 +14,9 @@ A solid local workflow should answer these questions clearly:
 
 Use these examples as your default local validation loop:
 
-- [`examples/local_playground/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/local_playground/app.py) for fast interaction, theme, media, and responsiveness checks
+- [`examples/counter/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/counter/app.py) for the fastest installation and state check
 - [`examples/component_studio/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/component_studio/app.py) when you want a broader component tour
-- [`examples/acme_analytics_command_center/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/acme_analytics_command_center/app.py) when you want to test a more product-style shell
+- [`examples/data_pipeline_command_center/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/data_pipeline_command_center/app.py) when you want to test a product-style operational workflow
 
 ## Run A Local App
 
@@ -47,9 +47,9 @@ python app.py
 4. Watch the WebSocket connection at `/events`
 5. Trigger controls and confirm you see state patches come back
 
-## Recommended Testing Playground
+## Recommended Testing Reference
 
-Start with [`examples/local_playground/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/local_playground/app.py) whenever you change framework code.
+Start with [`examples/component_studio/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/component_studio/app.py) whenever you change framework code.
 
 That app is intended to validate:
 
@@ -59,7 +59,9 @@ That app is intended to validate:
 - local asset serving
 - responsive shell collapse
 - chart and table rendering
-- auth-aware routes and forms when you extend it locally
+- modal, drawer, popup, toast, and workflow interactions
+
+Use [`examples/auth_portal/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/auth_portal/app.py) separately for auth-aware routes and role checks.
 
 ## Local Auth Patterns
 

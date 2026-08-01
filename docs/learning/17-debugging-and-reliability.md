@@ -32,7 +32,7 @@ npm run build
 Then check the wheel:
 
 ```bash
-python -m zipfile -l dist/brickflowui-0.1.13-py3-none-any.whl
+python -m zipfile -l dist/brickflowui-0.1.17-py3-none-any.whl
 ```
 
 ## User Input Not Updating
@@ -65,7 +65,7 @@ npm run build
 cd ..
 python -m mkdocs build
 python -m build
-python -m twine check dist/brickflowui-0.1.13*
+python -m twine check dist/brickflowui-0.1.17*
 ```
 
 On Windows, prefer:
@@ -91,6 +91,3 @@ Create a broken chart by using the wrong `y_key`. Then fix it by matching the ke
 ## Checkpoint
 
 You should be able to debug connection, asset, state, data, and build issues methodically.
-
-
-

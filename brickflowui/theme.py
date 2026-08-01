@@ -218,7 +218,7 @@ THEME_PRESETS = {
 }
 
 
-_SECTION_ALIASES = {
+_SECTION_ALIASES: Dict[str, str] = {
     "brand": "branding",
     "branding": "branding",
     "colors": "colors",
@@ -239,7 +239,7 @@ _SECTION_ALIASES = {
     "preset": "style_preset",
 }
 
-_KEY_ALIASES = {
+_KEY_ALIASES: Dict[str, Dict[str, str]] = {
     "branding": {
         "app_name": "title",
         "brand_name": "title",
@@ -287,6 +287,11 @@ _KEY_ALIASES = {
 }
 
 
+def _canonical_section_name(value: object) -> str:
+    section = str(value)
+    return _SECTION_ALIASES.get(section, section)
+
+
 def _deep_merge(base: Dict[str, Any], override: Mapping[str, Any]) -> Dict[str, Any]:
     merged = deepcopy(base)
     for key, value in override.items():
@@ -299,7 +304,7 @@ def _deep_merge(base: Dict[str, Any], override: Mapping[str, Any]) -> Dict[str, 
 
 class Theme:
     def __init__(self, theme_config: Union[str, Path, Dict[str, Any], None] = None):
-        self.config = deepcopy(DEFAULT_THEME)
+        self.config: Dict[str, Any] = deepcopy(DEFAULT_THEME)
         if theme_config:
             self.load(theme_config)
 
@@ -315,7 +320,7 @@ class Theme:
                     content = json.load(f)
                 elif ext in (".yaml", ".yml"):
                     try:
-                        import yaml
+                        import yaml  # type: ignore[import-untyped]
                     except ImportError as exc:
                         raise ImportError(
                             "PyYAML is required to load YAML themes. "
@@ -363,7 +368,7 @@ class Theme:
                 continue
             normalized_mode: Dict[str, Any] = {}
             for section_name, section_values in mode_values.items():
-                section = _SECTION_ALIASES.get(section_name, section_name)
+                section = _canonical_section_name(section_name)
                 normalized_mode[section] = self._normalize_section_values(section, section_values)
             normalized_modes[str(mode_name).lower()] = normalized_mode
         return normalized_modes
@@ -376,7 +381,7 @@ class Theme:
             if preset:
                 normalized = _deep_merge(normalized, deepcopy(preset))
         for raw_section, raw_values in raw_config.items():
-            section = _SECTION_ALIASES.get(raw_section, raw_section)
+            section = _canonical_section_name(raw_section)
 
             if section == "modes" and isinstance(raw_values, Mapping):
                 normalized["modes"] = self._normalize_modes(raw_values)
@@ -386,8 +391,8 @@ class Theme:
                 modes = normalized.setdefault("modes", {})
                 mode_name = "light" if section == "light_mode" else "dark"
                 modes[mode_name] = {
-                    _SECTION_ALIASES.get(mode_section, mode_section): self._normalize_section_values(
-                        _SECTION_ALIASES.get(mode_section, mode_section),
+                    _canonical_section_name(mode_section): self._normalize_section_values(
+                        _canonical_section_name(mode_section),
                         mode_values,
                     )
                     for mode_section, mode_values in raw_values.items()

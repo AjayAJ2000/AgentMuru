@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "examples": [
+    {"name": "counter", "title": "Quickstart Counter", "kind": "quickstart", "routes": ["/"], "auth_headers": {}},
+    {"name": "component_studio", "title": "Component Studio", "kind": "reference", "routes": ["/"], "auth_headers": {}},
+    {"name": "data_pipeline_command_center", "title": "Data Pipeline Command Center", "kind": "flagship", "routes": ["/"], "auth_headers": {}},
+    {"name": "clinical_trial_command_center", "title": "Clinical Trial Command Center", "kind": "industry", "routes": ["/", "/overview", "/safety", "/dataops"], "auth_headers": {"x-brickflow-user-id": "clinical.demo@example.com", "x-brickflow-user-roles": "clinician,ops"}},
+    {"name": "auth_portal", "title": "Authentication Portal", "kind": "security", "routes": ["/", "/workspace", "/admin", "/app-ops"], "auth_headers": {}},
+    {"name": "chatbot_workspace", "title": "Chatbot Workspace", "kind": "assistant", "routes": ["/"], "auth_headers": {}}
+  ]
+}

@@ -11,7 +11,7 @@ import brickflowui as db
 import brickflowui.server as server
 from brickflowui.app import App
 from brickflowui.auth import AuthenticationRequired, HeaderAuthProvider, current_user
-from brickflowui.server import _minimal_html_shell, create_asgi_app
+from brickflowui.server import _missing_frontend_shell, create_asgi_app
 from brickflowui.vdom import VNode
 
 
@@ -208,7 +208,7 @@ def test_shell_bootstrap_and_local_asset_route():
 
     response = client.get("/")
     assert response.status_code == 200
-    assert 'id="brickflow-bootstrap" type="application/json"' in response.text
+    assert 'id="__BRICKFLOW_BOOTSTRAP__" type="application/json"' in response.text
     assert "Booting secure workspace" in response.text
     assert "/__brickflow_asset__/" in response.text
 
@@ -286,19 +286,58 @@ def test_shell_bootstrap_includes_style_preset_and_loading_modes():
     assert "/__brickflow_asset__/" in response.text
 
 
-def test_minimal_shell_uses_builtin_loading_mark_when_no_custom_media_is_configured():
-    html = _minimal_html_shell(
-        title="Fallback App",
-        loading={
-            "title": "Fallback App",
-            "message": "Connecting to runtime...",
-            "subtitle": "Built-in brand mark should render.",
-        },
-    )
+def test_missing_frontend_shell_is_static_and_actionable():
+    shell = _missing_frontend_shell("", "Fallback App")
 
-    assert 'class="loading-mark"' in html
-    assert "Built-in brand mark should render." in html
-    assert 'class="spinner"' not in html
+    assert "BrickflowUI frontend bundle is missing" in shell
+    assert "npm ci" in shell
+    assert "new WebSocket" not in shell
+
+
+def test_shell_escapes_title_and_favicon_html():
+    app = App(title='</title><img src=x>', favicon='" onload="alert(1)')
+    app.mount(lambda: VNode(type="div"))
+
+    response = TestClient(create_asgi_app(app)).get("/")
+
+    assert response.status_code == 200
+    assert "<title>&lt;/title&gt;&lt;img src=x&gt;</title>" in response.text
+    assert '<link rel="icon" href="&quot; onload=&quot;alert(1)" />' in response.text
+
+
+def test_shell_contains_theme_and_bootstrap_values_as_data():
+    app = App(
+        theme={"colors": {"primary": "</style><img src=theme>"}},
+        loading={"message": "</script><img src=bootstrap>"},
+    )
+    app.mount(lambda: VNode(type="div"))
+
+    response = TestClient(create_asgi_app(app)).get("/")
+
+    assert response.status_code == 200
+    assert "</style><img src=theme>" not in response.text
+    assert "</script><img src=bootstrap>" not in response.text
+    assert 'type="application/json"' in response.text
+
+
+def test_spa_shell_is_prepared_once_per_asgi_app(monkeypatch):
+    read_count = {"value": 0}
+    original_read_text = Path.read_text
+
+    def counted_read_text(self, *args, **kwargs):
+        if self == server._FRONTEND_DIST / "index.html":
+            read_count["value"] += 1
+        return original_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", counted_read_text)
+    app = App()
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app))
+
+    assert client.get("/").status_code == 200
+    assert client.get("/nested/path").status_code == 200
+
+    assert read_count["value"] == 1
 
 
 def test_custom_api_route():
@@ -526,6 +565,85 @@ def test_shell_sidebar_hides_pages_user_cannot_access():
     assert "Overview" in labels
     assert "Admin" not in labels
 
+
+def test_websocket_navigation_emits_descending_surplus_child_removals():
+    app = App()
+
+    @app.page("/large", title="Large")
+    def large():
+        return db.Column([db.Text(f"Large {index}") for index in range(5)])
+
+    @app.page("/compact", title="Compact")
+    def compact():
+        return db.Column([db.Text("Compact")])
+
+    client = TestClient(create_asgi_app(app))
+
+    with client.websocket_connect("/events?path=/large") as websocket:
+        full = websocket.receive_json()
+        assert full["type"] == "full"
+
+        websocket.send_json({"type": "navigate", "path": "/compact"})
+        first_compact_patch = websocket.receive_json()
+
+        websocket.send_json({"type": "navigate", "path": "/large"})
+        large_patch = websocket.receive_json()
+
+        websocket.send_json({"type": "navigate", "path": "/compact"})
+        second_compact_patch = websocket.receive_json()
+
+    assert first_compact_patch["type"] == "patch"
+    removals = [
+        item["path"]
+        for item in first_compact_patch["patches"]
+        if item["op"] == "remove"
+    ]
+    assert removals == [[1, 0, 4], [1, 0, 3], [1, 0, 2], [1, 0, 1]]
+    assert [
+        item["path"] for item in large_patch["patches"] if item["op"] == "insert"
+    ] == [[1, 0, 1], [1, 0, 2], [1, 0, 3], [1, 0, 4]]
+    assert [
+        item["path"]
+        for item in second_compact_patch["patches"]
+        if item["op"] == "remove"
+    ] == removals
+
+
+def test_websocket_sessions_navigate_independently_with_valid_patch_order():
+    app = App()
+
+    @app.page("/large", title="Large")
+    def large():
+        return db.Column([db.Text(f"Large {index}") for index in range(5)])
+
+    @app.page("/compact", title="Compact")
+    def compact():
+        return db.Column([db.Text("Compact")])
+
+    client = TestClient(create_asgi_app(app))
+
+    with (
+        client.websocket_connect("/events?path=/large") as first,
+        client.websocket_connect("/events?path=/large") as second,
+    ):
+        assert first.receive_json()["type"] == "full"
+        assert second.receive_json()["type"] == "full"
+
+        first.send_json({"type": "navigate", "path": "/compact"})
+        first_patch = first.receive_json()
+
+        second.send_json({"type": "navigate", "path": "/compact"})
+        second_patch = second.receive_json()
+
+    expected = [[1, 0, 4], [1, 0, 3], [1, 0, 2], [1, 0, 1]]
+    assert [
+        item["path"] for item in first_patch["patches"] if item["op"] == "remove"
+    ] == expected
+    assert [
+        item["path"] for item in second_patch["patches"] if item["op"] == "remove"
+    ] == expected
+
+
 def test_extract_event_payload_unwraps_single_value():
     from brickflowui.server import _extract_event_payload
 
@@ -534,6 +652,19 @@ def test_extract_event_payload_unwraps_single_value():
     assert _extract_event_payload({"value": ["bronze", "silver"]}) == ["bronze", "silver"]
     assert _extract_event_payload({"value": {"start": "2026-04-01", "end": "2026-04-07"}}) == {"start": "2026-04-01", "end": "2026-04-07"}
     assert _extract_event_payload({"a": 1, "b": 2}) == {"a": 1, "b": 2}
+
+
+def test_event_handler_resolution_accepts_immediately_previous_generation():
+    from brickflowui.server import _resolve_event_handler
+
+    def previous_handler(value):
+        return value
+
+    assert _resolve_event_handler(
+        "previous-id",
+        {"current-id": lambda value: value},
+        {"previous-id": previous_handler},
+    ) is previous_handler
 
 
 def test_multiselect_event_payload_updates_state_and_rerenders():
@@ -833,6 +964,40 @@ def test_websocket_sends_event_complete_for_non_dirty_handlers():
 
     assert touched["count"] == 1
     assert completion == {"type": "event_complete", "event_id": event_id}
+
+
+def test_event_handler_signature_is_cached_for_repeated_events(monkeypatch):
+    app = App()
+    touched = {"count": 0}
+    signature_count = {"value": 0}
+    original_signature = server.inspect.signature
+
+    def counted_signature(handler):
+        signature_count["value"] += 1
+        return original_signature(handler)
+
+    def ping():
+        touched["count"] += 1
+
+    @app.page("/")
+    def home():
+        return db.Button("Ping", on_click=ping)
+
+    client = TestClient(create_asgi_app(app))
+    monkeypatch.setattr(server.inspect, "signature", counted_signature)
+
+    with client.websocket_connect("/events") as websocket:
+        full = websocket.receive_json()
+        event_id = full["tree"]["props"]["click"]
+
+        websocket.send_json({"type": "event", "event_id": event_id, "data": {}})
+        assert websocket.receive_json() == {"type": "event_complete", "event_id": event_id}
+
+        websocket.send_json({"type": "event", "event_id": event_id, "data": {}})
+        assert websocket.receive_json() == {"type": "event_complete", "event_id": event_id}
+
+    assert touched["count"] == 2
+    assert signature_count["value"] == 1
 
 
 def test_previous_render_event_handler_remains_valid_for_one_generation():

@@ -1,25 +1,23 @@
-export interface CsvColumn {
+export type CsvColumn = {
   label: unknown
   key: string
 }
 
-const DANGEROUS_SPREADSHEET_VALUE = /^(?:[\t\r]|\s*[=+\-@])/
+const SPREADSHEET_FORMULA_PREFIX = /^(?:[=+\-@\t\r]|[ \f\v]+[=+\-@\t\r])/
 
-function quoteField(value: unknown, neutralizeFormula: boolean): string {
-  let text = String(value ?? '')
-  if (neutralizeFormula && DANGEROUS_SPREADSHEET_VALUE.test(text)) {
-    text = `'${text}`
-  }
-  return `"${text.split('"').join('""')}"`
+function encodeCell(value: unknown): string {
+  const raw = String(value ?? '')
+  const safe = SPREADSHEET_FORMULA_PREFIX.test(raw) ? `'${raw}` : raw
+  return `"${safe.split('"').join('""')}"`
 }
 
 export function serializeCsv(
   columns: CsvColumn[],
-  rows: Array<Record<string, unknown>>,
+  rows: Record<string, unknown>[],
 ): string {
-  const header = columns.map(column => quoteField(column.label, false)).join(',')
+  const header = columns.map(column => encodeCell(column.label)).join(',')
   const body = rows.map(row => (
-    columns.map(column => quoteField(row[column.key], true)).join(',')
+    columns.map(column => encodeCell(row[column.key])).join(',')
   ))
   return `\uFEFF${[header, ...body].join('\r\n')}`
 }

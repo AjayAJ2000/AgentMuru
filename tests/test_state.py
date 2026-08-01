@@ -1,7 +1,7 @@
 import pytest
+import brickflowui.state as state
 from brickflowui.state import (
     RenderContext,
-    reset_render_context,
     set_context,
     set_render_context,
     use_effect,
@@ -14,7 +14,7 @@ def ctx():
     c = RenderContext(session_id="test-session")
     token = set_render_context(c)
     yield c
-    set_render_context(None)
+    state.reset_render_context(token)
 
 def test_use_state_initial(ctx):
     val, setter = use_state(42)
@@ -78,7 +78,6 @@ def test_use_memo(ctx):
 
 def test_use_effect_lifecycle(ctx):
     mounted = False
-    cleanup_called = False
     
     def on_mount():
         nonlocal mounted
@@ -123,9 +122,7 @@ def test_reset_render_context_restores_previous_context():
     outer_token = set_render_context(outer)
     try:
         inner_token = set_render_context(inner)
-        reset_render_context(inner_token)
-        from brickflowui.state import get_context
-
-        assert get_context() is outer
+        state.reset_render_context(inner_token)
+        assert state.get_context() is outer
     finally:
-        reset_render_context(outer_token)
+        state.reset_render_context(outer_token)

@@ -5,11 +5,12 @@ from pathlib import Path
 import brickflowui as db
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-LOCAL_LOGO = REPO_ROOT / "docs" / "assets" / "brickflowui-mark.svg"
+EXAMPLE_ROOT = Path(__file__).parent
+LOCAL_LOGO = EXAMPLE_ROOT / "assets" / "brickflowui-mark.svg"
 
 app = db.App(
     title="BrickflowUI Component Studio",
+    asset_roots=[EXAMPLE_ROOT],
     logo=str(LOCAL_LOGO) if LOCAL_LOGO.exists() else None,
     favicon=str(LOCAL_LOGO) if LOCAL_LOGO.exists() else None,
     loading={
@@ -137,7 +138,7 @@ def studio():
                     "Component Studio for Real BrickflowUI Apps",
                     subtitle="This app is intentionally interactive. Use it as a living reference for layouts, forms, motion, media, charts, pipeline views, and assistant-style UX.",
                     eyebrow="Documentation-quality example",
-                    badges=[db.Badge("0.1.13", color="orange"), db.Badge("Responsive", color="green")],
+                    badges=[db.Badge("Supported surface", color="orange"), db.Badge("Responsive", color="green")],
                     actions=[
                         db.Button("Open detail drawer", on_click=lambda: set_detail_open(True), animated=True, animation="fade-up"),
                         db.Button("Trigger toast", on_click=lambda: set_toast_visible(True), variant="secondary"),
@@ -377,5 +378,3 @@ def studio():
 
 if __name__ == "__main__":
     app.run()
-
-

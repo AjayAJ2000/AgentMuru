@@ -4,7 +4,7 @@ This folder is not the primary source of truth.
 
 The canonical, high-context reference for AI coding tools is:
 
-- [SKILL.md](D:\Projects\brickflowUI\brickflowUI\SKILL.md)
+- [SKILL.md](../SKILL.md)
 
 That root file explains:
 - the BrickflowUI runtime model

@@ -1,7 +1,8 @@
 import React, { startTransition, useState, useEffect, useCallback, useRef } from 'react'
 import { Renderer } from './Renderer'
 import type { VNodeData, ServerMessage } from './types'
-import { PatchApplicationError, applyPatches } from './runtime/applyPatch'
+import { applyPatches, PatchApplicationError } from './runtime/applyPatch'
+import { parseBootstrapData } from './runtime/bootstrap'
 import { navigationAction, type NavigationSource } from './runtime/navigation'
 import { createReconnectController } from './runtime/reconnect'
 import { safeMediaUrl } from './runtime/media'
@@ -30,19 +31,11 @@ declare global {
   }
 }
 
-function readLoadingBootstrap(): LoadingBootstrap {
-  const dataElement = document.getElementById('brickflow-bootstrap')
-  if (dataElement?.textContent) {
-    try {
-      return JSON.parse(dataElement.textContent) as LoadingBootstrap
-    } catch (error) {
-      console.error('[BrickflowUI] Invalid bootstrap configuration', error)
-    }
-  }
-  return window.__BRICKFLOW_BOOTSTRAP__ || {}
-}
-
-const LOADING_BOOTSTRAP: LoadingBootstrap = readLoadingBootstrap()
+const bootstrapData = document.getElementById('__BRICKFLOW_BOOTSTRAP__')?.textContent || null
+const LOADING_BOOTSTRAP: LoadingBootstrap = parseBootstrapData(
+  bootstrapData,
+  window.__BRICKFLOW_BOOTSTRAP__ || {},
+)
 
 function resolveLoadingConfig(mode: 'light' | 'dark'): LoadingBootstrap {
   const modeOverrides = LOADING_BOOTSTRAP.modes?.[mode] || {}
@@ -177,15 +170,16 @@ export default function App() {
     }
   }, [])
 
-  const navigateTo = useCallback((path: string, source: NavigationSource) => {
+  const navigateFrom = useCallback((path: string, source: NavigationSource) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      const action = navigationAction(path, source)
+      const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
+      const action = navigationAction(path, source, currentPath)
       wsRef.current.send(JSON.stringify(action.message))
       if (action.history === 'push') window.history.pushState({}, '', path)
     }
   }, [])
 
-  const navigate = useCallback((path: string) => navigateTo(path, 'user'), [navigateTo])
+  const navigate = useCallback((path: string) => navigateFrom(path, 'user'), [navigateFrom])
 
   useEffect(() => {
     document.documentElement.dataset.themeMode = themeMode
@@ -244,6 +238,10 @@ export default function App() {
           }
         } catch (err) {
           console.error('[BrickflowUI] Failed to parse server message', err)
+          if (err instanceof PatchApplicationError) {
+            setError(`Runtime protocol error: ${err.message}. Reconnecting...`)
+            ws.close()
+          }
         }
       }
 
@@ -263,7 +261,7 @@ export default function App() {
     const reconnectController = createReconnectController(connect)
     connect()
 
-    const handlePopstate = () => navigateTo(
+    const handlePopstate = () => navigateFrom(
       `${window.location.pathname}${window.location.search}${window.location.hash}`,
       'popstate',
     )
@@ -277,7 +275,7 @@ export default function App() {
       wsRef.current?.close()
       window.removeEventListener('popstate', handlePopstate)
     }
-  }, [navigateTo, scheduleTreeCommit])
+  }, [navigateFrom, scheduleTreeCommit])
 
   if (!vdom) {
     return <LoadingVisual status={status} themeMode={themeMode} />

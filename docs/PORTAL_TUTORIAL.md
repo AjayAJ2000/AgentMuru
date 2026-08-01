@@ -340,8 +340,8 @@ After this tutorial, open these examples:
 
 - `component_studio`
 - `clinical_trial_command_center`
-- `secure_internal_tools`
-- `pipeline_observability_015`
-- `workspace_studio`
+- `data_pipeline_command_center`
+- `auth_portal`
+- `chatbot_workspace`
 
 Each one is opinionated on purpose. The goal is to show how teams actually build portals, not just how to render a button.

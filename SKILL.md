@@ -1159,11 +1159,11 @@ env:
 ### 9.3 `requirements.txt`
 
 ```
-# From PyPI (recommended for stable releases):
-brickflowui>=0.1.4
+# From PyPI (supported release range):
+brickflowui>=0.1.17,<0.3
 
-# From GitHub tag (for specific version):
-brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.4
+# Include Databricks integrations when the app uses them:
+brickflowui[databricks]>=0.1.17,<0.3
 
 # From main branch (for latest):
 brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@main

@@ -1,11 +1,8 @@
-from importlib.metadata import PackageNotFoundError, version
+"""BrickflowUI runtime version.
 
+Keep this value aligned with ``project.version`` in ``pyproject.toml``. A
+source checkout must not inherit the version of an unrelated globally
+installed distribution.
+"""
 
-def _detect_version() -> str:
-    try:
-        return version("brickflowui")
-    except PackageNotFoundError:
-        return "0.1.13"
-
-
-__version__ = _detect_version()
+__version__ = "0.1.17"

@@ -1,6 +1,6 @@
 ﻿# Polish Guide
 
-BrickflowUI `0.1.12` is focused on making the framework more dependable, more polished, and more capable without forcing API churn.
+BrickflowUI `0.1.13` focuses on making the framework more dependable, more polished, and more capable without forcing API churn.
 
 ## What changed
 
@@ -68,5 +68,4 @@ The polish layer was shipped with reliability in mind:
 - object-style input payloads such as date ranges are preserved
 - charts support loading and empty states directly
 - table exports do not change existing table behavior unless enabled
-
 

@@ -6,7 +6,7 @@ Use this skill when the goal is a geometry-led, glassmorphism-heavy, image-led,
 editorial, or product-showcase surface rather than a traditional operator
 dashboard.
 
-Read the repo-root [SKILL.md](D:\Projects\brickflowUI\brickflowUI\SKILL.md)
+Read the repo-root [SKILL.md](../../SKILL.md)
 first. This file is the design-led overlay.
 
 ## Mission
@@ -35,13 +35,15 @@ Optimize for:
 3. product evaluators testing whether BrickflowUI can move beyond admin UI
 4. engineers proving that Python-first authoring can still deliver deliberate UI
 
-## Baseline example
+## Maintained references
 
-Start from:
+Use these maintained sources to stay inside the supported design system:
 
-- `examples/geometric_signal_lab/app.py`
+- `examples/component_studio/app.py` for layout, media, motion, loading, and interactive surface patterns
+- `examples/data_pipeline_command_center/app.py` for a cohesive product shell and responsive operational hierarchy
+- `docs/THEMING.md` for color, typography, spacing, radius, shadow, branding, and light/dark tokens
 
-That example is the current proof point for:
+Combine those supported patterns when the target calls for:
 
 - rounded shell
 - pill navigation
@@ -170,7 +172,7 @@ Then compare the result against the reference on a desktop viewport first.
 
 - "Use the BrickflowUI geometric UI skill and rebuild this reference as close as possible in a desktop-first composition."
 - "Turn this reference into a premium BrickflowUI showcase and explicitly document which missing primitives prevent inch-perfect fidelity."
-- "Adapt geometric_signal_lab into a closer product-grade match for this reference without breaking the runtime or faking the interactions."
+- "Use maintained BrickflowUI examples and theme tokens to build a product-grade match for this reference without breaking the runtime or faking the interactions."
 
 ## Done means
 

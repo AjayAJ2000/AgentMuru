@@ -18,7 +18,7 @@ import re
 import secrets
 import uuid
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 from urllib.parse import urlparse
 
 import uvicorn
@@ -37,7 +37,7 @@ from .auth import (
     set_current_principal,
 )
 from .state import RenderContext, reset_render_context, set_render_context
-from .vdom import VNode, diff
+from .vdom import EventHandler, VNode, diff
 
 if TYPE_CHECKING:
     from .app import App
@@ -165,6 +165,46 @@ def _extract_event_payload(event_data: object) -> object:
     return event_data
 
 
+def _resolve_event_handler(
+    event_id: object,
+    current: Dict[str, EventHandler],
+    previous: Dict[str, EventHandler],
+) -> Optional[EventHandler]:
+    """Accept events from the active or immediately previous render generation."""
+    if not isinstance(event_id, str):
+        return None
+    return current.get(event_id) or previous.get(event_id)
+
+
+def _event_handler_parameter_count(
+    handler: Callable[..., object],
+    cache: Dict[int, int],
+) -> int:
+    """Return cached handler arity for the latency-sensitive event path."""
+    cache_key = id(handler)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    parameter_count = len(inspect.signature(handler).parameters)
+    cache[cache_key] = parameter_count
+    return parameter_count
+
+
+def _call_event_handler(
+    handler: Callable[..., object],
+    payload: object,
+    call_shape_cache: Dict[int, int],
+) -> object:
+    """Invoke a handler without repeating signature introspection per event."""
+    parameter_count = _event_handler_parameter_count(handler, call_shape_cache)
+    if parameter_count == 0:
+        return handler()
+    if isinstance(payload, dict) and parameter_count > 1:
+        return handler(**payload)
+    return handler(payload)
+
+
 def _is_safe_http_method(method: str) -> bool:
     return method.upper() in {"GET", "HEAD", "OPTIONS", "TRACE"}
 
@@ -183,6 +223,38 @@ def _validate_csrf(request: Request) -> bool:
     return bool(cookie_token and header_token and secrets.compare_digest(cookie_token, header_token))
 
 
+def _head_injections(dbrx_app: "App") -> str:
+    """Build static shell head injections once for this ASGI app instance."""
+    theme_css = _safe_style_text(dbrx_app.theme.to_css_variables())
+    style_block = f"<style id=\"bf-theme-vars\">{theme_css}</style>"
+    favicon_block = (
+        f'<link rel="icon" href="{html.escape(str(dbrx_app.favicon), quote=True)}" />'
+        if dbrx_app.favicon
+        else ""
+    )
+    bootstrap = _safe_json_data(dbrx_app.loading_bootstrap())
+    bootstrap_block = f'<script id="__BRICKFLOW_BOOTSTRAP__" type="application/json">{bootstrap}</script>'
+    injections = [style_block, favicon_block, bootstrap_block]
+    return "\n".join(block for block in injections if block)
+
+
+def _prepare_spa_shell(dbrx_app: "App") -> tuple[str, int]:
+    """Prepare the SPA shell once instead of reading and patching it per request."""
+    head_injections = _head_injections(dbrx_app)
+    index_path = _FRONTEND_DIST / "index.html"
+    if not index_path.exists():
+        return _missing_frontend_shell(head_injections, dbrx_app.title), 503
+
+    shell_html = index_path.read_text(encoding="utf-8")
+    escaped_title = html.escape(str(dbrx_app.title))
+    shell_html = shell_html.replace("<title>BrickflowUI App</title>", f"<title>{escaped_title}</title>")
+    if "</head>" in shell_html:
+        shell_html = shell_html.replace("</head>", f"{head_injections}\n</head>")
+    else:
+        shell_html = f"{head_injections}\n{shell_html}"
+    return shell_html, 200
+
+
 # ---------------------------------------------------------------------------
 # ASGI app factory
 # ---------------------------------------------------------------------------
@@ -190,6 +262,7 @@ def _validate_csrf(request: Request) -> bool:
 
 def create_asgi_app(dbrx_app: "App") -> FastAPI:
     """Create and return the FastAPI ASGI application."""
+    spa_shell_html, spa_shell_status = _prepare_spa_shell(dbrx_app)
     docs_url = "/docs" if dbrx_app.enable_dev_docs else None
     openapi_url = "/openapi.json" if dbrx_app.enable_dev_docs else None
     fastapi_app = FastAPI(
@@ -320,23 +393,25 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
         logger.info(f"[{session_id}] WebSocket connected")
 
         # Create a fresh render context for this session
+        rerender_event = asyncio.Event()
         ctx = RenderContext(
             session_id=session_id,
-            rerender_event=asyncio.Event(),
+            rerender_event=rerender_event,
         )
         dbrx_app._sessions[session_id] = ctx
         dbrx_app._session_paths[session_id] = ws.query_params.get("path") or "/"
         ctx.context["principal"] = principal
 
         # Per-session event handler registry (event_id → callable)
-        handler_registry: Dict[str, callable] = {}
-        previous_handler_registry: Dict[str, callable] = {}
+        handler_registry: Dict[str, EventHandler] = {}
+        previous_handler_registry: Dict[str, EventHandler] = {}
+        handler_call_shape_cache: Dict[int, int] = {}
 
         # ── Helper: render + send full tree ───────────────────────────────
         async def send_full_tree():
             nonlocal handler_registry, previous_handler_registry
-            previous_handler_registry = {}
             handler_registry = {}  # refresh on each full render
+            previous_handler_registry = {}
             render_token = set_render_context(ctx)
             principal_token = set_current_principal(principal)
             try:
@@ -357,7 +432,7 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
         # ── Helper: re-render + send patch ────────────────────────────────
         async def send_patch(old_tree: Optional[VNode]):
             nonlocal handler_registry, previous_handler_registry
-            new_handler_registry: Dict[str, callable] = {}
+            new_handler_registry: Dict[str, EventHandler] = {}
             render_token = set_render_context(ctx)
             principal_token = set_current_principal(principal)
             try:
@@ -387,7 +462,7 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                 completed_event_id: Optional[str] = None
                 # Wait for either an incoming WS message or a dirty flag
                 receive_task = asyncio.ensure_future(ws.receive_text())
-                rerender_task = asyncio.ensure_future(ctx.rerender_event.wait())
+                rerender_task = asyncio.ensure_future(rerender_event.wait())
                 receive_task.add_done_callback(_consume_task_exception)
                 rerender_task.add_done_callback(_consume_task_exception)
 
@@ -416,8 +491,10 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                     if msg_data.get("type") == "event":
                         event_id = msg_data.get("event_id")
                         event_data = msg_data.get("data", {})
-                        handler = handler_registry.get(event_id) or previous_handler_registry.get(
-                            event_id
+                        handler = _resolve_event_handler(
+                            event_id,
+                            handler_registry,
+                            previous_handler_registry,
                         )
                         if handler is not None:
                             try:
@@ -431,13 +508,11 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                                         dbrx_app._session_paths.get(session_id, "/"),
                                     )
                                 principal_token = set_current_principal(principal)
-                                sig = inspect.signature(handler)
-                                if not sig.parameters:
-                                    result = handler()
-                                elif isinstance(payload, dict) and len(sig.parameters) > 1:
-                                    result = handler(**payload)
-                                else:
-                                    result = handler(payload)
+                                result = _call_event_handler(
+                                    handler,
+                                    payload,
+                                    handler_call_shape_cache,
+                                )
 
                                 if inspect.isawaitable(result):
                                     await result
@@ -457,7 +532,7 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                         dbrx_app._navigate(session_id, path)
 
                 if rerender_task in done:
-                    ctx.rerender_event.clear()
+                    rerender_event.clear()
 
                 # If any state change occurred, re-render
                 if ctx.dirty:
@@ -482,37 +557,7 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
         if full_path == "api" or full_path.startswith("api/"):
             raise HTTPException(status_code=404, detail="Not found")
 
-        theme_css = dbrx_app.theme.to_css_variables()
-        style_block = f'<style id="bf-theme-vars">{_safe_style_text(theme_css)}</style>'
-        favicon_block = (
-            f'<link rel="icon" href="{html.escape(dbrx_app.favicon, quote=True)}" />'
-            if dbrx_app.favicon
-            else ""
-        )
-        bootstrap = _safe_json_data(dbrx_app.loading_bootstrap())
-        bootstrap_block = (
-            f'<script id="brickflow-bootstrap" type="application/json">{bootstrap}</script>'
-        )
-        injections = [style_block, favicon_block, bootstrap_block]
-        head_injections = "\n".join(block for block in injections if block)
-        
-        index_path = _FRONTEND_DIST / "index.html"
-        if index_path.exists():
-            shell_html = index_path.read_text(encoding="utf-8")
-            safe_title = html.escape(dbrx_app.title, quote=False)
-            shell_html = shell_html.replace(
-                "<title>BrickflowUI App</title>", f"<title>{safe_title}</title>"
-            )
-            if "</head>" in shell_html:
-                shell_html = shell_html.replace("</head>", f"{head_injections}\n</head>")
-            else:
-                shell_html = f"{head_injections}\n{shell_html}"
-            return HTMLResponse(shell_html)
-            
-        return HTMLResponse(
-            _missing_frontend_diagnostic(dbrx_app.title),
-            status_code=503,
-        )
+        return HTMLResponse(spa_shell_html, status_code=spa_shell_status)
 
     return fastapi_app
 
@@ -801,3 +846,29 @@ def _minimal_html_shell(
 </body>
 </html>
 """.replace("__STYLE_BLOCK__", style_block).replace("__APP_TITLE__", loading_title).replace("__LOADING_MEDIA__", loading_media).replace("__LOADING_SUBTITLE__", subtitle_html).replace("__LOADING_MESSAGE__", loading_message)
+
+
+def _missing_frontend_shell(head_injections: str, title: str) -> str:
+    """Return an honest diagnostic when the packaged React frontend is unavailable."""
+    escaped_title = html.escape(str(title))
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{escaped_title} - Frontend unavailable</title>
+  {head_injections}
+  <style>
+    body {{ font-family: system-ui, sans-serif; margin: 0; background: var(--db-bg, #f8fafc); color: var(--db-text, #0f172a); }}
+    main {{ max-width: 720px; margin: 12vh auto; padding: 32px; border: 1px solid var(--db-border, #cbd5e1); border-radius: 16px; background: var(--db-surface, #fff); }}
+    code {{ padding: 2px 6px; border-radius: 6px; background: var(--db-surface-muted, #f1f5f9); }}
+  </style>
+</head>
+<body>
+  <main role="alert">
+    <h1>BrickflowUI frontend bundle is missing</h1>
+    <p>The server cannot render this application without the packaged React frontend.</p>
+    <p>Install a published BrickflowUI wheel, or run <code>npm ci</code> and <code>npm run build</code> in the <code>frontend</code> directory.</p>
+  </main>
+</body>
+</html>"""

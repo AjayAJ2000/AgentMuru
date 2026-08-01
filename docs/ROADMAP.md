@@ -95,16 +95,45 @@ Expected work:
 
 ## Proposed Release Shape
 
-### `0.1.13`
+### `0.1.15`
 
-Current stability baseline:
+Current stabilization baseline:
 
-- session cleanup, origin checks, trusted-host support, security headers, and safer API fallback behavior
-- nested render-context restoration and deterministic VDOM child-removal ordering
-- explicit missing-frontend diagnostics and HTML-safe shell/bootstrap embedding
-- validated CLI scaffold targets
-- browser-history, patch-protocol, CSV export, and IME regression coverage
-- frontend tests, lint, type-check, build, Python tests, docs drift, and package build as CI gates
+- session-scoped state and effect cleanup
+- token-safe render-context restoration
+- validated WebSocket origins and browser CSRF protection
+- hardened HTML configuration boundaries
+- explicit failure when the packaged frontend bundle is unavailable
+- correct browser Back and Forward navigation
+- validated immutable frontend patch application and reconnect recovery
+- formula-safe CSV export and IME-safe chat input
+- backend and frontend automated test gates
+- Python package, documentation, security, and release workflows
+- identity-safe per-user and shared-app Databricks service adapters
+- functional `CatalogBrowser`, `WarehouseSelector`, and `JobTrigger` contracts
+- bounded local assets and correlation-only browser runtime errors
+
+### `0.1.16`
+
+Current showcase baseline:
+
+- six maintained end-to-end examples backed by a validated manifest
+- a production-style Pipeline Command Center covering operations, reliability,
+  triage, lineage, and assistant workflows
+- browser-verified modal focus restoration and responsive navigation
+- source-checkout launch commands that cannot silently load stale global builds
+- reproducible CI, dependency-audit, package, and installed-wheel release gates
+
+### `0.1.17`
+
+Current end-user hardening baseline:
+
+- Python 3.10–3.13 compatibility gates
+- bounded reconnect and session-resilience validation
+- browser accessibility checks for maintained desktop and mobile journeys
+- safer authentication failures, media URLs, and incremental patch values
+- enforced frontend bundle budgets and complete dependency auditing
+- an explicit read-only procedure for live Databricks release evidence
 
 ### `0.2.0`
 
@@ -139,4 +168,3 @@ Operationally, roadmap work should move through:
 - `main` for production release
 
 That keeps product evolution fast without making public release quality accidental.
-

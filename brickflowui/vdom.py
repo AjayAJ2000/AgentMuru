@@ -10,6 +10,23 @@ EventHandler = Callable[..., None]
 _MISSING = object()
 
 
+def _serialize_prop_value(value: Any, handler_registry: Dict[str, EventHandler]) -> Any:
+    """Convert VNodes nested in a prop into the JSON wire representation."""
+    if isinstance(value, VNode):
+        return value.serialize(handler_registry)
+    if isinstance(value, list):
+        return [_serialize_prop_value(item, handler_registry) for item in value]
+    if isinstance(value, tuple):
+        return [_serialize_prop_value(item, handler_registry) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: _serialize_prop_value(item, handler_registry)
+            for key, item in value.items()
+            if not callable(item)
+        }
+    return value
+
+
 @dataclass
 class VNode:
     """A node in the virtual UI tree."""
@@ -35,13 +52,7 @@ class VNode:
             if callable(v):
                 continue
             
-            # Recursively serialize VNodes found in props
-            if isinstance(v, VNode):
-                safe_props[k] = v.serialize(handler_registry)
-            elif isinstance(v, list) and all(isinstance(item, VNode) for item in v):
-                safe_props[k] = [item.serialize(handler_registry) for item in v]
-            else:
-                safe_props[k] = v
+            safe_props[k] = _serialize_prop_value(v, handler_registry)
 
         return {
             "type": self.type,
@@ -105,6 +116,7 @@ def diff(
 
     # Old gone, new appeared → parent should handle this via InsertChild
     if old is None:
+        assert new is not None
         patches.append({
             "op": "insert",
             "path": path,
@@ -137,7 +149,7 @@ def diff(
         handler_registry[event_id] = handler
         new_event_ids[event_name] = event_id
 
-    prop_diff = {}
+    prop_diff: Dict[str, Any] = {}
     all_keys = (
         set(old_props_no_events.keys())
         | set(new_props_no_events.keys())
@@ -150,22 +162,31 @@ def diff(
         if new_val is _MISSING:
             prop_diff[key] = None
         elif new_val != old_val or key in new_event_ids:
-            prop_diff[key] = new_val
+            prop_diff[key] = _serialize_prop_value(new_val, handler_registry)
 
     if prop_diff:
         patches.append({"op": "update_props", "path": path, "props": prop_diff})
 
-    # Diff shared child slots before structural changes. Extra removals must be
-    # emitted from the end so earlier removals do not shift later patch paths.
+    # Diff children shared by both trees before changing the list shape.
     shared_len = min(len(old.children), len(new.children))
     for i in range(shared_len):
-        patches.extend(diff(old.children[i], new.children[i], handler_registry, path + [i]))
+        patches.extend(
+            diff(old.children[i], new.children[i], handler_registry, path + [i])
+        )
 
-    if len(old.children) > len(new.children):
-        for i in range(len(old.children) - 1, len(new.children) - 1, -1):
-            patches.extend(diff(old.children[i], None, handler_registry, path + [i]))
-    else:
-        for i in range(len(old.children), len(new.children)):
-            patches.extend(diff(None, new.children[i], handler_registry, path + [i]))
+    # Removals must run from the tail toward the shared prefix. Applying a
+    # lower-index removal first would shift later indexes and invalidate the
+    # remaining patch paths.
+    for i in range(len(old.children) - 1, shared_len - 1, -1):
+        patches.append({"op": "remove", "path": path + [i]})
+
+    # Inserts remain valid in ascending order because each insertion extends
+    # the list up to the next target index.
+    for i in range(shared_len, len(new.children)):
+        patches.append({
+            "op": "insert",
+            "path": path + [i],
+            "node": new.children[i].serialize(handler_registry),
+        })
 
     return patches

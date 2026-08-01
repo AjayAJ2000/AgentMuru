@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from brickflowui import components as db_components
+from brickflowui import components as db_components  # noqa: E402 - path bootstrap above
 
 CATALOG_PATH = ROOT / "docs" / "components" / "catalog.md"
 REFERENCE_DIR = ROOT / "docs" / "components" / "reference"
@@ -117,6 +117,11 @@ SPECIAL_NOTES = {
     ],
     "Table": [
         "Table supports loading, export, sorting, pagination, row clicks, and richer cell formats such as `badge`, `status`, `currency`, `progress`, and `image`.",
+    ],
+    "Progress": [
+        "The fill width is calculated as `value / max`, capped at 100 percent.",
+        "Friendly colors map to theme tokens: `blue` uses primary, `green` uses success, `orange` or `yellow` uses warning, and `red` uses error.",
+        "You can also pass an explicit CSS color such as `#2563eb` or `var(--custom-progress)`.",
     ],
     "Plot": [
         "Plot accepts a Plotly figure or a figure dictionary and is the escape hatch for advanced charting that goes beyond the built-in chart set.",
@@ -242,8 +247,8 @@ def sample_arg(component_name: str, param_name: str) -> str:
             "SparklineStat": '[{"day": "Mon", "value": 14}, {"day": "Tue", "value": 12}]',
             "Plot": '{"data": [{"type": "bar", "x": ["Mon"], "y": [24]}]}',
         }
-        fallback_data = '[{"label": "Item", "value": 1}]'
-        return f"data={data_map.get(component_name, fallback_data)}"
+        default_data = '[{"label": "Item", "value": 1}]'
+        return "data=" + data_map.get(component_name, default_data)
     if param_name == "options":
         return 'options=[{"label": "Bronze", "value": "bronze"}, {"label": "Silver", "value": "silver"}]'
     if param_name == "values":
@@ -331,6 +336,7 @@ def build_example(component_name: str, signature: inspect.Signature) -> str:
         "Checkbox": 'db.Checkbox(name="watch_only", label="Only show watchlist", checked=False, on_change=lambda value: None)',
         "Toggle": 'db.Toggle(name="dark_mode", label="Dark mode", checked=True, on_change=lambda value: None)',
         "Slider": 'db.Slider(name="confidence", label="Confidence", min=0, max=100, step=1, value=72, on_change=lambda value: None)',
+        "Progress": 'db.Progress(value=85, label="Pipeline health")',
         "DateRangePicker": 'db.DateRangePicker(name="window", label="Window", start="2026-05-01", end="2026-05-07", on_change=lambda value: None)',
         "MultiSelect": 'db.MultiSelect(name="layers", label="Layers", options=[{"label": "Bronze", "value": "bronze"}, {"label": "Silver", "value": "silver"}], values=["bronze"], on_change=lambda values: None)',
         "Sidebar": 'db.Sidebar([db.NavItem("Dashboard", "/"), db.NavItem("Pipelines", "/pipelines", icon="GitBranch")], brand_name="Acme Analytics", tagline="Built with BrickflowUI")',

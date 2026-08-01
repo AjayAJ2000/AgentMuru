@@ -5,7 +5,7 @@
 Use this skill when an agent needs to start a new BrickflowUI app, reshape an
 existing one, or choose the right example and shell pattern before building.
 
-This skill is not a replacement for the repo-root [SKILL.md](D:\Projects\brickflowUI\brickflowUI\SKILL.md).
+This skill is not a replacement for the repo-root [SKILL.md](../../SKILL.md).
 Read that file first. Then use this skill as the execution overlay for the
 "how do I start correctly?" part.
 
@@ -30,7 +30,7 @@ Optimize for:
 
 ## Non-negotiable rules
 
-- Always start from the closest real example in `examples/` unless the user explicitly wants a fresh surface.
+- Review the closest maintained example in `examples/` and reuse only the patterns that fit the requested product.
 - Use `import brickflowui as db`.
 - Establish the app shell before fine-tuning charts or tables.
 - Every control must change visible state.
@@ -49,7 +49,7 @@ Before building anything, review:
 
 Follow this order unless there is a strong reason not to:
 
-1. Choose the example baseline.
+1. Choose the maintained example references that match the product shape.
 2. Identify the operator's top three questions.
 3. Pick the shell:
    - multipage portal -> `Sidebar`
@@ -61,18 +61,18 @@ Follow this order unless there is a strong reason not to:
 7. Add drilldown or follow-up action.
 8. Only then add extra visual polish.
 
-## Example selection matrix
+## Maintained example reference matrix
 
-Choose the starting point by product shape:
+Choose references by product shape:
 
-- secure internal tool -> `examples/secure_internal_tools/app.py`
+- secure internal tool -> `examples/auth_portal/app.py`
 - data and AI operations portal -> `examples/data_pipeline_command_center/app.py`
-- analytics workspace / buyer-friendly shell -> `examples/acme_analytics_command_center/app.py`
+- regulated multipage workflow -> `examples/clinical_trial_command_center/app.py`
 - broad interactive component coverage -> `examples/component_studio/app.py`
-- premium geometry-led concept -> `examples/geometric_signal_lab/app.py`
-- regression sandbox -> `examples/local_playground/app.py`
+- assistant or copilot workspace -> `examples/chatbot_workspace/app.py`
+- minimal runtime or state check -> `examples/counter/app.py`
 
-If no example fits perfectly, pick the nearest one and explain the tradeoff.
+If no example fits perfectly, combine supported patterns from the nearest maintained references and explain the tradeoff.
 
 ## Shell patterns to prefer
 
@@ -166,9 +166,9 @@ Then run the touched example directly.
 
 ## Prompt shapes
 
-- "Use the BrickflowUI app starter skill and adapt the closest repo example into a data and AI operations portal with a real app shell and drilldown drawer."
-- "Start from the best BrickflowUI baseline for a secure internal AI workspace and implement the first production-grade page."
-- "Build a serious BrickflowUI app surface, not a demo, and explain which example you used as the starting point."
+- "Use the BrickflowUI app starter skill and the maintained examples as references for a data and AI operations portal with a real app shell and drilldown drawer."
+- "Use the maintained BrickflowUI references for a secure internal AI workspace and implement the first production-grade page."
+- "Build a serious BrickflowUI app surface, not a demo, and explain which maintained examples informed the result."
 
 ## Done means
 

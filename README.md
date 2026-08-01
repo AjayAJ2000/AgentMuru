@@ -227,7 +227,7 @@ That gives you a React-style interaction loop while keeping the authoring model 
 Minimum `requirements.txt`:
 
 ```text
-brickflowui>=0.1.13
+brickflowui>=0.1.17
 ```
 
 Install from GitHub:
@@ -264,11 +264,11 @@ If those assets are missing, Databricks Apps often stop at the loading shell.
 
 ## Recommended examples
 
-- [`examples/local_playground/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/local_playground/app.py) for framework validation
+- [`examples/counter/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/counter/app.py) for the fastest framework validation
 - [`examples/component_studio/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/component_studio/app.py) for broad component coverage
-- [`examples/acme_analytics_command_center/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/acme_analytics_command_center/app.py) for a product-style shell
+- [`examples/data_pipeline_command_center/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/data_pipeline_command_center/app.py) for a product-style data operations workflow
 - [`examples/clinical_trial_command_center/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/clinical_trial_command_center/app.py) for a regulated-industry style dashboard
-- [`examples/secure_internal_tools/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/secure_internal_tools/app.py) for role-aware internal tools
+- [`examples/auth_portal/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/auth_portal/app.py) for role-aware internal tools
 
 ## Vibe coding skills
 
@@ -288,13 +288,19 @@ Docs walkthrough:
 Run the core checks:
 
 ```bash
-python -m pytest -q
 cd frontend
+npm ci
+npm test -- --run
+npm run lint
+npm audit --audit-level=high
 npm run build
 cd ..
+python -m pytest -q -p no:cacheprovider
 python -m mkdocs build --strict
 python -m build
 ```
+
+See the [Stability Contract](docs/STABILITY.md), [Release Checklist](docs/RELEASE_CHECKLIST.md), and [Publishing Guide](docs/PUBLISHING.md) before cutting a release.
 
 ## Open source standards
 
@@ -331,4 +337,3 @@ docs/
 ## License
 
 MIT
-

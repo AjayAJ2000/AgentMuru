@@ -14,17 +14,13 @@ This example demonstrates:
 from __future__ import annotations
 
 from pathlib import Path
-import sys
 
 from fastapi import Request, WebSocket
 from fastapi.responses import JSONResponse
 
-APP_DIR = Path(__file__).parent
-REPO_ROOT = APP_DIR.parent.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
 import brickflowui as db
+
+APP_DIR = Path(__file__).parent
 
 
 class DemoCookieAuthProvider:
@@ -106,7 +102,7 @@ def _current_identity_banner() -> db.VNode:
             ),
             db.Spacer(2),
             db.Alert(
-                "Hybrid mode lets the same Astellas portal support user-level access and shared service-principal behavior."
+                "Hybrid mode lets the same BrickflowUI portal support user-level access and shared service-principal behavior."
                 if principal.principal_type == "user"
                 else "This is the fallback mode teams can use for shared operational dashboards or controlled service workflows.",
                 type=tone,
@@ -187,7 +183,7 @@ def home_page():
 
     return db.Column(
         [
-            db.Text("Astellas Access Portal", variant="h1"),
+            db.Text("BrickflowUI Access Portal", variant="h1"),
             db.Text(
                 "A branded test portal for hybrid auth, role checks, and multi-page access control.",
                 muted=True,
@@ -205,9 +201,9 @@ def home_page():
             ),
             db.Card(
                 [
-                    db.Text("Astellas Theme Check", variant="h3"),
-                    db.Text("1. Confirm the portal uses the Astellas-inspired magenta accent across buttons and highlights.", muted=True),
-                    db.Text("2. Verify the app title in the browser tab is 'Astellas Access Portal'.", muted=True),
+                    db.Text("Security UI Theme Check", variant="h3"),
+                    db.Text("1. Confirm the configured accent appears consistently across security actions and status highlights.", muted=True),
+                    db.Text("2. Verify the app title in the browser tab is 'BrickflowUI Access Portal'.", muted=True),
                     db.Text("3. Check the lighter neutral background and white card surfaces feel clean and clinical.", muted=True),
                     db.Spacer(2),
                     db.Text("Access Flow", variant="h3"),
@@ -252,7 +248,7 @@ def workspace_page():
                     db.Badge(", ".join(user.roles) if user.roles else "viewer", color="blue"),
                     db.Spacer(2),
                     db.Text(
-                        "In a real Astellas Databricks app, this is where user-specific dashboards, analytics views, or profile-scoped data would load.",
+                        "In a real Databricks app, this is where user-specific dashboards, analytics views, or profile-scoped data would load.",
                         muted=True,
                     ),
                 ],

@@ -5,7 +5,7 @@
 Use this skill when an app works functionally but still feels rough, laggy,
 inconsistent, visually unfinished, or unconvincing for evaluation.
 
-Read the repo-root [SKILL.md](D:\Projects\brickflowUI\brickflowUI\SKILL.md)
+Read the repo-root [SKILL.md](../../SKILL.md)
 first. This file is the release-quality overlay.
 
 ## Mission

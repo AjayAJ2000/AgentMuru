@@ -1,4 +1,4 @@
-type TimerId = ReturnType<typeof setTimeout>
+type TimerId = number
 type Schedule = (callback: () => void, delay: number) => TimerId
 type Cancel = (timer: TimerId) => void
 
@@ -8,8 +8,8 @@ export function reconnectDelay(attempt: number): number {
 
 export function createReconnectController(
   connect: () => void,
-  schedule: Schedule = setTimeout,
-  cancel: Cancel = clearTimeout,
+  schedule: Schedule = window.setTimeout.bind(window),
+  cancel: Cancel = window.clearTimeout.bind(window),
 ) {
   let attempt = 0
   let timer: TimerId | null = null

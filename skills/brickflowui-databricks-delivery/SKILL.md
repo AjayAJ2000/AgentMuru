@@ -5,7 +5,7 @@
 Use this skill when preparing a BrickflowUI app for Databricks Apps, internal
 managed deployment, packaging review, or enterprise handoff.
 
-Read the repo-root [SKILL.md](D:\Projects\brickflowUI\brickflowUI\SKILL.md)
+Read the repo-root [SKILL.md](../../SKILL.md)
 first. This file is the deployment and delivery overlay.
 
 ## Mission

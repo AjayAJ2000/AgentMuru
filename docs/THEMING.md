@@ -259,4 +259,4 @@ For more art-directed, glassmorphism-heavy, or geometric product surfaces:
 
 The reference example for this style is:
 
-- [`examples/geometric_signal_lab/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/geometric_signal_lab/app.py)
+- [`examples/component_studio/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/component_studio/app.py), which exercises supported theme, media, layout, and motion patterns.

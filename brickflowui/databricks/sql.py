@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 import os
 from contextlib import contextmanager
+from importlib import import_module
 from threading import RLock
 from typing import Any, Dict, Iterator, List, Optional
 from urllib.parse import urlparse
@@ -34,7 +35,7 @@ def _normalized_host(value: str) -> str:
 def _connect(*, principal: Optional[Principal] = None):
     """Create a connector connection for one normalized identity."""
     try:
-        from databricks import sql as db_sql
+        db_sql = import_module("databricks.sql")
     except ImportError:
         raise ImportError(
             "databricks-sql-connector is required for SQL integration. "

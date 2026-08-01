@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "brickflowui"
-version = "0.1.13"
+version = "0.1.17"
 description = "A Databricks-first Python UI framework for building secure dashboards, portals, and web apps with pure Python."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -13,6 +13,8 @@ authors = [{ name = "BrickflowUI Contributors" }]
 keywords = ["databricks", "ui", "dashboard", "portal", "fastapi", "python-framework"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Framework :: AsyncIO",
+    "Framework :: FastAPI",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -20,7 +22,6 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     "Topic :: Software Development :: User Interfaces",
 ]
 
@@ -49,6 +50,7 @@ dev = [
     "httpx>=0.27.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
+    'tomli>=2.0.1; python_version < "3.11"',
 ]
 docs = [
     "mkdocs>=1.6.0",

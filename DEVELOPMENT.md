@@ -20,10 +20,10 @@ Run a single example:
 python examples/counter/app.py
 ```
 
-Or run a fuller showcase:
+Or run the component reference:
 
 ```bash
-python examples/demo_app/app.py
+python examples/component_studio/app.py
 ```
 
 Default app URL:
@@ -36,7 +36,7 @@ Use a different port when needed:
 
 ```powershell
 $env:DATABRICKS_APP_PORT=8061
-python examples/demo_app/app.py
+python examples/component_studio/app.py
 ```
 
 ## Recommended playgrounds
@@ -44,9 +44,9 @@ python examples/demo_app/app.py
 These are the best examples to verify the framework quickly:
 
 ```bash
-python examples/local_playground/app.py
+python examples/counter/app.py
 python examples/component_studio/app.py
-python examples/geometric_signal_lab/app.py
+python examples/data_pipeline_command_center/app.py
 ```
 
 ## Bounded local validation
@@ -112,7 +112,7 @@ Install its browser runtime once with `npx playwright install chromium`.
 
 ```bash
 # Terminal 1
-python examples/demo_app/app.py
+python examples/component_studio/app.py
 
 # Terminal 2
 cd frontend
@@ -198,8 +198,11 @@ frontend/                        React source for maintainers
 `- vite.config.ts
 
 examples/
-|- counter/app.py                Minimal example
-|- local_playground/app.py       Interactive maintainer playground
-|- component_studio/app.py       Broad component coverage
-`- geometric_signal_lab/app.py   Premium geometry-led UI showcase
+|- manifest.json                              Maintained-example inventory
+|- counter/app.py                             Minimal example
+|- component_studio/app.py                    Broad component coverage
+|- data_pipeline_command_center/app.py        Flagship data operations workflow
+|- clinical_trial_command_center/app.py       Authenticated industry workflow
+|- auth_portal/app.py                         Authentication reference
+`- chatbot_workspace/app.py                   Assistant workspace
 ```

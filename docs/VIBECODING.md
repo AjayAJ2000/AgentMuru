@@ -151,7 +151,7 @@ Use skills/brickflowui-databricks-delivery/SKILL.md and make this app deployment
 ### Build a geometric concept surface
 
 ```text
-Use skills/brickflowui-geometric-ui/SKILL.md and adapt examples/geometric_signal_lab/app.py into a premium showcase surface that feels like a real product concept, not a dashboard disguised as one.
+Use skills/brickflowui-geometric-ui/SKILL.md with examples/component_studio/app.py and the documented theme tokens to create a premium showcase surface that feels like a real product concept.
 ```
 
 ## Best practice

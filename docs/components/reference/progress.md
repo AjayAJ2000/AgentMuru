@@ -24,13 +24,14 @@ db.Progress(value: 'float', max: 'float' = 100, label: 'Optional[str]' = None, c
 ```python
 import brickflowui as db
 
-node = db.Progress(value="active", label="Pipeline health")
+node = db.Progress(value=85, label="Pipeline health")
 ```
 
 ## Integration Notes
 
-- This component composes cleanly with layout primitives such as `Card`, `Grid`, `Row`, and `Column`.
-- Prefer controlled state from Python when the value matters to your business logic or backend query layer.
+- The fill width is calculated as `value / max`, capped at 100 percent.
+- Friendly colors map to theme tokens: `blue` uses primary, `green` uses success, `orange` or `yellow` uses warning, and `red` uses error.
+- You can also pass an explicit CSS color such as `#2563eb` or `var(--custom-progress)`.
 
 ## Responsive Notes
 

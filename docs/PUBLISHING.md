@@ -11,34 +11,38 @@ This project is set up so it can be published to GitHub and PyPI as `brickflowui
 
 ## Recommended release checklist
 
-1. Run tests
+Use [Release Checklist](./RELEASE_CHECKLIST.md) as the authoritative end-to-end gate. The condensed publishing sequence is:
 
-```bash
-python -m pytest -q
-```
-
-2. If frontend source changed, rebuild assets
+1. Install locked frontend dependencies and run frontend gates
 
 ```bash
 cd frontend
-npm install
+npm ci
+npm test -- --run
+npm run lint
+npm audit --audit-level=high
 npm run build
 cd ..
 ```
 
-3. Build package artifacts
+2. Run Python and documentation gates
+
+```bash
+python -m pytest -q -p no:cacheprovider
+python scripts/generate_component_reference.py
+git diff --exit-code -- docs/components/reference
+python -m mkdocs build --strict
+```
+
+3. Build and inspect package artifacts
 
 ```bash
 python -m build
-```
-
-4. Validate artifacts
-
-```bash
 python -m twine check dist/*
+python -m zipfile -l dist/brickflowui-0.1.17-py3-none-any.whl
 ```
 
-5. Upload to PyPI
+4. Publish through GitHub trusted publishing. Manual Twine upload is an emergency fallback only when a project-scoped PyPI token is available:
 
 ```bash
 python -m twine upload dist/*
@@ -64,20 +68,28 @@ The workflow is configured to:
 - publish to PyPI with GitHub OIDC trusted publishing
 
 It runs when a GitHub Release is published, and can also be started manually with `workflow_dispatch`.
+Every publish candidate is rejected unless its commit is reachable from `main`.
+
+For a manual workflow run, select the `main` branch. For a GitHub Release, create
+the release tag from the merged `main` commit. Do not publish an unmerged branch,
+detached commit, or tag outside the `main` history.
 
 ## Post-publish smoke test
 
 Users should be able to run:
 
 ```bash
-pip install brickflowui
+python -m pip install --no-cache-dir brickflowui==0.1.17
 ```
 
 Then:
 
 ```python
 import brickflowui as db
+assert db.__version__ == "0.1.17"
 ```
+
+Finally verify the immutable version endpoint: `https://pypi.org/pypi/brickflowui/0.1.17/json`.
 
 ## Packaging notes
 

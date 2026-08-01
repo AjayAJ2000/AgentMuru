@@ -96,7 +96,11 @@ def test_trigger_job_rejects_empty_or_non_numeric_job_ids():
 def test_workspace_client_uses_current_user_token_without_caching(monkeypatch):
     monkeypatch.setenv("DATABRICKS_HOST", "https://workspace.databricks.com")
     calls = []
-    factory = lambda **kwargs: calls.append(kwargs) or object()
+
+    def factory(**kwargs):
+        calls.append(kwargs)
+        return object()
+
     principal = Principal(
         subject="alice",
         principal_type="user",

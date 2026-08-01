@@ -8,8 +8,7 @@ the Databricks SDK or SQL queries as fallback.
 from __future__ import annotations
 
 import logging
-import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger("brickflowui.databricks.uc")
 

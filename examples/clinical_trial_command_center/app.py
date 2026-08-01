@@ -8,8 +8,8 @@ import brickflowui as db
 from brickflowui.databricks.sql import query_to_records
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-LOGO = REPO_ROOT / "docs" / "assets" / "brickflowui-mark.svg"
+EXAMPLE_ROOT = Path(__file__).parent
+LOGO = EXAMPLE_ROOT / "assets" / "brickflowui-mark.svg"
 
 TRIAL_SITE_ROWS = [
     {"site": "Toyama", "patients": 128, "screen_failures": 11, "deviations": 2, "risk": "Low"},
@@ -50,6 +50,7 @@ ROLE_HINT = "Use x-brickflow-user-id and x-brickflow-user-roles headers when tes
 
 app = db.App(
     title="Clinical Trial Command Center",
+    asset_roots=[EXAMPLE_ROOT],
     logo=str(LOGO) if LOGO.exists() else None,
     favicon=str(LOGO) if LOGO.exists() else None,
     auth_mode="user",

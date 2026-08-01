@@ -6,7 +6,7 @@ Use this skill when the target surface is an operational portal, analytics
 workspace, pipeline command center, AI copilot shell, or governed internal
 application for data and AI teams.
 
-Read the repo-root [SKILL.md](D:\Projects\brickflowUI\brickflowUI\SKILL.md)
+Read the repo-root [SKILL.md](../../SKILL.md)
 first. This file is the focused overlay for domain-specific structure,
 information architecture, and quality rules.
 
@@ -51,18 +51,17 @@ Before generating UI, answer these in plain terms:
 - next action -> `Drawer`, `Modal`, `Toast`, `Alert`, `Stepper`
 - AI explanation -> `ChatMessage`, `ChatInput`, supporting metrics, timeline, and structured evidence surfaces
 
-## Best starting examples
+## Maintained references
 
-Choose among:
+Choose references according to the workflow:
 
-- `examples/data_pipeline_command_center/app.py`
-- `examples/acme_analytics_command_center/app.py`
-- `examples/workspace_studio/app.py`
-- `examples/clinical_trial_command_center/app.py`
-- `examples/secure_internal_tools/app.py`
+- data operations, filters, reliability, triage, and safe SQL fallback -> `examples/data_pipeline_command_center/app.py`
+- governed multipage workflows and role-aware data access -> `examples/clinical_trial_command_center/app.py`
+- authentication, sessions, roles, and access denial -> `examples/auth_portal/app.py`
+- assistant composition, pending states, and response traces -> `examples/chatbot_workspace/app.py`
+- component breadth and design exploration -> `examples/component_studio/app.py`
 
-Use `examples/geometric_signal_lab/app.py` only when the page is supposed to be
-visually premium and image-led, not when the main need is operator density.
+Use the references to select proven patterns; keep the new portal's information architecture specific to its operators and decisions.
 
 ## Information architecture
 

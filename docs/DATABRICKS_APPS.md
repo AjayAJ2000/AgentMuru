@@ -44,13 +44,13 @@ Important:
 Install from PyPI:
 
 ```text
-brickflowui>=0.1.13
+brickflowui>=0.1.17
 ```
 
 Install directly from GitHub:
 
 ```text
-brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.13
+brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.17
 ```
 
 Install a branch from GitHub:
@@ -116,6 +116,3 @@ app = db.App(
 ```
 
 The runtime serves those files automatically, so this now works in Databricks Apps without asking you to wire a separate static route yourself.
-
-
-

@@ -124,16 +124,19 @@ def test_new_command_reports_permission_errors_cleanly(monkeypatch):
 @pytest.mark.parametrize("name", ["../escape", "child/name", r"child\name", ".", "CON"])
 def test_new_command_rejects_unsafe_project_names(monkeypatch, name):
     repo_root = Path(__file__).resolve().parents[1]
-    scratch_dir = repo_root / f"_tmp_cli_{uuid.uuid4().hex[:8]}"
+    suffix = uuid.uuid4().hex[:8]
+    scratch_dir = repo_root / f"_tmp_cli_{suffix}"
+    escaped_dir = repo_root / "escape"
 
     try:
         scratch_dir.mkdir()
         monkeypatch.setattr(Path, "cwd", lambda: scratch_dir)
 
-        result = runner.invoke(app, ["new", name])
+        result = runner.invoke(app, ["new", name], catch_exceptions=False)
 
         assert result.exit_code == 2
         assert "single safe directory name" in result.output
         assert list(scratch_dir.iterdir()) == []
     finally:
         shutil.rmtree(scratch_dir, ignore_errors=True)
+        shutil.rmtree(escaped_dir, ignore_errors=True)
