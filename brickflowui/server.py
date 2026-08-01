@@ -14,10 +14,11 @@ import html
 import inspect
 import json
 import logging
+import re
 import secrets
 import uuid
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 from urllib.parse import urlparse
 
 import uvicorn
@@ -35,7 +36,7 @@ from .auth import (
     resolve_principal,
     set_current_principal,
 )
-from .state import RenderContext, set_render_context
+from .state import RenderContext, reset_render_context, set_render_context
 from .vdom import VNode, diff
 
 if TYPE_CHECKING:
@@ -68,12 +69,62 @@ def _patch_msg(patches: list, dbrx_app: "App") -> str:
     return json.dumps({"type": "patch", "patches": dbrx_app.transform_serialized_tree(patches)})
 
 
-def _error_msg(message: str) -> str:
-    return json.dumps({"type": "error", "message": message})
+def _serialize_patch_values(value: Any, handler_registry: dict) -> Any:
+    """Convert VNodes nested in incremental prop patches to wire-safe values."""
+    if isinstance(value, VNode):
+        return value.serialize(handler_registry)
+    if isinstance(value, (list, tuple)):
+        return [_serialize_patch_values(item, handler_registry) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: _serialize_patch_values(item, handler_registry)
+            for key, item in value.items()
+        }
+    return value
+
+
+def _error_msg(message: str, error_id: Optional[str] = None) -> str:
+    payload = {"type": "error", "message": message}
+    if error_id:
+        payload["error_id"] = error_id
+    return json.dumps(payload)
+
+
+def _log_correlated_exception(context: str) -> str:
+    """Log the active exception privately and return a safe correlation ID."""
+    error_id = uuid.uuid4().hex
+    logger.exception("%s error_id=%s", context, error_id)
+    return error_id
+
+
+def _runtime_error_msg(session_id: str, context: str) -> str:
+    """Log a private exception trace and return a safe correlated browser message."""
+    error_id = _log_correlated_exception(f"[{session_id}] {context}")
+    return _error_msg(
+        f"Something went wrong. Reference error ID {error_id} when contacting support.",
+        error_id,
+    )
 
 
 def _event_complete_msg(event_id: str) -> str:
     return json.dumps({"type": "event_complete", "event_id": event_id})
+
+
+def _safe_json_data(value: object) -> str:
+    """Encode JSON so it cannot terminate its containing HTML data element."""
+    return (
+        json.dumps(value)
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
+
+
+def _safe_style_text(value: str) -> str:
+    """Prevent developer-supplied theme CSS from closing the style element."""
+    return re.sub(r"</(?=style)", r"<\\/", value, flags=re.IGNORECASE)
 
 
 def _consume_task_exception(task: asyncio.Task) -> None:
@@ -180,10 +231,14 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                 allow_anonymous=dbrx_app.allow_anonymous,
                 source=request,
             )
-        except AuthenticationRequired as exc:
-            if request.url.path == "api" or request.url.path.startswith("/api/"):
-                return JSONResponse({"detail": str(exc)}, status_code=401)
-            raise
+        except AuthenticationRequired:
+            return JSONResponse({"detail": "Authentication required."}, status_code=401)
+        except Exception:
+            error_id = _log_correlated_exception("HTTP authentication failure")
+            return JSONResponse(
+                {"detail": "Authentication failed.", "error_id": error_id},
+                status_code=500,
+            )
         request.state.brickflow_principal = principal
         token = set_current_principal(principal)
         try:
@@ -240,13 +295,24 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
             await ws.close(code=1008)
             return
 
-        principal = resolve_principal(
-            auth_mode=dbrx_app.auth_mode,
-            auth_provider=dbrx_app.auth_provider,
-            app_principal=dbrx_app.app_principal,
-            allow_anonymous=dbrx_app.allow_anonymous,
-            source=ws,
-        )
+        try:
+            principal = resolve_principal(
+                auth_mode=dbrx_app.auth_mode,
+                auth_provider=dbrx_app.auth_provider,
+                app_principal=dbrx_app.app_principal,
+                allow_anonymous=dbrx_app.allow_anonymous,
+                source=ws,
+            )
+        except AuthenticationRequired:
+            await ws.close(code=1008)
+            return
+        except Exception:
+            error_id = _log_correlated_exception("WebSocket authentication failure")
+            await ws.close(
+                code=1011,
+                reason=f"Authentication failed. Reference error ID {error_id}.",
+            )
+            return
 
         await ws.accept()
 
@@ -264,10 +330,12 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
 
         # Per-session event handler registry (event_id → callable)
         handler_registry: Dict[str, callable] = {}
+        previous_handler_registry: Dict[str, callable] = {}
 
         # ── Helper: render + send full tree ───────────────────────────────
         async def send_full_tree():
-            nonlocal handler_registry
+            nonlocal handler_registry, previous_handler_registry
+            previous_handler_registry = {}
             handler_registry = {}  # refresh on each full render
             render_token = set_render_context(ctx)
             principal_token = set_current_principal(principal)
@@ -279,17 +347,16 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                 msg = _full_tree_msg(vnode, handler_registry, dbrx_app)
                 await ws.send_text(msg)
                 return vnode
-            except Exception as exc:
-                logger.exception(f"[{session_id}] Render error")
-                await ws.send_text(_error_msg(str(exc)))
+            except Exception:
+                await ws.send_text(_runtime_error_msg(session_id, "Render error"))
                 return None
             finally:
-                set_render_context(None)
+                reset_render_context(render_token)
                 reset_current_principal(principal_token)
 
         # ── Helper: re-render + send patch ────────────────────────────────
         async def send_patch(old_tree: Optional[VNode]):
-            nonlocal handler_registry
+            nonlocal handler_registry, previous_handler_registry
             new_handler_registry: Dict[str, callable] = {}
             render_token = set_render_context(ctx)
             principal_token = set_current_principal(principal)
@@ -299,16 +366,17 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                 ctx.run_effects()
                 ctx.dirty = False
                 patches = diff(old_tree, new_tree, new_handler_registry)
+                patches = _serialize_patch_values(patches, new_handler_registry)
+                previous_handler_registry = handler_registry
                 handler_registry = new_handler_registry
                 if patches:
                     await ws.send_text(_patch_msg(patches, dbrx_app))
                 return new_tree
-            except Exception as exc:
-                logger.exception(f"[{session_id}] Re-render error")
-                await ws.send_text(_error_msg(str(exc)))
+            except Exception:
+                await ws.send_text(_runtime_error_msg(session_id, "Re-render error"))
                 return old_tree
             finally:
-                set_render_context(None)
+                reset_render_context(render_token)
                 reset_current_principal(principal_token)
 
         current_tree = await send_full_tree()
@@ -348,7 +416,9 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                     if msg_data.get("type") == "event":
                         event_id = msg_data.get("event_id")
                         event_data = msg_data.get("data", {})
-                        handler = handler_registry.get(event_id)
+                        handler = handler_registry.get(event_id) or previous_handler_registry.get(
+                            event_id
+                        )
                         if handler is not None:
                             try:
                                 payload = _extract_event_payload(event_data)
@@ -371,9 +441,13 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
 
                                 if inspect.isawaitable(result):
                                     await result
-                            except Exception as exc:
-                                logger.exception(f"[{session_id}] Handler error for {event_id}")
-                                await ws.send_text(_error_msg(str(exc)))
+                            except Exception:
+                                await ws.send_text(
+                                    _runtime_error_msg(
+                                        session_id,
+                                        f"Handler error for {event_id}",
+                                    )
+                                )
                             finally:
                                 reset_current_principal(principal_token)
                                 completed_event_id = str(event_id)
@@ -409,24 +483,36 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
             raise HTTPException(status_code=404, detail="Not found")
 
         theme_css = dbrx_app.theme.to_css_variables()
-        style_block = f"<style id=\"bf-theme-vars\">{theme_css}</style>"
-        favicon_block = f'<link rel="icon" href="{dbrx_app.favicon}" />' if dbrx_app.favicon else ""
-        bootstrap = json.dumps(dbrx_app.loading_bootstrap())
-        bootstrap_block = f"<script>window.__BRICKFLOW_BOOTSTRAP__ = {bootstrap};</script>"
+        style_block = f'<style id="bf-theme-vars">{_safe_style_text(theme_css)}</style>'
+        favicon_block = (
+            f'<link rel="icon" href="{html.escape(dbrx_app.favicon, quote=True)}" />'
+            if dbrx_app.favicon
+            else ""
+        )
+        bootstrap = _safe_json_data(dbrx_app.loading_bootstrap())
+        bootstrap_block = (
+            f'<script id="brickflow-bootstrap" type="application/json">{bootstrap}</script>'
+        )
         injections = [style_block, favicon_block, bootstrap_block]
         head_injections = "\n".join(block for block in injections if block)
         
         index_path = _FRONTEND_DIST / "index.html"
         if index_path.exists():
-            html = index_path.read_text(encoding="utf-8")
-            html = html.replace("<title>BrickflowUI App</title>", f"<title>{dbrx_app.title}</title>")
-            if "</head>" in html:
-                html = html.replace("</head>", f"{head_injections}\n</head>")
+            shell_html = index_path.read_text(encoding="utf-8")
+            safe_title = html.escape(dbrx_app.title, quote=False)
+            shell_html = shell_html.replace(
+                "<title>BrickflowUI App</title>", f"<title>{safe_title}</title>"
+            )
+            if "</head>" in shell_html:
+                shell_html = shell_html.replace("</head>", f"{head_injections}\n</head>")
             else:
-                html = f"{head_injections}\n{html}"
-            return HTMLResponse(html)
+                shell_html = f"{head_injections}\n{shell_html}"
+            return HTMLResponse(shell_html)
             
-        return HTMLResponse(_minimal_html_shell(head_injections, dbrx_app.title, dbrx_app.loading_bootstrap()))
+        return HTMLResponse(
+            _missing_frontend_diagnostic(dbrx_app.title),
+            status_code=503,
+        )
 
     return fastapi_app
 
@@ -477,11 +563,33 @@ def _mount_custom_routes(fastapi_app: FastAPI, dbrx_app: "App"):
 # ---------------------------------------------------------------------------
 
 
+def _missing_frontend_diagnostic(title: str) -> str:
+    """Return an explicit non-functional diagnostic for an incomplete install."""
+    safe_title = html.escape(title, quote=False)
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{safe_title} - frontend unavailable</title>
+</head>
+<body>
+  <main>
+    <h1>BrickflowUI frontend bundle is missing</h1>
+    <p>The packaged React assets required to run this application were not found.</p>
+    <p>Install a complete BrickflowUI wheel, or run <code>npm ci &amp;&amp; npm run build</code>
+       from the <code>frontend</code> directory before starting the source checkout.</p>
+  </main>
+</body>
+</html>"""
+
+
 def _minimal_html_shell(
     style_block: str = "",
     title: str = "BrickflowUI App",
     loading: Optional[Dict[str, object]] = None,
 ) -> str:
+    """Render a lightweight fallback shell when the packaged frontend is unavailable."""
     loading = loading or {}
     loading_title = html.escape(str(loading.get("title") or title))
     loading_message = html.escape(str(loading.get("message") or "Connecting to runtime..."))
@@ -498,7 +606,15 @@ def _minimal_html_shell(
         else:
             loading_media = f'<img class="loading-media" src="{escaped_asset}" alt="{loading_title} loading" />'
     elif not bool(loading.get("textOnly")):
-        loading_media = '<div class="spinner"></div>'
+        loading_media = (
+            '<div class="loading-mark" aria-hidden="true">'
+            '<div class="loading-mark-tile">'
+            '<span class="loading-mark-bar loading-mark-bar-long"></span>'
+            '<span class="loading-mark-bar loading-mark-bar-medium"></span>'
+            '<span class="loading-mark-bar loading-mark-bar-short"></span>'
+            "</div>"
+            "</div>"
+        )
 
     subtitle_html = (
         f'<div class="loading-subtitle">{html.escape(loading_subtitle)}</div>'
@@ -537,6 +653,39 @@ def _minimal_html_shell(
       flex: 1;
       gap: 16px;
     }}
+    .loading-mark {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at top, color-mix(in srgb, var(--db-primary) 12%, transparent), transparent 68%),
+        color-mix(in srgb, var(--db-surface) 90%, transparent);
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
+      border: 1px solid color-mix(in srgb, var(--db-primary) 18%, var(--db-border));
+    }}
+    .loading-mark-tile {{
+      width: 84px;
+      height: 84px;
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--db-primary) 10%, var(--db-surface));
+      border: 1px solid color-mix(in srgb, var(--db-primary) 24%, var(--db-border));
+      display: grid;
+      align-content: center;
+      gap: 7px;
+      padding: 0 16px;
+    }}
+    .loading-mark-bar {{
+      display: block;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--db-primary), color-mix(in srgb, var(--db-primary) 64%, white));
+      box-shadow: 0 8px 18px color-mix(in srgb, var(--db-primary) 24%, transparent);
+    }}
+    .loading-mark-bar-long {{ width: 44px; }}
+    .loading-mark-bar-medium {{ width: 34px; }}
+    .loading-mark-bar-short {{ width: 26px; }}
     .spinner {{
       width: 40px; height: 40px;
       border: 3px solid var(--db-border);

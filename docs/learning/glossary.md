@@ -34,7 +34,7 @@ A small UI update sent to the browser after state changes.
 
 ## Frontend Assets
 
-The built React frontend served from `brickflowui/frontend/dist`.
+The built React frontend served from [`brickflowui/frontend/dist`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist).
 
 ## MkDocs
 

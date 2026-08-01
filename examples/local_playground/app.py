@@ -58,7 +58,7 @@ def playground():
     search, set_search = db.use_state("")
     layers, set_layers = db.use_state(["bronze"])
     window, set_window = db.use_state({"start": "2026-05-01", "end": "2026-05-07"})
-    dark_mode, set_dark_mode = db.use_state(False)
+    auto_refresh, set_auto_refresh = db.use_state(True)
     loading_demo, set_loading_demo = db.use_state(False)
 
     def toggle_loading_demo():
@@ -71,7 +71,7 @@ def playground():
                 subtitle="Use this app to test responsiveness, theme switching, media, and state-heavy inputs before shipping a bigger portal.",
                 image=str(LOGO) if LOGO.exists() else None,
                 tagline="Designed for fast iteration and regression checks.",
-                badges=[db.Badge("0.1.12", color="orange"), db.Badge("Playground", color="blue")],
+                badges=[db.Badge("0.1.13", color="orange"), db.Badge("Playground", color="blue")],
                 actions=[
                     db.Button("Stop loading" if loading_demo else "Simulate loading", on_click=toggle_loading_demo, loading=loading_demo),
                     db.ThemeToggle(),
@@ -104,12 +104,7 @@ def playground():
                                 end=window["end"],
                                 on_change=set_window,
                             ),
-                            db.Toggle(
-                                name="dark_mode",
-                                label="Dark mode state",
-                                checked=dark_mode,
-                                on_change=set_dark_mode,
-                            ),
+                            db.Toggle(name="auto_refresh", label="Auto refresh", checked=auto_refresh, on_change=set_auto_refresh),
                         ],
                         bordered=True,
                         elevated=True,
@@ -123,7 +118,7 @@ def playground():
                                         f"search = {search!r}",
                                         f"layers = {layers!r}",
                                         f"window = {window!r}",
-                                        f"dark_mode = {dark_mode!r}",
+                                        f"auto_refresh = {auto_refresh!r}",
                                     ]
                                 )
                             ),

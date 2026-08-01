@@ -7,7 +7,7 @@ Highlights compact status labels such as environment, freshness, or risk.
 ## Signature
 
 ```python
-db.Badge(label: 'str', color: 'BadgeColor' = 'blue') -> 'VNode'
+db.Badge(label: 'str', color: 'BadgeColor' = 'blue', style: 'Optional[Dict[str, Any]]' = None, class_name: 'Optional[str]' = None) -> 'VNode'
 ```
 
 ## Parameters
@@ -16,6 +16,8 @@ db.Badge(label: 'str', color: 'BadgeColor' = 'blue') -> 'VNode'
 | --- | --- | --- | --- |
 | `label` | `str` | `required` | |
 | `color` | `BadgeColor` | `'blue'` | |
+| `style` | `Optional[Dict[str, Any]]` | `None` | |
+| `class_name` | `Optional[str]` | `None` | |
 
 ## Example
 

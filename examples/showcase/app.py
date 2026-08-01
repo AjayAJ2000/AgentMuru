@@ -239,4 +239,4 @@ async def handle_submit(request):
     return {"status": "success"}
 
 if __name__ == "__main__":
-    app.run(port=8055)
+    app.run()

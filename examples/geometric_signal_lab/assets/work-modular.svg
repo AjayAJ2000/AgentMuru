@@ -1,0 +1,26 @@
+<svg width="420" height="300" viewBox="0 0 420 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cubeA" x1="118" y1="44" x2="244" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F3E7FF"/>
+      <stop offset="1" stop-color="#79B6FF"/>
+    </linearGradient>
+    <linearGradient id="cubeB" x1="150" y1="72" x2="266" y2="246" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.88"/>
+      <stop offset="1" stop-color="#C3D3FF" stop-opacity="0.4"/>
+    </linearGradient>
+    <filter id="soft" x="72" y="18" width="260" height="250" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#93A6FF" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <g filter="url(#soft)">
+    <rect x="144" y="46" width="112" height="112" rx="28" transform="rotate(12 144 46)" fill="url(#cubeA)" fill-opacity="0.92" stroke="#F8FBFF"/>
+    <rect x="136" y="92" width="126" height="126" rx="32" transform="rotate(12 136 92)" fill="url(#cubeB)" stroke="#DCE6FF"/>
+    <rect x="130" y="144" width="138" height="138" rx="36" transform="rotate(12 130 144)" fill="url(#cubeA)" fill-opacity="0.55" stroke="#DDE7FF"/>
+    <path d="M126 160L212 134L295 187L211 214L126 160Z" fill="#F8EDFF" fill-opacity="0.68" stroke="#E3E8FF"/>
+    <path d="M212 134V213" stroke="#D6E0FF" stroke-width="4"/>
+    <path d="M164 149L246 202" stroke="#D6E0FF" stroke-width="4"/>
+    <circle cx="216" cy="102" r="10" fill="#C5D5FF"/>
+    <circle cx="252" cy="124" r="10" fill="#F5D7FF"/>
+    <circle cx="181" cy="130" r="10" fill="#ADF0FF"/>
+  </g>
+</svg>

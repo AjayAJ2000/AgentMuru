@@ -200,7 +200,7 @@ db.BarChart(
 
 ## Pipeline And App Composition Components
 
-These components were added for richer `0.1.12` dashboards and internal apps:
+These components were added for richer `0.1.13` dashboards and internal apps:
 
 - `db.PipelineGraph(nodes, edges, on_node_click=...)` renders a simple pipeline/DAG-style flow from plain dictionaries.
 - `db.StatusStrip(items=[...])` renders compact signal cards for freshness, SLA, cost, latency, and incident counts.

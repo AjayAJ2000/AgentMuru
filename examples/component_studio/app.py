@@ -137,7 +137,7 @@ def studio():
                     "Component Studio for Real BrickflowUI Apps",
                     subtitle="This app is intentionally interactive. Use it as a living reference for layouts, forms, motion, media, charts, pipeline views, and assistant-style UX.",
                     eyebrow="Documentation-quality example",
-                    badges=[db.Badge("0.1.12", color="orange"), db.Badge("Responsive", color="green")],
+                    badges=[db.Badge("0.1.13", color="orange"), db.Badge("Responsive", color="green")],
                     actions=[
                         db.Button("Open detail drawer", on_click=lambda: set_detail_open(True), animated=True, animation="fade-up"),
                         db.Button("Trigger toast", on_click=lambda: set_toast_visible(True), variant="secondary"),

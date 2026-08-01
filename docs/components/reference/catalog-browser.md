@@ -7,7 +7,7 @@ Browses Unity Catalog catalogs, schemas, and tables.
 ## Signature
 
 ```python
-db.CatalogBrowser(on_select: 'Optional[Callable[[Dict[str, str]], None]]' = None, selected: 'Optional[Dict[str, str]]' = None) -> 'VNode'
+db.CatalogBrowser(on_select: 'Optional[Callable[[Dict[str, str]], None]]' = None, selected: 'Optional[Dict[str, str]]' = None, catalogs: 'Optional[List[Dict[str, Any]]]' = None, loading: 'bool' = False, error: 'Optional[str]' = None, empty_message: 'str' = 'No catalogs available', disabled: 'bool' = False) -> 'VNode'
 ```
 
 ## Parameters
@@ -16,6 +16,11 @@ db.CatalogBrowser(on_select: 'Optional[Callable[[Dict[str, str]], None]]' = None
 | --- | --- | --- | --- |
 | `on_select` | `Optional[Callable[[Dict[str, str]], None]]` | `None` | |
 | `selected` | `Optional[Dict[str, str]]` | `None` | |
+| `catalogs` | `Optional[List[Dict[str, Any]]]` | `None` | |
+| `loading` | `bool` | `False` | |
+| `error` | `Optional[str]` | `None` | |
+| `empty_message` | `str` | `'No catalogs available'` | |
+| `disabled` | `bool` | `False` | |
 
 ## Example
 

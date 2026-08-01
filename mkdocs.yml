@@ -164,15 +164,18 @@ nav:
       - Examples: EXAMPLES.md
       - First App Tutorial: TUTORIAL.md
       - Build A Real Portal: PORTAL_TUTORIAL.md
+      - Geometric UI And Glassmorphism: GEOMETRIC_UI.md
       - Visualizations And Pipelines: VISUALIZATIONS.md
       - Recipes: RECIPES.md
       - Polish Guide: POLISH_GUIDE.md
   - Deploy:
       - Local Development: LOCAL_DEVELOPMENT.md
       - Databricks Apps: DATABRICKS_APPS.md
+      - Databricks Release Validation: DATABRICKS_RELEASE_VALIDATION.md
       - Build Guide: BUILD.md
       - Publishing: PUBLISHING.md
   - Operate:
+      - Stability Contract: STABILITY.md
       - Performance And Scalability: PERFORMANCE.md
       - Auth And Security: AUTH_AND_SECURITY.md
       - Troubleshooting: TROUBLESHOOTING.md

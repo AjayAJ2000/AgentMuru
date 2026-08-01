@@ -5,7 +5,7 @@ import brickflowui as db
 
 app = db.App(
     theme={
-        "branding": {"title": "Pipeline Observability 0.1.12"},
+        "branding": {"title": "Pipeline Observability 0.1.13"},
         "colors": {
             "primary": "#C81E5B",
             "primary_hover": "#A8184A",
@@ -135,8 +135,8 @@ def home():
         [
             db.Hero(
                 title="Pipeline observability for serious internal data apps",
-                subtitle="A 0.1.12 showcase with pipeline graphs, drilldowns, chart variety, kanban triage, and chatbot-style controls.",
-                eyebrow="BrickflowUI 0.1.12",
+                subtitle="A 0.1.13 showcase with pipeline graphs, drilldowns, chart variety, kanban triage, and chatbot-style controls.",
+                eyebrow="BrickflowUI 0.1.13",
                 badges=[db.Badge("Databricks Apps ready", color="green"), db.Badge("Pure Python", color="purple")],
                 actions=[db.Button("Refresh view", variant="primary"), db.Button("Open runbook", variant="secondary")],
                 visual=db.GaugeChart(avg_success, label="Filtered success rate", color="#C81E5B"),

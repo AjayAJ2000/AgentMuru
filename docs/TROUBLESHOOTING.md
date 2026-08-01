@@ -17,7 +17,7 @@ Common causes:
 
 Recommended fixes:
 
-- use `brickflowui>=0.1.12`
+- use `brickflowui>=0.1.13`
 - hard refresh the page
 - keep `app.yaml` minimal
 - avoid relying on third-party frontend assets
@@ -33,7 +33,7 @@ pip install brickflowui
 or:
 
 ```bash
-pip install "brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.12"
+pip install "brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.13"
 ```
 
 ## I changed frontend code, but my package still behaves the same
@@ -54,7 +54,7 @@ BrickflowUI now defaults these controls to debounced local-first syncing, so the
 
 Check these things:
 
-- make sure you are on `brickflowui>=0.1.12`
+- make sure you are on `brickflowui>=0.1.13`
 - rebuild the frontend bundle after changing runtime input behavior
 - avoid `change_strategy="immediate"` unless you truly need every keystroke in Python
 - use the local playground example to confirm the framework behavior before debugging your own app logic
@@ -69,7 +69,8 @@ python examples/local_playground/app.py
 
 Before publishing, always verify the wheel contains:
 
-- `brickflowui/frontend/dist/index.html`
-- `brickflowui/frontend/dist/assets/...`
+- [`brickflowui/frontend/dist/index.html`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/frontend/dist/index.html)
+- [`brickflowui/frontend/dist/assets/...`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist/assets)
+
 
 

@@ -1,6 +1,7 @@
 import pytest
 from brickflowui.state import (
     RenderContext,
+    reset_render_context,
     set_context,
     set_render_context,
     use_effect,
@@ -114,3 +115,17 @@ def test_cleanup_effects_runs_registered_cleanup(ctx):
 
     assert cleaned["count"] == 1
     assert ctx.effects == []
+
+
+def test_reset_render_context_restores_previous_context():
+    outer = RenderContext(session_id="outer")
+    inner = RenderContext(session_id="inner")
+    outer_token = set_render_context(outer)
+    try:
+        inner_token = set_render_context(inner)
+        reset_render_context(inner_token)
+        from brickflowui.state import get_context
+
+        assert get_context() is outer
+    finally:
+        reset_render_context(outer_token)

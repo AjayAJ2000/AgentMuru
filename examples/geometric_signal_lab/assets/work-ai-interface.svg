@@ -1,0 +1,29 @@
+<svg width="420" height="300" viewBox="0 0 420 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="phoneBase" x1="118" y1="70" x2="312" y2="266" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8EAFF"/>
+      <stop offset="0.5" stop-color="#B8B9FF"/>
+      <stop offset="1" stop-color="#7AA8FF"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="140" y1="94" x2="286" y2="246" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#EAE9FF" stop-opacity="0.25"/>
+    </linearGradient>
+    <filter id="lift" x="76" y="38" width="290" height="240" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#8FA3FF" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  <g filter="url(#lift)">
+    <rect x="118" y="76" width="176" height="176" rx="40" transform="rotate(13 118 76)" fill="url(#phoneBase)" fill-opacity="0.98" stroke="#FAFCFF"/>
+    <rect x="139" y="96" width="132" height="132" rx="28" transform="rotate(13 139 96)" fill="url(#screen)" stroke="#E4EAFF"/>
+    <path d="M168 135C185 123 212 126 228 143C244 160 247 186 234 202C221 218 194 223 175 212C156 201 148 178 153 159" stroke="#7C7BFF" stroke-width="8" stroke-linecap="round"/>
+    <path d="M176 154L215 163L196 199" stroke="#92E6FF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="167" y="214" width="58" height="8" rx="4" transform="rotate(13 167 214)" fill="#FFFFFF" fill-opacity="0.68"/>
+    <rect x="177" y="227" width="84" height="8" rx="4" transform="rotate(13 177 227)" fill="#FFFFFF" fill-opacity="0.36"/>
+  </g>
+  <g>
+    <circle cx="266" cy="86" r="26" fill="#FFF1FF" fill-opacity="0.82" stroke="#FFFFFF"/>
+    <path d="M253 97C260 86 271 76 283 71C284 85 280 97 270 107C264 107 258 103 253 97Z" fill="#F0D3FF" stroke="#FFFFFF"/>
+    <circle cx="266" cy="86" r="6" fill="#7C7BFF"/>
+  </g>
+</svg>

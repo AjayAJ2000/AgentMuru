@@ -7,7 +7,7 @@ Renders headings, body copy, captions, labels, and lightweight code text.
 ## Signature
 
 ```python
-db.Text(value: 'str', variant: 'TextVariant' = 'body', color: 'Optional[str]' = None, bold: 'bool' = False, italic: 'bool' = False, muted: 'bool' = False) -> 'VNode'
+db.Text(value: 'str', variant: 'TextVariant' = 'body', color: 'Optional[str]' = None, bold: 'bool' = False, italic: 'bool' = False, muted: 'bool' = False, style: 'Optional[Dict[str, Any]]' = None, class_name: 'Optional[str]' = None) -> 'VNode'
 ```
 
 ## Parameters
@@ -20,6 +20,8 @@ db.Text(value: 'str', variant: 'TextVariant' = 'body', color: 'Optional[str]' = 
 | `bold` | `bool` | `False` | |
 | `italic` | `bool` | `False` | |
 | `muted` | `bool` | `False` | |
+| `style` | `Optional[Dict[str, Any]]` | `None` | |
+| `class_name` | `Optional[str]` | `None` | |
 
 ## Example
 

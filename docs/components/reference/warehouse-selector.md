@@ -7,7 +7,7 @@ Selects a Databricks SQL warehouse from the current environment.
 ## Signature
 
 ```python
-db.WarehouseSelector(on_select: 'Optional[Callable[[str], None]]' = None, selected_id: 'Optional[str]' = None, label: 'str' = 'SQL Warehouse') -> 'VNode'
+db.WarehouseSelector(on_select: 'Optional[Callable[[str], None]]' = None, selected_id: 'Optional[str]' = None, label: 'str' = 'SQL Warehouse', warehouses: 'Optional[List[Dict[str, Any]]]' = None, loading: 'bool' = False, error: 'Optional[str]' = None, empty_message: 'str' = 'No warehouses available', disabled: 'bool' = False) -> 'VNode'
 ```
 
 ## Parameters
@@ -17,6 +17,11 @@ db.WarehouseSelector(on_select: 'Optional[Callable[[str], None]]' = None, select
 | `on_select` | `Optional[Callable[[str], None]]` | `None` | |
 | `selected_id` | `Optional[str]` | `None` | |
 | `label` | `str` | `'SQL Warehouse'` | |
+| `warehouses` | `Optional[List[Dict[str, Any]]]` | `None` | |
+| `loading` | `bool` | `False` | |
+| `error` | `Optional[str]` | `None` | |
+| `empty_message` | `str` | `'No warehouses available'` | |
+| `disabled` | `bool` | `False` | |
 
 ## Example
 

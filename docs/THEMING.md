@@ -247,3 +247,16 @@ The theme loader accepts practical aliases:
 ## Recommendation
 
 Keep one product theme file per portal or platform area. Let application code override only the parts that are truly app-specific, such as page-level hero content or a temporary loading message. That keeps branding stable while still giving engineers room to move quickly.
+
+## Geometry-heavy design note
+
+For more art-directed, glassmorphism-heavy, or geometric product surfaces:
+
+- keep the background gradient in the page shell rather than every card
+- use local SVG art for the hero and featured cards
+- reserve the biggest radius and shadow values for only a few surfaces
+- rely on `Text(style=...)` and `Badge(style=...)` selectively, not everywhere
+
+The reference example for this style is:
+
+- [`examples/geometric_signal_lab/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/geometric_signal_lab/app.py)

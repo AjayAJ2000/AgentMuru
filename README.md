@@ -29,6 +29,7 @@ Canonical package name: `brickflowui`
 BrickflowUI is a strong fit for:
 
 - data platform teams
+- AI application teams
 - analytics engineering teams
 - internal tools teams
 - enterprise engineering groups working on dashboards and portals
@@ -226,7 +227,7 @@ That gives you a React-style interaction loop while keeping the authoring model 
 Minimum `requirements.txt`:
 
 ```text
-brickflowui>=0.1.12
+brickflowui>=0.1.13
 ```
 
 Install from GitHub:
@@ -247,10 +248,8 @@ Packaging rule:
 
 The installed package must include:
 
-```text
-brickflowui/frontend/dist/index.html
-brickflowui/frontend/dist/assets/*
-```
+- [`brickflowui/frontend/dist/index.html`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/frontend/dist/index.html)
+- [`brickflowui/frontend/dist/assets/*`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist/assets)
 
 If those assets are missing, Databricks Apps often stop at the loading shell.
 
@@ -265,20 +264,20 @@ If those assets are missing, Databricks Apps often stop at the loading shell.
 
 ## Recommended examples
 
-- `examples/local_playground/app.py` for framework validation
-- `examples/component_studio/app.py` for broad component coverage
-- `examples/acme_analytics_command_center/app.py` for a product-style shell
-- `examples/clinical_trial_command_center/app.py` for a regulated-industry style dashboard
-- `examples/secure_internal_tools/app.py` for role-aware internal tools
+- [`examples/local_playground/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/local_playground/app.py) for framework validation
+- [`examples/component_studio/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/component_studio/app.py) for broad component coverage
+- [`examples/acme_analytics_command_center/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/acme_analytics_command_center/app.py) for a product-style shell
+- [`examples/clinical_trial_command_center/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/clinical_trial_command_center/app.py) for a regulated-industry style dashboard
+- [`examples/secure_internal_tools/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/secure_internal_tools/app.py) for role-aware internal tools
 
 ## Vibe coding skills
 
 The repo now includes reusable skill files for AI coding tools that help keep generated BrickflowUI apps aligned with the framework's strengths.
 
-- `skills/brickflowui-app-starter/SKILL.md`
-- `skills/brickflowui-data-ai-portal/SKILL.md`
-- `skills/brickflowui-polish-and-qa/SKILL.md`
-- `skills/brickflowui-databricks-delivery/SKILL.md`
+- [`skills/brickflowui-app-starter/SKILL.md`](https://github.com/AjayAJ2000/brickflowUI/blob/main/skills/brickflowui-app-starter/SKILL.md)
+- [`skills/brickflowui-data-ai-portal/SKILL.md`](https://github.com/AjayAJ2000/brickflowUI/blob/main/skills/brickflowui-data-ai-portal/SKILL.md)
+- [`skills/brickflowui-polish-and-qa/SKILL.md`](https://github.com/AjayAJ2000/brickflowUI/blob/main/skills/brickflowui-polish-and-qa/SKILL.md)
+- [`skills/brickflowui-databricks-delivery/SKILL.md`](https://github.com/AjayAJ2000/brickflowUI/blob/main/skills/brickflowui-databricks-delivery/SKILL.md)
 
 Docs walkthrough:
 
@@ -332,3 +331,4 @@ docs/
 ## License
 
 MIT
+

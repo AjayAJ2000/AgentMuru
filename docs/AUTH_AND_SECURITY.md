@@ -22,6 +22,14 @@ Use `auth_mode="user"` when pages or routes depend on signed-in user identity.
 
 Use `auth_mode="hybrid"` when the app should fall back to an application identity but still honor user identity when it is present.
 
+`HeaderAuthProvider` accepts both BrickflowUI's local-development headers and the native Databricks Apps headers: `X-Forwarded-User`, `X-Forwarded-Preferred-Username`, `X-Forwarded-Email`, and `X-Forwarded-Access-Token`. Access tokens are private principal credentials: they are excluded from representations and comparisons, never sent to the browser, and never stored in the shared app-identity connection.
+
+Databricks SQL and SDK helpers follow the current identity automatically:
+
+- user identity opens an operation-scoped connection/client using the forwarded token and closes the SQL connection after the operation;
+- app identity uses Databricks unified authentication and a guarded reusable SQL connection;
+- hybrid identity uses the user path when Databricks forwards a user identity, otherwise the app path.
+
 ## Route And Page Guards
 
 ```python
@@ -96,3 +104,4 @@ For a serious internal deployment:
 4. keep `csrf_protection=True`
 5. enable `audit_events=True` for sensitive workflows
 6. allowlist external embeds explicitly when used
+7. configure the minimum Databricks user-authorization scopes required by the app

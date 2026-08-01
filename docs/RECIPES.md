@@ -62,6 +62,31 @@ Recommended pattern:
 4. Use `Accordion` for FAQ.
 5. Keep the theme calm and whitespace-heavy.
 
+## Geometric showcase or glassmorphism concept
+
+Use:
+
+- `Card`
+- `Row`
+- `Column`
+- `Grid`
+- `Image`
+- `Button`
+- `Badge`
+- `Popup`
+
+Recommended pattern:
+
+1. Build one outer shell card with a controlled gradient background.
+2. Use a rounded top rail with pill-style navigation.
+3. Keep one dominant hero message and one dominant image-led visual.
+4. Use local SVG or PNG art rather than fake placeholder geometry boxes.
+5. Add a rotating recent-work or featured-card section driven by `use_state`.
+
+Best example:
+
+- [Geometric Signal Lab](./GEOMETRIC_UI.md)
+
 ## Pipeline command center
 
 Use:

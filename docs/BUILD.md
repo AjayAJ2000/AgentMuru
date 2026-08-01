@@ -32,12 +32,16 @@ cd examples/auth_portal
 python app.py
 ```
 
+Source: [`examples/auth_portal/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/auth_portal/app.py)
+
 Operations + finance portal:
 
 ```bash
 cd examples/operations_finance_portal
 python app.py
 ```
+
+Source: [`examples/operations_finance_portal/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/operations_finance_portal/app.py)
 
 By default the server uses `http://127.0.0.1:8050`. To use another port:
 
@@ -105,5 +109,5 @@ python -m mkdocs build
 ## What needs rebuilding?
 
 - Python-only changes: reinstall with `pip install -e ".[dev]"` if needed, then run tests.
-- Frontend source changes under `frontend/src`: run `npm run build` so `brickflowui/frontend/dist` is updated before publishing.
+- Frontend source changes under [`frontend/src`](https://github.com/AjayAJ2000/brickflowUI/tree/main/frontend/src): run `npm run build` so [`brickflowui/frontend/dist`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist) is updated before publishing.
 - Docs, examples, and tests: no special build step required.

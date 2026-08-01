@@ -72,7 +72,7 @@ requirements.txt
 Example `requirements.txt`:
 
 ```text
-brickflowui>=0.1.12
+brickflowui>=0.1.13
 ```
 
 Example `app.yaml`:
@@ -91,25 +91,23 @@ env:
 
 The Python package serves pre-built frontend files from:
 
-```text
-brickflowui/frontend/dist/
-```
+- [`brickflowui/frontend/dist/`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist)
 
-If you change files under `frontend/src`, rebuild:
+If you change files under [`frontend/src`](https://github.com/AjayAJ2000/brickflowUI/tree/main/frontend/src), rebuild:
 
 ```bash
 cd frontend
 npm run build
 ```
 
-Then commit the updated `brickflowui/frontend/dist` assets.
+Then commit the updated [`brickflowui/frontend/dist`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist) assets.
 
 ## Common Mistakes
 
 - Installing `brickflowui` in one Python environment and running the app from another.
 - Editing frontend source but forgetting to rebuild bundled assets.
-- Deleting `brickflowui/frontend/dist` before packaging.
-- Pushing `frontend/node_modules` to git.
+- Deleting [`brickflowui/frontend/dist`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist) before packaging.
+- Pushing [`frontend/node_modules`](https://github.com/AjayAJ2000/brickflowUI/tree/main/frontend/node_modules) to git.
 - Expecting root `dist/` or `site/` to be source files. They are generated.
 
 ## Exercise
@@ -120,6 +118,7 @@ Run it locally. Then change the title and confirm the browser updates after rest
 
 ## Checkpoint
 
-You should be able to install BrickflowUI, run a local app, and explain why `brickflowui/frontend/dist` is part of the package.
+You should be able to install BrickflowUI, run a local app, and explain why [`brickflowui/frontend/dist`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist) is part of the package.
+
 
 

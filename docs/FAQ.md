@@ -11,13 +11,13 @@ Use:
 ## How do I install directly from GitHub?
 
 ```bash
-pip install "brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.12"
+pip install "brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.13"
 ```
 
 ## How do I put the GitHub version in `requirements.txt`?
 
 ```text
-brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.12
+brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.13
 ```
 
 ## How do I use it in Databricks Apps?
@@ -33,7 +33,7 @@ command:
 and:
 
 ```text
-brickflowui>=0.1.12
+brickflowui>=0.1.13
 ```
 
 ## Does BrickflowUI depend on Nike's Brickflow?
@@ -63,5 +63,6 @@ If you need a different behavior:
 Light mode is the default unless you explicitly configure `default_mode="dark"`.
 
 If you provide only a light theme file, older apps and new YAML themes should still render safely.
+
 
 

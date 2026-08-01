@@ -7,7 +7,7 @@ Starts a Databricks job run from the UI.
 ## Signature
 
 ```python
-db.JobTrigger(job_id: 'str', label: 'str' = 'Run Job', on_complete: 'Optional[Callable[[Dict[str, Any]], None]]' = None) -> 'VNode'
+db.JobTrigger(job_id: 'str', label: 'str' = 'Run Job', on_complete: 'Optional[Callable[[Dict[str, Any]], None]]' = None, on_trigger: 'Optional[Callable[[Dict[str, Any]], None]]' = None, status: 'Optional[str]' = None, run_id: 'Optional[str]' = None, loading: 'bool' = False, error: 'Optional[str]' = None, disabled: 'bool' = False) -> 'VNode'
 ```
 
 ## Parameters
@@ -17,6 +17,12 @@ db.JobTrigger(job_id: 'str', label: 'str' = 'Run Job', on_complete: 'Optional[Ca
 | `job_id` | `str` | `required` | |
 | `label` | `str` | `'Run Job'` | |
 | `on_complete` | `Optional[Callable[[Dict[str, Any]], None]]` | `None` | |
+| `on_trigger` | `Optional[Callable[[Dict[str, Any]], None]]` | `None` | |
+| `status` | `Optional[str]` | `None` | |
+| `run_id` | `Optional[str]` | `None` | |
+| `loading` | `bool` | `False` | |
+| `error` | `Optional[str]` | `None` | |
+| `disabled` | `bool` | `False` | |
 
 ## Example
 

@@ -138,7 +138,7 @@ db.Table(filtered_rows, exportable=True, empty_message="No pipelines match your 
 `requirements.txt`:
 
 ```text
-brickflowui>=0.1.12
+brickflowui>=0.1.13
 ```
 
 `app.yaml`:
@@ -172,5 +172,6 @@ Your capstone is complete when:
 ## Checkpoint
 
 If you can build this capstone without copying the full example, you are no longer just trying BrickflowUI. You are building with it.
+
 
 

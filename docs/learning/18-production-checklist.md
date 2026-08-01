@@ -50,11 +50,11 @@ Commit:
 - docs
 - examples
 - tests
-- `brickflowui/frontend/dist`
+- [`brickflowui/frontend/dist`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist)
 
 Do not commit:
 
-- `frontend/node_modules`
+- [`frontend/node_modules`](https://github.com/AjayAJ2000/brickflowUI/tree/main/frontend/node_modules)
 - root `dist`
 - `site`
 - `__pycache__`
@@ -74,7 +74,7 @@ npm run build
 cd ..
 python -m mkdocs build
 python -m build
-python -m twine check dist/brickflowui-0.1.12*
+python -m twine check dist/brickflowui-0.1.13*
 ```
 
 ## Common Mistakes
@@ -91,5 +91,6 @@ Take one example app and review it against this checklist. Write down the first 
 ## Checkpoint
 
 You should be able to judge whether a BrickflowUI app is ready for team use.
+
 
 

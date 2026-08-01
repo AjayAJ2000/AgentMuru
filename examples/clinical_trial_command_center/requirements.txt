@@ -1,4 +1,5 @@
-﻿brickflowui[databricks,viz]>=0.1.12
+﻿brickflowui[databricks,viz]>=0.1.13
 plotly>=5.24.0
+
 
 

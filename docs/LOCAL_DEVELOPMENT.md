@@ -14,9 +14,9 @@ A solid local workflow should answer these questions clearly:
 
 Use these examples as your default local validation loop:
 
-- `examples/local_playground/app.py` for fast interaction, theme, media, and responsiveness checks
-- `examples/component_studio/app.py` when you want a broader component tour
-- `examples/acme_analytics_command_center/app.py` when you want to test a more product-style shell
+- [`examples/local_playground/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/local_playground/app.py) for fast interaction, theme, media, and responsiveness checks
+- [`examples/component_studio/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/component_studio/app.py) when you want a broader component tour
+- [`examples/acme_analytics_command_center/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/acme_analytics_command_center/app.py) when you want to test a more product-style shell
 
 ## Run A Local App
 
@@ -49,7 +49,7 @@ python app.py
 
 ## Recommended Testing Playground
 
-Start with `examples/local_playground/app.py` whenever you change framework code.
+Start with [`examples/local_playground/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/examples/local_playground/app.py) whenever you change framework code.
 
 That app is intended to validate:
 
@@ -159,7 +159,7 @@ If something looks stuck, check these in order:
 
 1. Confirm the browser shows a successful WebSocket connection.
 2. Confirm the event handler actually updates state or completes cleanly.
-3. Confirm the packaged frontend assets exist in `brickflowui/frontend/dist`.
+3. Confirm the packaged frontend assets exist in [`brickflowui/frontend/dist`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist).
 4. Confirm local asset paths point to real files.
 5. Confirm the browser is not serving an older cached bundle.
 6. Confirm your POST route is receiving the CSRF header if you are testing forms or protected JSON endpoints from a browser session.

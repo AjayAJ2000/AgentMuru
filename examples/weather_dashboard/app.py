@@ -118,4 +118,4 @@ def forecast_page():
     ], padding=8, gap=6)
 
 if __name__ == "__main__":
-    app.run(port=8055)
+    app.run()

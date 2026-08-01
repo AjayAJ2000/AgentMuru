@@ -90,6 +90,33 @@ Use this catalog when you want a page dedicated to one BrickflowUI component.
 
 ## Databricks
 
+These components are server-driven: load or mutate Databricks resources in Python, then pass only normalized records and public status messages to the UI. The helpers automatically follow the current app or user identity.
+
+```python
+import brickflowui as db
+from brickflowui import databricks as dbrx
+
+warehouses = dbrx.list_warehouses()
+db.WarehouseSelector(
+    warehouses=warehouses,
+    selected_id=selected_warehouse,
+    on_select=set_selected_warehouse,
+    error=public_error,
+)
+
+catalogs = dbrx.catalog_tree()
+db.CatalogBrowser(catalogs=catalogs, on_select=set_selected_table)
+
+db.JobTrigger(
+    job_id="1234567890",
+    status=run_status,
+    run_id=run_id,
+    on_trigger=lambda payload: dbrx.trigger_job(payload["job_id"]),
+)
+```
+
+Keep raw SDK exceptions in server logs and pass a short actionable message through each component's `error` prop.
+
 - [CatalogBrowser](reference/catalog-browser.md): Browses Unity Catalog catalogs, schemas, and tables.
 - [WarehouseSelector](reference/warehouse-selector.md): Selects a Databricks SQL warehouse from the current environment.
 - [JobTrigger](reference/job-trigger.md): Starts a Databricks job run from the UI.

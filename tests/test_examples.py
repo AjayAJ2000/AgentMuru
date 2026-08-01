@@ -11,6 +11,7 @@ FLAGSHIP_EXAMPLES = {
     "component_studio",
     "clinical_trial_command_center",
     "data_pipeline_command_center",
+    "geometric_signal_lab",
     "secure_internal_tools",
     "workspace_studio",
 }

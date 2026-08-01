@@ -1,6 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react'
 import * as LucideIcons from 'lucide-react'
 import type { VNodeData } from './types'
+import { shouldSubmitChatInput } from './runtime/chat'
+import { serializeCsv } from './runtime/csv'
+import {
+  CatalogBrowserView,
+  JobTriggerView,
+  WarehouseSelectorView,
+} from './runtime/databricksComponents'
 import {
   AreaChart, Area,
   BarChart, Bar,
@@ -157,6 +164,38 @@ function renderLoadingSkeleton(lines = 3) {
   )
 }
 
+function PlotComponent({ figure }: { figure: unknown }) {
+  const elementRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!elementRef.current) return
+    const value = (figure && typeof figure === 'object')
+      ? figure as Record<string, unknown>
+      : {}
+    const data = Array.isArray(value.data) ? value.data : []
+    const layout = (value.layout && typeof value.layout === 'object')
+      ? value.layout as Record<string, unknown>
+      : {}
+    const config = (value.config && typeof value.config === 'object')
+      ? value.config as Record<string, unknown>
+      : { responsive: true }
+    const element = elementRef.current
+    let active = true
+    let purge: (() => void) | undefined
+    void import('plotly.js-dist-min').then(({ default: Plotly }) => {
+      if (!active) return
+      void Plotly.react(element, data, layout, config)
+      purge = () => Plotly.purge(element)
+    })
+    return () => {
+      active = false
+      purge?.()
+    }
+  }, [figure])
+
+  return <div ref={elementRef} className="bf-chart-container" />
+}
+
 function chartShell(key: string, props: Record<string, any>, content: React.ReactNode) {
   return (
     <div key={key} className="bf-chart-container bf-chart-enter">
@@ -221,9 +260,11 @@ function renderNode(node: VNodeData, ctx: RenderCtx, key: string): React.ReactNo
     // ── Text ───────────────────────────────────────────────────────────────
     case 'Text': {
       const variant = (p.variant as string) || 'body'
-      const cls = ['bf-text-' + variant, p.muted ? 'bf-text-muted' : '', p.bold ? 'bf-text-bold' : '', p.italic ? 'bf-text-italic' : ''].filter(Boolean).join(' ')
+      const cls = ['bf-text-' + variant, p.muted ? 'bf-text-muted' : '', p.bold ? 'bf-text-bold' : '', p.italic ? 'bf-text-italic' : '', p.className as string || ''].filter(Boolean).join(' ')
       const Tag = ({ h1: 'h1', h2: 'h2', h3: 'h3', h4: 'h4', code: 'code', label: 'label', caption: 'small' } as Record<string, string>)[variant] || 'p'
-      return React.createElement(Tag, { key, className: cls, style: p.color ? { color: p.color as string } : undefined }, p.value as string)
+      const style = { ...(p.style as object || {}) } as React.CSSProperties
+      if (p.color) style.color = p.color as string
+      return React.createElement(Tag, { key, className: cls, style: Object.keys(style).length ? style : undefined }, p.value as string)
     }
 
     case 'Code':
@@ -372,7 +413,7 @@ function renderNode(node: VNodeData, ctx: RenderCtx, key: string): React.ReactNo
       return <TableComponent key={key} props={p} dispatch={ctx.dispatch} />
 
     case 'Badge':
-      return <span key={key} className={`bf-badge bf-badge-${(p.color as string) || 'blue'}`}>{p.label as string}</span>
+      return <span key={key} className={`bf-badge bf-badge-${(p.color as string) || 'blue'} ${p.className || ''}`.trim()} style={p.style as React.CSSProperties | undefined}>{p.label as string}</span>
 
     case 'Alert':
       return <AlertComponent key={key} props={p} />
@@ -440,10 +481,10 @@ function renderNode(node: VNodeData, ctx: RenderCtx, key: string): React.ReactNo
       if (!p.visible) return null
       return (
         <div key={key} className="bf-modal-overlay" onClick={() => ev('close')}>
-          <div className={resolveMotionClass(p, [`bf-modal`, `bf-modal-${(p.size as string) || 'md'}`])} style={resolveMotionStyle(p)} onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label={String(p.title || 'Dialog')} className={resolveMotionClass(p, [`bf-modal`, `bf-modal-${(p.size as string) || 'md'}`])} style={resolveMotionStyle(p)} onClick={e => e.stopPropagation()}>
             <div className="bf-modal-header">
               <span className="bf-modal-title">{p.title as string}</span>
-              <button type="button" className="bf-modal-close" onClick={() => ev('close')}><Icon name="X" size={16} /></button>
+              <button type="button" className="bf-modal-close" onClick={() => ev('close')} aria-label="Close dialog"><Icon name="X" size={16} /></button>
             </div>
             <div className="bf-modal-body">{renderChildren(children, ctx, key)}</div>
           </div>
@@ -455,10 +496,10 @@ function renderNode(node: VNodeData, ctx: RenderCtx, key: string): React.ReactNo
       if (!p.visible) return null
       return (
         <div key={key} className="bf-drawer-overlay" onClick={() => ev('close')}>
-          <div className={resolveMotionClass(p, [`bf-drawer`, `bf-drawer-${(p.side as string) || 'right'}`])} style={{ width: (p.width as string) || '420px', ...resolveMotionStyle(p) }} onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label={String(p.title || 'Drawer')} className={resolveMotionClass(p, [`bf-drawer`, `bf-drawer-${(p.side as string) || 'right'}`])} style={{ width: (p.width as string) || '420px', ...resolveMotionStyle(p) }} onClick={e => e.stopPropagation()}>
             <div className="bf-drawer-header">
               <span className="bf-drawer-title">{p.title as string}</span>
-              <button type="button" className="bf-modal-close" onClick={() => ev('close')}><Icon name="X" size={16} /></button>
+              <button type="button" className="bf-modal-close" onClick={() => ev('close')} aria-label="Close drawer"><Icon name="X" size={16} /></button>
             </div>
             <div className="bf-drawer-body">{renderChildren(children, ctx, key)}</div>
           </div>
@@ -470,7 +511,7 @@ function renderNode(node: VNodeData, ctx: RenderCtx, key: string): React.ReactNo
       return (
         <div key={key} className={`bf-popup-shell bf-popup-${(p.placement as string) || 'center'}`}>
           {Boolean(p.backdrop) ? <button type="button" className="bf-popup-backdrop" onClick={() => ev('close')} aria-label="Close popup" /> : null}
-          <div className={resolveMotionClass(p, [`bf-popup`, `bf-popup-${(p.size as string) || 'sm'}`])} style={resolveMotionStyle(p)} onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal={Boolean(p.backdrop)} aria-label={String(p.title || 'Popup')} className={resolveMotionClass(p, [`bf-popup`, `bf-popup-${(p.size as string) || 'sm'}`])} style={resolveMotionStyle(p)} onClick={e => e.stopPropagation()}>
             <div className="bf-popup-header">
               <span className="bf-popup-title">{p.title as string}</span>
               <button type="button" className="bf-modal-close" onClick={() => ev('close')}><Icon name="X" size={16} /></button>
@@ -484,6 +525,9 @@ function renderNode(node: VNodeData, ctx: RenderCtx, key: string): React.ReactNo
       return <FormComponent key={key} props={p} children={children} ctx={ctx} nodeKey={key} />
 
     // ── Charts ─────────────────────────────────────────────────────────────
+    case 'Plot':
+      return <PlotComponent key={key} figure={p.figure} />
+
     case 'AreaChart': {
       const yKeys = (p.yKeys as string[]) || []
       const data = (p.data as object[]) || []
@@ -773,6 +817,17 @@ function renderNode(node: VNodeData, ctx: RenderCtx, key: string): React.ReactNo
     case 'SparklineStat':
       return <SparklineStatComponent key={key} props={p} />
 
+    case 'CatalogBrowser':
+      return <CatalogBrowserView key={key} props={{ ...p, loading: Boolean(p.loading) || isPending(p, ctx, ['select']) }} onSelect={(value) => ev('select', value)} />
+
+    case 'WarehouseSelector':
+      return <WarehouseSelectorView key={key} props={{ ...p, loading: Boolean(p.loading) || isPending(p, ctx, ['select']) }} onSelect={(value) => ev('select', value)} />
+
+    case 'JobTrigger': {
+      const eventName = p.trigger ? 'trigger' : 'complete'
+      return <JobTriggerView key={key} props={{ ...p, loading: Boolean(p.loading) || isPending(p, ctx, [eventName]) }} onTrigger={(value) => ev(eventName, value)} />
+    }
+
     default:
       return (
         <div key={key} className={`bf-node-${type.toLowerCase()}`}>
@@ -839,6 +894,8 @@ function CheckboxComponent({ props: p, dispatch }: { props: Record<string, any>;
 }
 
 function SelectComponent({ props: p, dispatch }: { props: Record<string, any>; dispatch: (v: string) => void }) {
+  const generatedId = useId()
+  const selectId = String(p.id || p.name || `bf-select-${generatedId}`)
   const incomingValue = String((p.value as string) || '')
   const [value, setValue] = useState(incomingValue)
 
@@ -848,9 +905,10 @@ function SelectComponent({ props: p, dispatch }: { props: Record<string, any>; d
 
   return (
     <div className={resolveMotionClass(p, ['bf-form-field'])} style={resolveMotionStyle(p)}>
-      {p.label && <label className="bf-label">{p.label as string}</label>}
+      {p.label && <label className="bf-label" htmlFor={selectId}>{p.label as string}</label>}
       {p.loading ? <div className="bf-field-loading"><div className="bf-spinner bf-spinner-sm" /></div> : null}
       <select
+        id={selectId}
         name={p.name as string}
         className="bf-select"
         value={value}
@@ -871,6 +929,8 @@ function SelectComponent({ props: p, dispatch }: { props: Record<string, any>; d
 }
 
 function SliderComponent({ props: p, dispatch }: { props: Record<string, any>; dispatch: (v: number) => void }) {
+  const generatedId = useId()
+  const sliderId = String(p.id || p.name || `bf-slider-${generatedId}`)
   const incomingValue = Number(p.value ?? 0)
   const [value, setValue] = useState(incomingValue)
 
@@ -880,8 +940,9 @@ function SliderComponent({ props: p, dispatch }: { props: Record<string, any>; d
 
   return (
     <div className={resolveMotionClass(p, ['bf-slider-wrapper', p.loading ? 'bf-is-loading' : ''])} style={resolveMotionStyle(p)}>
-      {p.label && <label className="bf-label">{p.label as string}</label>}
+      {p.label && <label className="bf-label" htmlFor={sliderId}>{p.label as string}</label>}
       <input
+        id={sliderId}
         type="range"
         className="bf-slider"
         name={p.name as string}
@@ -1149,6 +1210,9 @@ function useDebouncedDispatcher<T>(dispatch: (value: T) => void, delayMs: number
 }
 
 function InputComponent({ props: p, dispatch }: { props: Record<string, any>; dispatch: (v: string) => void }) {
+  const generatedId = useId()
+  const inputId = String(p.id || p.name || `bf-input-${generatedId}`)
+  const errorId = `${inputId}-error`
   const incomingValue = String((p.value as string) || '')
   const [value, setValue] = useState(incomingValue)
   const localDirtyRef = useRef(false)
@@ -1177,11 +1241,14 @@ function InputComponent({ props: p, dispatch }: { props: Record<string, any>; di
   }, [changeStrategy, flush, schedule])
 
   const commonProps = {
+    id: inputId,
     name: p.name as string,
     placeholder: (p.placeholder as string) || '',
     value,
     disabled: Boolean(p.disabled),
     'aria-busy': Boolean(p.loading),
+    'aria-invalid': Boolean(p.error),
+    'aria-describedby': p.error ? errorId : undefined,
     onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const nextValue = event.target.value
       setValue(nextValue)
@@ -1196,18 +1263,22 @@ function InputComponent({ props: p, dispatch }: { props: Record<string, any>; di
 
   return (
     <div className={resolveMotionClass(p, ['bf-form-field'])} style={resolveMotionStyle(p)}>
-      {p.label && <label className="bf-label">{p.label as string}</label>}
+      {p.label && <label className="bf-label" htmlFor={inputId}>{p.label as string}</label>}
       {p.loading ? <div className="bf-field-loading"><div className="bf-spinner bf-spinner-sm" /></div> : null}
       {inputType === 'textarea'
         ? <textarea {...commonProps} className="bf-textarea" />
         : <input {...commonProps} className={`bf-input${p.error ? ' error' : ''}`} type={inputType} />
       }
-      {p.error && <span className="bf-input-error">{p.error as string}</span>}
+      {p.error && <span className="bf-input-error" id={errorId}>{p.error as string}</span>}
     </div>
   )
 }
 
 function DateRangePickerComponent({ props: p, dispatch }: { props: Record<string, any>; dispatch: (v: Record<string, string>) => void }) {
+  const generatedId = useId()
+  const rangeName = String(p.label || p.name || 'Date range')
+  const startId = `${String(p.id || p.name || `bf-date-range-${generatedId}`)}-start`
+  const endId = `${String(p.id || p.name || `bf-date-range-${generatedId}`)}-end`
   const [start, setStart] = useState((p.start as string) || '')
   const [end, setEnd] = useState((p.end as string) || '')
 
@@ -1224,9 +1295,11 @@ function DateRangePickerComponent({ props: p, dispatch }: { props: Record<string
       {p.loading ? <div className="bf-field-loading"><div className="bf-spinner bf-spinner-sm" /></div> : null}
       <div className="bf-date-range">
         <input
+          id={startId}
           className="bf-input"
           type="date"
           name={`${p.name as string}_start`}
+          aria-label={`${rangeName} start`}
           value={start}
           disabled={Boolean(p.disabled) || Boolean(p.loading)}
           onChange={(e) => {
@@ -1237,9 +1310,11 @@ function DateRangePickerComponent({ props: p, dispatch }: { props: Record<string
         />
         <span className="bf-date-range-sep">to</span>
         <input
+          id={endId}
           className="bf-input"
           type="date"
           name={`${p.name as string}_end`}
+          aria-label={`${rangeName} end`}
           value={end}
           disabled={Boolean(p.disabled) || Boolean(p.loading)}
           onChange={(e) => {
@@ -1767,7 +1842,10 @@ function ChatInputComponent({ props: p, dispatchChange, dispatchSubmit }: { prop
         }}
         onBlur={() => flush(value)}
         onKeyDown={(event) => {
-          if (event.key === 'Enter') submit()
+          if (shouldSubmitChatInput(event.key, event.nativeEvent.isComposing)) {
+            event.preventDefault()
+            submit()
+          }
         }}
       />
       <button type="button" className="bf-btn bf-btn-primary" disabled={Boolean(p.disabled) || Boolean(p.loading) || !value.trim()} onClick={submit}>
@@ -1857,16 +1935,10 @@ function TableComponent({ props: p, dispatch }: { props: Record<string, any>; di
   }
 
   const exportCsv = () => {
-    const header = columns.map((col) => col.label).join(',')
-    const rows = sorted.map((row) =>
-      columns
-        .map((col) => {
-          const raw = String(row[col.key] ?? '')
-          return `"${raw.split('"').join('""')}"`
-        })
-        .join(',')
+    const csv = serializeCsv(
+      columns.map(column => ({ label: column.label, key: String(column.key) })),
+      sorted,
     )
-    const csv = [header, ...rows].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -1941,6 +2013,7 @@ function TableComponent({ props: p, dispatch }: { props: Record<string, any>; di
 }
 
 function TabsComponent({ props: p, children, ctx, nodeKey, dispatch }: { props: Record<string, any>; children: VNodeData[]; ctx: RenderCtx; nodeKey: string; dispatch: RenderCtx['dispatch'] }) {
+  const generatedId = useId()
   const [active, setActive] = useState((p.defaultActive as number) || 0)
 
   useEffect(() => {
@@ -1949,11 +2022,11 @@ function TabsComponent({ props: p, children, ctx, nodeKey, dispatch }: { props: 
 
   return (
     <div className={resolveMotionClass(p, ['bf-tabs'])} style={resolveMotionStyle(p)}>
-      <div className="bf-tabs-list">
+      <div className="bf-tabs-list" role="tablist">
         {children.map((child, i) => {
           const cp = child.props as Record<string, unknown>
           return (
-            <button key={i} className={`bf-tab-trigger ${active === i ? 'active' : ''}`} onClick={() => {
+            <button key={i} type="button" role="tab" id={`${generatedId}-tab-${i}`} aria-selected={active === i} aria-controls={`${generatedId}-panel-${i}`} tabIndex={active === i ? 0 : -1} className={`bf-tab-trigger ${active === i ? 'active' : ''}`} onClick={() => {
               setActive(i)
               const changeId = p.change as string
               if (changeId) dispatch(changeId, { index: i })
@@ -1964,7 +2037,7 @@ function TabsComponent({ props: p, children, ctx, nodeKey, dispatch }: { props: 
           )
         })}
       </div>
-      <div className="bf-tab-content">
+      <div className="bf-tab-content" role="tabpanel" id={`${generatedId}-panel-${active}`} aria-labelledby={`${generatedId}-tab-${active}`}>
         {children[active]?.children && renderChildren(children[active].children, ctx, `${nodeKey}-tab-${active}`)}
       </div>
     </div>

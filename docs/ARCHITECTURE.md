@@ -47,8 +47,8 @@ This keeps the wire protocol small and framework-specific.
 
 The runtime is responsible for:
 
-- serving the frontend shell from `brickflowui/frontend/dist/index.html`
-- serving static assets from `brickflowui/frontend/dist/assets/`
+- serving the frontend shell from [`brickflowui/frontend/dist/index.html`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/frontend/dist/index.html)
+- serving static assets from [`brickflowui/frontend/dist/assets/`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist/assets)
 - opening the `/events` WebSocket
 - rendering a full tree on first connect
 - diffing old and new trees on updates
@@ -104,9 +104,9 @@ That means:
 
 Important files:
 
-- `brickflowui/state.py`
-- `brickflowui/app.py`
-- `brickflowui/server.py`
+- [`brickflowui/state.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/state.py)
+- [`brickflowui/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/app.py)
+- [`brickflowui/server.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/server.py)
 
 ## Routing model
 
@@ -135,10 +135,8 @@ The built frontend is part of the Python package.
 
 Required package paths:
 
-```text
-brickflowui/frontend/dist/index.html
-brickflowui/frontend/dist/assets/*
-```
+- [`brickflowui/frontend/dist/index.html`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/frontend/dist/index.html)
+- [`brickflowui/frontend/dist/assets/*`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist/assets)
 
 If those files are missing in the installed package, Databricks Apps will often get stuck at a loading shell such as "Connecting to runtime...".
 
@@ -209,7 +207,7 @@ Recommended deployment flow:
 
 1. Build the frontend.
 2. Build the Python package.
-3. Verify the wheel contains `brickflowui/frontend/dist`.
+3. Verify the wheel contains [`brickflowui/frontend/dist`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist).
 4. Install from the wheel or a GitHub ref.
 5. Deploy with `app.py`, `app.yaml`, and `requirements.txt`.
 
@@ -219,16 +217,16 @@ Recommended deployment flow:
 
 These files matter most when debugging architecture problems:
 
-- `brickflowui/app.py`
-- `brickflowui/components.py`
-- `brickflowui/state.py`
-- `brickflowui/vdom.py`
-- `brickflowui/server.py`
-- `frontend/src/App.tsx`
-- `frontend/src/Renderer.tsx`
-- `frontend/src/theme.css`
-- `frontend/vite.config.ts`
-- `pyproject.toml`
+- [`brickflowui/app.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/app.py)
+- [`brickflowui/components.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/components.py)
+- [`brickflowui/state.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/state.py)
+- [`brickflowui/vdom.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/vdom.py)
+- [`brickflowui/server.py`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/server.py)
+- [`frontend/src/App.tsx`](https://github.com/AjayAJ2000/brickflowUI/blob/main/frontend/src/App.tsx)
+- [`frontend/src/Renderer.tsx`](https://github.com/AjayAJ2000/brickflowUI/blob/main/frontend/src/Renderer.tsx)
+- [`frontend/src/theme.css`](https://github.com/AjayAJ2000/brickflowUI/blob/main/frontend/src/theme.css)
+- [`frontend/vite.config.ts`](https://github.com/AjayAJ2000/brickflowUI/blob/main/frontend/vite.config.ts)
+- [`pyproject.toml`](https://github.com/AjayAJ2000/brickflowUI/blob/main/pyproject.toml)
 
 ## Architecture checklist
 

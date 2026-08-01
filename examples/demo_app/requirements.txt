@@ -1,4 +1,5 @@
-﻿brickflowui>=0.1.12
+﻿brickflowui>=0.1.13
 # brickflowui[databricks]  # Uncomment for Unity Catalog + SQL connector
+
 
 

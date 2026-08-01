@@ -113,6 +113,11 @@ def set_render_context(ctx: "RenderContext | None") -> Any:
     return _current_context.set(ctx)
 
 
+def reset_render_context(token: Any) -> None:
+    """Restore the render context that was active before ``token`` was created."""
+    _current_context.reset(token)
+
+
 # ---------------------------------------------------------------------------
 # Hooks
 # ---------------------------------------------------------------------------

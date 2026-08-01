@@ -1,6 +1,6 @@
 ﻿# Visualizations And Pipelines
 
-BrickflowUI `0.1.12` expands beyond basic dashboard charts. The goal is to let a data team represent operational reality directly: pipelines, freshness, failures, cost, triage, chatbot assistants, and executive signals.
+BrickflowUI `0.1.13` expands beyond basic dashboard charts. The goal is to let a data team represent operational reality directly: pipelines, freshness, failures, cost, triage, chatbot assistants, and executive signals.
 
 ## Chart Selection Guide
 

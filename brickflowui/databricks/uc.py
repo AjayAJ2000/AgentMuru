@@ -29,15 +29,10 @@ def _validated_limit(limit: int) -> int:
 
 
 def _workspace_client():
-    """Get a Databricks Workspace client (databricks-sdk)."""
-    try:
-        from databricks.sdk import WorkspaceClient
-        return WorkspaceClient()
-    except ImportError:
-        raise ImportError(
-            "databricks-sdk is required for Unity Catalog integration. "
-            "Install with: pip install brickflowui[databricks]"
-        )
+    """Get a workspace client bound to the current BrickflowUI identity."""
+    from . import services
+
+    return services.workspace_client()
 
 
 def list_catalogs() -> List[str]:

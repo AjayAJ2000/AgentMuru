@@ -21,6 +21,7 @@ Usage:
 
 import hashlib
 import logging
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union, Tuple
@@ -110,14 +111,22 @@ class App:
         csrf_protection: bool = True,
         audit_events: bool = False,
         allowed_embed_origins: Optional[List[str]] = None,
+        asset_roots: Optional[List[Union[str, Path]]] = None,
+        asset_registry_limit: int = 256,
     ):
+        """Create a BrickflowUI app and normalize theme, auth, and loading state."""
         self.title = title
         self.theme = Theme(theme)
         if theme_color:
             self.theme.load({"colors": {"primary": theme_color}})
         if title == "BrickflowUI App":
             self.title = self.theme.branding_value("title", title)
-        self._asset_registry: Dict[str, Path] = {}
+        if asset_registry_limit <= 0:
+            raise ValueError("asset_registry_limit must be greater than 0.")
+        configured_roots = asset_roots if asset_roots is not None else [Path.cwd()]
+        self.asset_roots = tuple(Path(root).expanduser().resolve() for root in configured_roots)
+        self.asset_registry_limit = asset_registry_limit
+        self._asset_registry: OrderedDict[str, Path] = OrderedDict()
         self.logo = self.resolve_asset_url(logo or self.theme.branding_value("logo"))
         self.favicon = self.resolve_asset_url(favicon or self.theme.branding_value("favicon"))
         self.brand_tagline = self.theme.branding_value("tagline")
@@ -137,6 +146,12 @@ class App:
         self.audit_events = audit_events
         self.allowed_embed_origins = list(allowed_embed_origins or [])
 
+        # Runtime registries:
+        # - pages hold routed page metadata
+        # - sessions hold hook state per connected client
+        # - session_paths remember the active route for each session
+        # - custom_routes keeps non-UI HTTP handlers alongside the websocket app
+
         # page path → Page
         self._pages: Dict[str, Page] = {}
         # session_id → RenderContext
@@ -150,6 +165,7 @@ class App:
         self._root_fn: Optional[Callable[[], VNode]] = None
 
     def _normalize_loading_config(self, loading: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Merge theme-level and app-level loading settings into one runtime payload."""
         theme_loading = self.theme.config.get("loading", {}) if isinstance(self.theme.config, dict) else {}
         merged = {
             "title": self.title,
@@ -170,6 +186,7 @@ class App:
         return merged
 
     def _normalize_loading_modes(self, light: Any, dark: Any) -> Dict[str, Dict[str, Any]]:
+        """Normalize light and dark loading overrides after alias resolution."""
         modes: Dict[str, Dict[str, Any]] = {}
         if isinstance(light, dict):
             payload = dict(light)
@@ -182,6 +199,7 @@ class App:
         return modes
 
     def _normalize_loading_media(self, payload: Dict[str, Any]) -> None:
+        """Resolve loading media into stable app-served URLs when local files are used."""
         asset = payload.get("asset") or payload.get("logo") or payload.get("image")
         video = payload.get("video")
         if video:
@@ -196,12 +214,14 @@ class App:
             payload["asset_kind"] = None
 
     def _asset_kind(self, value: Any) -> str:
+        """Infer whether an asset should render as an image or video."""
         suffix = Path(str(value)).suffix.lower()
         if suffix in {".mp4", ".webm", ".ogg", ".mov"}:
             return "video"
         return "image"
 
     def _coerce_asset_path(self, value: Any) -> Optional[Path]:
+        """Return an on-disk file path only when the value points to a real local asset."""
         if value is None or isinstance(value, bool):
             return None
 
@@ -217,15 +237,25 @@ class App:
         if not path.is_absolute():
             path = Path.cwd() / path
         path = path.resolve()
-        return path if path.exists() and path.is_file() else None
+        if not path.exists() or not path.is_file() or not self._is_allowed_asset_path(path):
+            return None
+        return path
+
+    def _is_allowed_asset_path(self, path: Path) -> bool:
+        """Return whether a resolved local file stays beneath an approved root."""
+        return any(path == root or root in path.parents for root in self.asset_roots)
 
     def resolve_asset_url(self, value: Any) -> Any:
+        """Convert local assets into stable app URLs and leave remote values untouched."""
         asset_path = self._coerce_asset_path(value)
         if asset_path is None:
             return value
 
         digest = hashlib.sha1(str(asset_path).encode("utf-8")).hexdigest()[:12]
         self._asset_registry[digest] = asset_path
+        self._asset_registry.move_to_end(digest)
+        while len(self._asset_registry) > self.asset_registry_limit:
+            self._asset_registry.popitem(last=False)
         return f"/__brickflow_asset__/{digest}/{quote(asset_path.name)}"
 
     def asset_url(self, value: Any) -> Any:
@@ -233,9 +263,19 @@ class App:
         return self.resolve_asset_url(value)
 
     def get_registered_asset(self, asset_id: str) -> Optional[Path]:
-        return self._asset_registry.get(asset_id)
+        """Return the local asset path previously registered for a public asset URL."""
+        path = self._asset_registry.get(asset_id)
+        if path is None:
+            return None
+        resolved = path.resolve()
+        if not resolved.exists() or not resolved.is_file() or not self._is_allowed_asset_path(resolved):
+            self._asset_registry.pop(asset_id, None)
+            return None
+        self._asset_registry.move_to_end(asset_id)
+        return resolved
 
     def transform_serialized_tree(self, payload: Any) -> Any:
+        """Rewrite local media paths inside serialized VDOM payloads before shipping them."""
         if isinstance(payload, dict):
             if payload.get("type") == "Embed":
                 self._validate_embed_payload(payload)
@@ -253,6 +293,7 @@ class App:
         return payload
 
     def _validate_embed_payload(self, payload: Dict[str, Any]) -> None:
+        """Enforce external embed allowlists when the app opts into them."""
         if not self.allowed_embed_origins:
             return
 
@@ -270,6 +311,7 @@ class App:
             raise ValueError(f"Embed origin '{origin}' is not in the allowed_embed_origins list.")
 
     def loading_bootstrap(self) -> Dict[str, Any]:
+        """Serialize the loading contract consumed by the frontend bootstrap."""
         return {
             "title": self.loading.get("title") or self.title,
             "message": self.loading.get("message") or "Connecting to runtime...",
@@ -301,7 +343,7 @@ class App:
         access: AccessLevel = "public",
         roles: Optional[List[str]] = None,
     ) -> Callable:
-        """Decorator to register a page component."""
+        """Register a page-rendering function under a path and optional access policy."""
         def decorator(fn: Callable[[], VNode]) -> Callable[[], VNode]:
             self._pages[path] = Page(
                 path=path,
@@ -311,7 +353,7 @@ class App:
                 access=access,
                 roles=tuple(roles or ()),
             )
-            # Register "/" as the root if first page
+            # The first "/" page doubles as the root renderer for simple apps.
             if not self._root_fn and path == "/":
                 self._root_fn = fn
             self._invalidate_server()
@@ -319,7 +361,7 @@ class App:
         return decorator
 
     def mount(self, component: Callable[[], VNode]) -> None:
-        """Mount a single root component (single-page shortcut)."""
+        """Mount a single root component for apps that do not need explicit routes."""
         self._root_fn = component
         self._pages["/"] = Page(path="/", title=self.title, icon=None, render_fn=component)
         self._invalidate_server()
@@ -333,7 +375,7 @@ class App:
         access: AccessLevel = "public",
         roles: Optional[List[str]] = None,
     ) -> Callable:
-        """Decorator to register a custom API route."""
+        """Register a custom HTTP route alongside the BrickflowUI websocket runtime."""
         if methods is None:
             methods = ["GET"]
 
@@ -383,6 +425,7 @@ class App:
         return page.render_fn()
 
     def _render_access_denied(self, exc: Exception) -> VNode:
+        """Render a consistent auth/access failure state inside the current app shell."""
         from .components import Alert, Column, Text
 
         title = "Sign In Required" if isinstance(exc, AuthenticationRequired) else "Access Denied"
@@ -396,7 +439,7 @@ class App:
         )
 
     def _render_with_shell(self, session_id: str, current_page: Page) -> VNode:
-        """Wrap page content in the app shell (sidebar + topbar)."""
+        """Wrap routed pages in the shared navigation shell."""
         from .components import Column, Row, Sidebar, NavItem
 
         principal = current_principal()
@@ -428,6 +471,7 @@ class App:
         )
 
     def _page_is_visible(self, principal: Principal, page: Page) -> bool:
+        """Return True when the current principal can see a page in the navigation shell."""
         try:
             authorize_principal(principal, access=page.access, roles=page.roles)
             return True
@@ -439,7 +483,7 @@ class App:
         self._session_paths[session_id] = path
         ctx = self._sessions.get(session_id)
         if ctx:
-            # Reset state on navigation (new page = new component tree)
+            # Routed navigation swaps component trees, so session-scoped hook state resets here.
             ctx.cleanup_effects()
             ctx.state_slots = []
             ctx.memo_slots = []
@@ -450,8 +494,7 @@ class App:
     @property
     def server(self):
         """
-        Access the underlying FastAPI app to register custom routes.
-        Lazy-init so users can add routes before calling run().
+        Access the lazily-created FastAPI app that powers the BrickflowUI runtime.
         """
         if not hasattr(self, "_fastapi_app"):
             from .server import create_asgi_app
@@ -464,7 +507,7 @@ class App:
         port: Optional[int] = None,
         reload: bool = False,
     ) -> None:
-        """Start the BrickflowUI server."""
+        """Resolve the runtime host/port and start the ASGI server."""
         from .databricks.env import resolve_host_port
         from .server import run_server
 

@@ -83,9 +83,7 @@ This matters because:
 
 The frontend is prebuilt and shipped inside the Python package under:
 
-```text
-brickflowui/frontend/dist/
-```
+- [`brickflowui/frontend/dist/`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist)
 
 This is important for Databricks Apps because:
 

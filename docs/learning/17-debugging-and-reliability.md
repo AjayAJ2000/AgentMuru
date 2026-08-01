@@ -18,11 +18,9 @@ Check:
 
 The package must include:
 
-```text
-brickflowui/frontend/dist/index.html
-brickflowui/frontend/dist/assets/*.js
-brickflowui/frontend/dist/assets/*.css
-```
+- [`brickflowui/frontend/dist/index.html`](https://github.com/AjayAJ2000/brickflowUI/blob/main/brickflowui/frontend/dist/index.html)
+- [`brickflowui/frontend/dist/assets/*.js`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist/assets)
+- [`brickflowui/frontend/dist/assets/*.css`](https://github.com/AjayAJ2000/brickflowUI/tree/main/brickflowui/frontend/dist/assets)
 
 If you changed frontend code:
 
@@ -34,7 +32,7 @@ npm run build
 Then check the wheel:
 
 ```bash
-python -m zipfile -l dist/brickflowui-0.1.12-py3-none-any.whl
+python -m zipfile -l dist/brickflowui-0.1.13-py3-none-any.whl
 ```
 
 ## User Input Not Updating
@@ -67,7 +65,7 @@ npm run build
 cd ..
 python -m mkdocs build
 python -m build
-python -m twine check dist/brickflowui-0.1.12*
+python -m twine check dist/brickflowui-0.1.13*
 ```
 
 On Windows, prefer:
@@ -93,5 +91,6 @@ Create a broken chart by using the wrong `y_key`. Then fix it by matching the ke
 ## Checkpoint
 
 You should be able to debug connection, asset, state, data, and build issues methodically.
+
 
 

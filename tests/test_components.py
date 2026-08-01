@@ -1,3 +1,6 @@
+import re
+from pathlib import Path
+
 import brickflowui as db
 
 
@@ -343,3 +346,63 @@ def test_015_chart_and_pipeline_components_serialize_expected_props():
     ]
     assert payloads[0]["props"]["click"] in registry
     assert payloads[-1]["props"]["nodeClick"] in registry
+
+
+def test_databricks_components_serialize_server_driven_state_and_events():
+    catalog = db.CatalogBrowser(
+        catalogs=[
+            {
+                "name": "main",
+                "schemas": [
+                    {
+                        "name": "default",
+                        "tables": [{"name": "events", "full_name": "main.default.events"}],
+                    }
+                ],
+            }
+        ],
+        selected={"catalog": "main", "schema": "default", "table": "events"},
+        on_select=lambda value: value,
+        loading=True,
+    )
+    warehouse = db.WarehouseSelector(
+        warehouses=[{"id": "w1", "name": "Starter", "state": "RUNNING"}],
+        selected_id="w1",
+        on_select=lambda value: value,
+        error="Permission denied",
+    )
+    job = db.JobTrigger(
+        "42",
+        on_trigger=lambda value: value,
+        status="QUEUED",
+        run_id="99",
+        disabled=True,
+    )
+    registry = {}
+
+    catalog_payload = catalog.serialize(registry)
+    warehouse_payload = warehouse.serialize(registry)
+    job_payload = job.serialize(registry)
+
+    assert catalog_payload["props"]["catalogs"][0]["name"] == "main"
+    assert catalog_payload["props"]["loading"] is True
+    assert catalog_payload["props"]["select"] in registry
+    assert warehouse_payload["props"]["warehouses"][0]["id"] == "w1"
+    assert warehouse_payload["props"]["error"] == "Permission denied"
+    assert warehouse_payload["props"]["select"] in registry
+    assert job_payload["props"]["status"] == "QUEUED"
+    assert job_payload["props"]["runId"] == "99"
+    assert job_payload["props"]["disabled"] is True
+    assert job_payload["props"]["trigger"] in registry
+
+
+def test_frontend_maps_every_python_component():
+    repo_root = Path(__file__).resolve().parents[1]
+    python_source = (repo_root / "brickflowui" / "components.py").read_text(encoding="utf-8")
+    renderer_source = (repo_root / "frontend" / "src" / "Renderer.tsx").read_text(
+        encoding="utf-8"
+    )
+
+    python_types = set(re.findall(r'VNode\(\s*type="([^"]+)"', python_source))
+    renderer_types = set(re.findall(r"case '([^']+)'", renderer_source))
+    assert python_types - renderer_types == set()

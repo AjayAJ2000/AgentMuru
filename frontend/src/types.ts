@@ -20,6 +20,7 @@ export interface PatchMessage {
 export interface ErrorMessage {
   type: 'error'
   message: string
+  error_id?: string
 }
 
 export interface EventCompleteMessage {

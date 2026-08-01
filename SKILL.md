@@ -890,12 +890,17 @@ def copilot():
 
 ### 5.8 Databricks-Specific Components
 
+`WarehouseSelector`, `JobTrigger`, and `CatalogBrowser` are server-driven. Use the identity-aware helpers in `brickflowui.databricks`, then pass their normalized records and public UI state into the components. Never send tokens or SDK objects through component props.
+
 ```python
 # WarehouseSelector — let users pick a SQL warehouse
+from brickflowui import databricks as dbrx
+
 warehouse_id, set_warehouse = db.use_state("")
 db.WarehouseSelector(
-    value=warehouse_id,
-    on_change=set_warehouse,
+    warehouses=dbrx.list_warehouses(),
+    selected_id=warehouse_id,
+    on_select=set_warehouse,
     label="SQL Warehouse",
 )
 
@@ -903,11 +908,12 @@ db.WarehouseSelector(
 db.JobTrigger(
     job_id="1234567890",
     label="Run Bronze Pipeline",
-    on_success=lambda: set_toast(True),
+    on_trigger=lambda payload: dbrx.trigger_job(payload["job_id"]),
 )
 
 # CatalogBrowser — Unity Catalog browser
 db.CatalogBrowser(
+    catalogs=dbrx.catalog_tree(),
     on_select=lambda path: set_selected_table(path),
 )
 ```
@@ -1485,7 +1491,7 @@ app = db.App(
     theme="theme.yaml",
 
     # Auth
-    auth_mode="databricks",         # "databricks" | "header" | "static" | "none"
+    auth_mode="hybrid",             # "app" | "user" | "hybrid"
     auth_provider=db.HeaderAuthProvider(),   # see below
 
     # Security
@@ -1524,12 +1530,12 @@ def admin():
     ...
 
 # Page restricted to a role
-@app.page("/ops", title="Ops", access="role", roles=["ops_team", "admin"])
+@app.page("/ops", title="Ops", access="authenticated", roles=["ops_team", "admin"])
 def ops():
     ...
 
 # Same on routes
-@app.route("/api/delete", methods=["POST"], access="role", roles=["admin"])
+@app.route("/api/delete", methods=["POST"], access="authenticated", roles=["admin"])
 def delete_pipeline(data):
     ...
 ```
@@ -1538,17 +1544,23 @@ def delete_pipeline(data):
 
 ```python
 # Databricks Apps — reads the identity injected by the platform (recommended)
-app = db.App(auth_mode="databricks")
+app = db.App(auth_mode="user", auth_provider=db.HeaderAuthProvider())
 
 # Header auth — trust a header forwarded by a proxy/reverse proxy
-app = db.App(auth_provider=db.HeaderAuthProvider(
-    header="X-Forwarded-User",
-    roles_header="X-Forwarded-Roles",
+app = db.App(auth_mode="user", auth_provider=db.HeaderAuthProvider(
+    header_prefix="x-mycompany-",
 ))
 
 # Static principal — for local dev / testing
-app = db.App(auth_provider=db.StaticAuthProvider(
-    db.Principal(name="dev-user", email="dev@example.com", roles=["admin"])
+app = db.App(auth_mode="user", auth_provider=db.StaticAuthProvider(
+    db.Principal(
+        subject="dev-user",
+        display_name="Dev User",
+        email="dev@example.com",
+        roles=("admin",),
+        authenticated=True,
+        principal_type="user",
+    )
 ))
 ```
 
@@ -1561,7 +1573,7 @@ def home():
 
     return db.Column([
         db.Hero(
-            f"Welcome, {user.name}" if user else "Welcome",
+            f"Welcome, {user.display_name}" if user else "Welcome",
             subtitle="Data Platform Portal",
         ),
         db.Alert("You are not authenticated.", type="warning")
@@ -1623,11 +1635,12 @@ def pipelines():
 ### 15.2 Unity Catalog Helpers
 
 ```python
+from brickflowui import databricks as dbrx
 from brickflowui.databricks import uc
 
 # Browsing the catalog programmatically
-catalogs = uc.list_catalogs()                            # [{"name": "main"}, ...]
-schemas  = uc.list_schemas("main")                      # [{"name": "gold"}, ...]
+catalogs = uc.list_catalogs()                            # ["main", ...]
+schemas  = uc.list_schemas("main")                      # ["gold", ...]
 tables   = uc.list_tables("main", "gold")               # [{"name": "orders"}, ...]
 schema   = uc.table_schema("main", "gold", "orders")    # [{"name": "id", "type": "bigint"}, ...]
 
@@ -1640,12 +1653,16 @@ rows = uc.get_table("main", "gold", "orders", limit=50)
 selected_table, set_table = db.use_state(None)
 preview_rows, set_preview = db.use_state([])
 
-def on_table_select(path):
-    set_table(path)
-    catalog, schema, table = path.split(".")
-    set_preview(uc.get_table(catalog, schema, table, limit=25))
+def on_table_select(selection):
+    set_table(selection)
+    set_preview(uc.get_table(
+        selection["catalog"],
+        selection["schema"],
+        selection["table"],
+        limit=25,
+    ))
 
-db.CatalogBrowser(on_select=on_table_select)
+db.CatalogBrowser(catalogs=dbrx.catalog_tree(), on_select=on_table_select)
 
 if preview_rows:
     db.Table(data=preview_rows, columns=[{"key": k, "label": k} for k in preview_rows[0]])

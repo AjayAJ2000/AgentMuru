@@ -1,11 +1,34 @@
-import pytest
-from fastapi.testclient import TestClient
-import brickflowui as db
-from brickflowui.app import App
-from brickflowui.auth import HeaderAuthProvider, current_user
-from brickflowui.server import create_asgi_app
-from brickflowui.vdom import VNode
+import dataclasses
+import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+import pytest
+from fastapi import WebSocketDisconnect
+from fastapi.testclient import TestClient
+
+import brickflowui as db
+import brickflowui.server as server
+from brickflowui.app import App
+from brickflowui.auth import AuthenticationRequired, HeaderAuthProvider, current_user
+from brickflowui.server import _minimal_html_shell, create_asgi_app
+from brickflowui.vdom import VNode
+
+
+class _FailingAuthProvider:
+    def authenticate_request(self, _source):
+        raise RuntimeError("auth-provider-secret")
+
+    def authenticate_websocket(self, _source):
+        raise RuntimeError("auth-provider-secret")
+
+
+class _RejectingAuthProvider:
+    def authenticate_request(self, _source):
+        raise AuthenticationRequired("auth-provider-secret")
+
+    def authenticate_websocket(self, _source):
+        raise AuthenticationRequired("auth-provider-secret")
 
 
 def _find_node_by_type(node: dict, node_type: str) -> dict | None:
@@ -27,6 +50,24 @@ def _find_node_by_type(node: dict, node_type: str) -> dict | None:
                     if found:
                         return found
     return None
+
+
+def test_patch_values_serialize_nested_vnodes_for_the_wire():
+    registry = {}
+    patches = [{
+        "op": "update_props",
+        "path": [],
+        "props": {"detail": VNode(type="Text", props={"value": "ready"})},
+    }]
+
+    serialized = server._serialize_patch_values(patches, registry)
+
+    assert serialized[0]["props"]["detail"] == {
+        "type": "Text",
+        "props": {"value": "ready"},
+        "children": [],
+        "key": None,
+    }
 
 
 def test_app_page_registration():
@@ -78,6 +119,78 @@ def test_server_spa_shell():
     assert "BrickflowUI App" in response.text
 
 
+def test_shell_escapes_title_favicon_and_bootstrap_html():
+    app = App(
+        title='</title><img src=x>',
+        favicon='" onload="alert(1)',
+        loading={"message": "</script><img src=x>"},
+    )
+    app.mount(lambda: VNode(type="div"))
+
+    response = TestClient(create_asgi_app(app)).get("/")
+
+    assert response.status_code == 200
+    assert "</title><img" not in response.text
+    assert 'onload="alert(1)' not in response.text
+    assert "</script><img" not in response.text
+
+
+def test_http_auth_provider_errors_are_correlated_and_redacted(caplog):
+    app = App(auth_mode="user", auth_provider=_FailingAuthProvider())
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app), raise_server_exceptions=False)
+
+    with caplog.at_level("ERROR", logger="brickflowui.server"):
+        response = client.get("/")
+
+    assert response.status_code == 500
+    payload = response.json()
+    assert payload["detail"] == "Authentication failed."
+    assert payload["error_id"]
+    assert "auth-provider-secret" not in response.text
+    assert "auth-provider-secret" in caplog.text
+    assert payload["error_id"] in caplog.text
+
+
+def test_http_authentication_rejections_use_a_constant_public_message():
+    app = App(auth_mode="user", auth_provider=_RejectingAuthProvider())
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app), raise_server_exceptions=False)
+
+    response = client.get("/api/private")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Authentication required."}
+    assert "auth-provider-secret" not in response.text
+
+
+def test_websocket_auth_provider_errors_close_safely_and_are_logged(caplog):
+    app = App(auth_mode="user", auth_provider=_FailingAuthProvider())
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app))
+
+    with caplog.at_level("ERROR", logger="brickflowui.server"):
+        with pytest.raises(WebSocketDisconnect) as closed:
+            with client.websocket_connect("/events"):
+                pass
+
+    assert closed.value.code == 1011
+    assert "auth-provider-secret" not in str(closed.value)
+    assert "auth-provider-secret" in caplog.text
+
+
+def test_missing_frontend_bundle_returns_diagnostic(monkeypatch):
+    monkeypatch.setattr(server, "_FRONTEND_DIST", Path("missing-frontend-dist"))
+    app = App()
+    app.mount(lambda: VNode(type="div"))
+
+    response = TestClient(create_asgi_app(app)).get("/")
+
+    assert response.status_code == 503
+    assert "frontend bundle is missing" in response.text.lower()
+    assert "new WebSocket" not in response.text
+
+
 def test_shell_bootstrap_and_local_asset_route():
     asset = Path("docs/assets/brickflowui-mark.svg").resolve()
 
@@ -95,7 +208,7 @@ def test_shell_bootstrap_and_local_asset_route():
 
     response = client.get("/")
     assert response.status_code == 200
-    assert "__BRICKFLOW_BOOTSTRAP__" in response.text
+    assert 'id="brickflow-bootstrap" type="application/json"' in response.text
     assert "Booting secure workspace" in response.text
     assert "/__brickflow_asset__/" in response.text
 
@@ -103,6 +216,37 @@ def test_shell_bootstrap_and_local_asset_route():
     asset_response = client.get(asset_url)
     assert asset_response.status_code == 200
     assert b"<svg" in asset_response.content
+
+
+def test_local_asset_registry_enforces_roots_limit_and_revalidation():
+    safe_root = Path("docs/assets").resolve()
+    first = safe_root / "auth-guard-flow.png"
+    second = safe_root / "auth-guard-flow.svg"
+    third = safe_root / "bfui-darkbg.svg"
+    outside = Path("README.md").resolve()
+
+    app = App(asset_roots=[safe_root], asset_registry_limit=2)
+
+    first_url = app.asset_url(first)
+    second_url = app.asset_url(second)
+    third_url = app.asset_url(third)
+    first_id = str(first_url).split("/")[2]
+    second_id = str(second_url).split("/")[2]
+    third_id = str(third_url).split("/")[2]
+
+    assert str(first_url).startswith("/__brickflow_asset__/")
+    assert app.asset_url(outside) == outside
+    assert app.get_registered_asset(first_id) is None
+    assert app.get_registered_asset(second_id) == second.resolve()
+    assert app.get_registered_asset(third_id) == third.resolve()
+
+    app.asset_roots = (outside.parent / "examples",)
+    assert app.get_registered_asset(third_id) is None
+
+
+def test_asset_registry_rejects_non_positive_limits():
+    with pytest.raises(ValueError, match="greater than 0"):
+        App(asset_registry_limit=0)
 
 
 def test_shell_bootstrap_includes_theme_mode_and_subtitle():
@@ -140,6 +284,21 @@ def test_shell_bootstrap_includes_style_preset_and_loading_modes():
     assert "Loading light workspace" in response.text
     assert "Loading dark workspace" in response.text
     assert "/__brickflow_asset__/" in response.text
+
+
+def test_minimal_shell_uses_builtin_loading_mark_when_no_custom_media_is_configured():
+    html = _minimal_html_shell(
+        title="Fallback App",
+        loading={
+            "title": "Fallback App",
+            "message": "Connecting to runtime...",
+            "subtitle": "Built-in brand mark should render.",
+        },
+    )
+
+    assert 'class="loading-mark"' in html
+    assert "Built-in brand mark should render." in html
+    assert 'class="spinner"' not in html
 
 
 def test_custom_api_route():
@@ -253,6 +412,62 @@ def test_websocket_page_uses_authenticated_user_context():
     assert payload["type"] == "full"
     assert payload["tree"]["props"]["value"] == "alice"
 
+
+def test_forwarded_access_token_is_private_and_available_in_user_context():
+    provider = HeaderAuthProvider()
+    principal = provider._from_mapping(
+        {
+            "x-brickflow-user-id": "alice",
+            "x-forwarded-access-token": "secret-user-token",
+        }
+    )
+
+    assert principal is not None
+    assert principal.access_token == "secret-user-token"
+    assert "secret-user-token" not in repr(principal)
+    assert principal == dataclasses.replace(principal, access_token="different-token")
+
+    app = App(auth_mode="user", auth_provider=provider)
+
+    @app.page("/", access="user")
+    def home():
+        user = current_user()
+        return VNode(
+            type="Text",
+            props={"value": "token-present" if user and user.access_token else "token-missing"},
+        )
+
+    client = TestClient(create_asgi_app(app))
+    with client.websocket_connect(
+        "/events",
+        headers={
+            "x-brickflow-user-id": "alice",
+            "x-forwarded-access-token": "secret-user-token",
+        },
+    ) as websocket:
+        payload = websocket.receive_json()
+
+    serialized = json.dumps(payload)
+    assert payload["tree"]["props"]["value"] == "token-present"
+    assert "secret-user-token" not in serialized
+
+
+def test_header_provider_accepts_native_databricks_forwarded_identity():
+    principal = HeaderAuthProvider()._from_mapping(
+        {
+            "x-forwarded-user": "user-123",
+            "x-forwarded-preferred-username": "Alice Analyst",
+            "x-forwarded-email": "alice@example.com",
+            "x-forwarded-access-token": "secret-user-token",
+        }
+    )
+
+    assert principal is not None
+    assert principal.subject == "user-123"
+    assert principal.display_name == "Alice Analyst"
+    assert principal.email == "alice@example.com"
+    assert principal.access_token == "secret-user-token"
+
 def test_websocket_page_renders_access_denied_without_user():
     app = App(auth_mode="user", auth_provider=HeaderAuthProvider())
 
@@ -267,6 +482,26 @@ def test_websocket_page_renders_access_denied_without_user():
 
     assert payload["type"] == "full"
     assert payload["tree"]["type"] == "Column"
+
+
+def test_websocket_render_error_is_correlated_and_redacted(caplog):
+    app = App()
+
+    @app.page("/")
+    def home():
+        raise RuntimeError("database-password must never reach the browser")
+
+    client = TestClient(create_asgi_app(app))
+    with caplog.at_level("ERROR", logger="brickflowui.server"):
+        with client.websocket_connect("/events") as websocket:
+            payload = websocket.receive_json()
+
+    assert payload["type"] == "error"
+    assert payload["error_id"]
+    assert "database-password" not in payload["message"]
+    assert "database-password" not in json.dumps(payload)
+    assert "database-password" in caplog.text
+    assert payload["error_id"] in caplog.text
 
 
 def test_shell_sidebar_hides_pages_user_cannot_access():
@@ -598,3 +833,149 @@ def test_websocket_sends_event_complete_for_non_dirty_handlers():
 
     assert touched["count"] == 1
     assert completion == {"type": "event_complete", "event_id": event_id}
+
+
+def test_previous_render_event_handler_remains_valid_for_one_generation():
+    app = App()
+
+    @app.page("/")
+    def home():
+        count, set_count = db.use_state(0)
+        status, set_status = db.use_state("idle")
+        return db.Column(
+            [
+                db.Text(f"{status}:{count}"),
+                db.Button("Advance", on_click=lambda: set_count(count + 1)),
+                db.Button("Use queued event", on_click=lambda: set_status("accepted")),
+            ]
+        )
+
+    client = TestClient(create_asgi_app(app))
+
+    with client.websocket_connect("/events") as websocket:
+        full = websocket.receive_json()
+        old_advance_id = full["tree"]["children"][1]["props"]["click"]
+        old_queued_id = full["tree"]["children"][2]["props"]["click"]
+
+        websocket.send_json({"type": "event", "event_id": old_advance_id, "data": {}})
+        first_patch = websocket.receive_json()
+        websocket.receive_json()  # event_complete
+        current_advance_id = next(
+            patch["props"]["click"]
+            for patch in first_patch["patches"]
+            if patch["path"] == [1]
+        )
+
+        websocket.send_json({"type": "event", "event_id": old_queued_id, "data": {}})
+        websocket.send_json({"type": "event", "event_id": current_advance_id, "data": {}})
+        second_patch = websocket.receive_json()
+
+    text_patch = next(patch for patch in second_patch["patches"] if patch["path"] == [0])
+    assert text_patch["props"]["value"] == "accepted:1"
+
+
+def test_websocket_disconnect_cleans_session_and_effects():
+    app = App()
+    cleaned = {"count": 0}
+
+    @app.page("/")
+    def home():
+        db.use_effect(
+            lambda: lambda: cleaned.__setitem__("count", cleaned["count"] + 1),
+            [],
+        )
+        return db.Text("ready")
+
+    client = TestClient(create_asgi_app(app))
+    with client.websocket_connect("/events") as websocket:
+        assert websocket.receive_json()["type"] == "full"
+        assert len(app._sessions) == 1
+
+    assert app._sessions == {}
+    assert app._session_paths == {}
+    assert cleaned["count"] == 1
+
+
+def test_repeated_websocket_disconnects_do_not_grow_session_registries():
+    app = App()
+    app.mount(lambda: db.Text("ready"))
+    client = TestClient(create_asgi_app(app))
+
+    for _ in range(20):
+        with client.websocket_connect("/events") as websocket:
+            assert websocket.receive_json()["type"] == "full"
+
+        assert app._sessions == {}
+        assert app._session_paths == {}
+
+
+def test_websocket_sessions_keep_state_independent():
+    app = App()
+
+    @app.page("/")
+    def home():
+        count, set_count = db.use_state(0)
+        return db.Column(
+            [
+                db.Text(f"count:{count}"),
+                db.Button("Increment", on_click=lambda: set_count(count + 1)),
+            ]
+        )
+
+    client = TestClient(create_asgi_app(app))
+    with client.websocket_connect("/events") as first:
+        first_full = first.receive_json()
+        first_button = _find_node_by_type(first_full["tree"], "Button")
+        assert first_button is not None
+
+        with client.websocket_connect("/events") as second:
+            second_full = second.receive_json()
+            second_button = _find_node_by_type(second_full["tree"], "Button")
+            assert second_button is not None
+
+            first.send_json(
+                {"type": "event", "event_id": first_button["props"]["click"], "data": {}}
+            )
+            first_messages = [first.receive_json(), first.receive_json()]
+            first_patch = next(message for message in first_messages if message["type"] == "patch")
+
+            second.send_json(
+                {"type": "event", "event_id": second_button["props"]["click"], "data": {}}
+            )
+            second_messages = [second.receive_json(), second.receive_json()]
+            second_patch = next(message for message in second_messages if message["type"] == "patch")
+
+    first_text = next(patch for patch in first_patch["patches"] if patch["path"] == [0])
+    second_text = next(patch for patch in second_patch["patches"] if patch["path"] == [0])
+    assert first_text["props"]["value"] == "count:1"
+    assert second_text["props"]["value"] == "count:1"
+    assert app._sessions == {}
+    assert app._session_paths == {}
+
+
+def test_concurrent_websocket_sessions_keep_principals_isolated():
+    app = App(auth_mode="user", auth_provider=HeaderAuthProvider())
+
+    @app.page("/", access="user")
+    def home():
+        principal = current_user()
+        return db.Text(principal.subject if principal else "missing")
+
+    asgi = create_asgi_app(app)
+
+    def connect(subject: str) -> str:
+        with TestClient(asgi) as client:
+            with client.websocket_connect(
+                "/events",
+                headers={"x-brickflow-user-id": subject},
+            ) as websocket:
+                payload = websocket.receive_json()
+                return payload["tree"]["props"]["value"]
+
+    subjects = [f"user-{index}" for index in range(8)]
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        rendered = list(executor.map(connect, subjects))
+
+    assert sorted(rendered) == sorted(subjects)
+    assert app._sessions == {}
+    assert app._session_paths == {}

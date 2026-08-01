@@ -242,7 +242,8 @@ def sample_arg(component_name: str, param_name: str) -> str:
             "SparklineStat": '[{"day": "Mon", "value": 14}, {"day": "Tue", "value": 12}]',
             "Plot": '{"data": [{"type": "bar", "x": ["Mon"], "y": [24]}]}',
         }
-        return f"data={data_map.get(component_name, '[{\"label\": \"Item\", \"value\": 1}]')}"
+        fallback_data = '[{"label": "Item", "value": 1}]'
+        return f"data={data_map.get(component_name, fallback_data)}"
     if param_name == "options":
         return 'options=[{"label": "Bronze", "value": "bronze"}, {"label": "Silver", "value": "silver"}]'
     if param_name == "values":

@@ -1,0 +1,27 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="16" y1="10" x2="82" y2="84" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF4FF"/>
+      <stop offset="0.45" stop-color="#EEE9FF"/>
+      <stop offset="1" stop-color="#D5E6FF"/>
+    </linearGradient>
+    <linearGradient id="left" x1="18" y1="16" x2="44" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F9CCE7"/>
+      <stop offset="1" stop-color="#C8B6FF"/>
+    </linearGradient>
+    <linearGradient id="right" x1="42" y1="18" x2="74" y2="78" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C6CFF"/>
+      <stop offset="1" stop-color="#66A6FF"/>
+    </linearGradient>
+    <filter id="glow" x="0" y="0" width="96" height="96" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+  <circle cx="48" cy="48" r="42" fill="url(#bg)"/>
+  <g opacity="0.7" filter="url(#glow)">
+    <path d="M26 28C30 22 39 22 43 28L55 46L43 64C39 70 30 70 26 64L16 46L26 28Z" fill="#E9D4FF"/>
+    <path d="M50 22C54 16 64 16 68 22L81 46L68 70C64 76 54 76 50 70L39 46L50 22Z" fill="#8EA4FF"/>
+  </g>
+  <path d="M28 30C31.5 24 39.5 24 43 30L52 46L43 62C39.5 68 31.5 68 28 62L19 46L28 30Z" fill="url(#left)"/>
+  <path d="M52 24C55.5 18 64.5 18 68 24L79 46L68 68C64.5 74 55.5 74 52 68L42 46L52 24Z" fill="url(#right)"/>
+</svg>

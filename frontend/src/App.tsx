@@ -1,6 +1,10 @@
 import React, { startTransition, useState, useEffect, useCallback, useRef } from 'react'
 import { Renderer } from './Renderer'
-import type { VNodeData, ServerMessage, Patch } from './types'
+import type { VNodeData, ServerMessage } from './types'
+import { PatchApplicationError, applyPatches } from './runtime/applyPatch'
+import { navigationAction, type NavigationSource } from './runtime/navigation'
+import { createReconnectController } from './runtime/reconnect'
+import { safeMediaUrl } from './runtime/media'
 
 type WsStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
 
@@ -26,7 +30,19 @@ declare global {
   }
 }
 
-const LOADING_BOOTSTRAP: LoadingBootstrap = window.__BRICKFLOW_BOOTSTRAP__ || {}
+function readLoadingBootstrap(): LoadingBootstrap {
+  const dataElement = document.getElementById('brickflow-bootstrap')
+  if (dataElement?.textContent) {
+    try {
+      return JSON.parse(dataElement.textContent) as LoadingBootstrap
+    } catch (error) {
+      console.error('[BrickflowUI] Invalid bootstrap configuration', error)
+    }
+  }
+  return window.__BRICKFLOW_BOOTSTRAP__ || {}
+}
+
+const LOADING_BOOTSTRAP: LoadingBootstrap = readLoadingBootstrap()
 
 function resolveLoadingConfig(mode: 'light' | 'dark'): LoadingBootstrap {
   const modeOverrides = LOADING_BOOTSTRAP.modes?.[mode] || {}
@@ -36,48 +52,32 @@ function resolveLoadingConfig(mode: 'light' | 'dark'): LoadingBootstrap {
   }
 }
 
-function applyPatch(tree: VNodeData, patch: Patch): VNodeData {
-  const { op, path, node, props } = patch
+function BuiltinLoadingMark() {
+  return (
+    <div className="bf-loading-mark" aria-hidden="true">
+      <div className="bf-loading-mark-tile">
+        <span className="bf-loading-mark-bar bf-loading-mark-bar-long" />
+        <span className="bf-loading-mark-bar bf-loading-mark-bar-medium" />
+        <span className="bf-loading-mark-bar bf-loading-mark-bar-short" />
+      </div>
+    </div>
+  )
+}
 
-  if (path.length === 0) {
-    if (op === 'replace' && node) return node
-    if (op === 'update_props' && props) {
-      const nextProps = { ...tree.props }
-      for (const [key, value] of Object.entries(props)) {
-        if (value === null) delete nextProps[key]
-        else nextProps[key] = value
-      }
-      return { ...tree, props: nextProps }
-    }
-    return tree
-  }
+function SafeText({ className, text }: { className: string; text: string }) {
+  const writeText = useCallback((element: HTMLDivElement | null) => {
+    if (element) element.textContent = text
+  }, [text])
 
-  const [idx, ...rest] = path
-  const newChildren = [...tree.children]
-
-  if (op === 'remove' && rest.length === 0) {
-    newChildren.splice(idx, 1)
-    return { ...tree, children: newChildren }
-  }
-
-  if (op === 'insert' && rest.length === 0 && node) {
-    newChildren.splice(idx, 0, node)
-    return { ...tree, children: newChildren }
-  }
-
-  if (idx < newChildren.length) {
-    newChildren[idx] = applyPatch(newChildren[idx], { op, path: rest, node, props })
-  } else if (op === 'insert' && node) {
-    newChildren.push(node)
-  }
-
-  return { ...tree, children: newChildren }
+  return <div className={className} ref={writeText} />
 }
 
 function LoadingVisual({ status, themeMode }: { status: WsStatus; themeMode: 'light' | 'dark' }) {
   const config = resolveLoadingConfig(themeMode)
-  const asset = config.video || config.asset
-  const kind = config.video ? 'video' : config.assetKind
+  const videoAsset = safeMediaUrl(config.video, window.location.href)
+  const configuredAsset = safeMediaUrl(config.asset, window.location.href)
+  const asset = videoAsset || configuredAsset
+  const kind = videoAsset ? 'video' : config.assetKind
   const animation = config.animation || 'spinner'
   const title = config.title || 'BrickflowUI'
   const subtitle = config.subtitle
@@ -103,14 +103,14 @@ function LoadingVisual({ status, themeMode }: { status: WsStatus; themeMode: 'li
             playsInline
           />
         ) : asset ? (
-          <img className="bf-loading-media" src={asset} alt={`${title} loading`} />
+          <img className="bf-loading-media" src={asset} alt="Loading indicator" />
         ) : (
-          <div className={`bf-spinner bf-spinner-lg ${animation === 'pulse' ? 'bf-spinner-pulse' : ''}`} />
+          <BuiltinLoadingMark />
         )
       ) : null}
-      <div className="bf-loading-brand">{title}</div>
-      {subtitle ? <div className="bf-loading-subtitle">{subtitle}</div> : null}
-      <div className="bf-loading-hint">{message}</div>
+      <SafeText className="bf-loading-brand" text={title} />
+      {subtitle ? <SafeText className="bf-loading-subtitle" text={subtitle} /> : null}
+      <SafeText className="bf-loading-hint" text={message} />
     </div>
   )
 }
@@ -177,12 +177,15 @@ export default function App() {
     }
   }, [])
 
-  const navigate = useCallback((path: string) => {
+  const navigateTo = useCallback((path: string, source: NavigationSource) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'navigate', path }))
-      window.history.pushState({}, '', path)
+      const action = navigationAction(path, source)
+      wsRef.current.send(JSON.stringify(action.message))
+      if (action.history === 'push') window.history.pushState({}, '', path)
     }
   }, [])
+
+  const navigate = useCallback((path: string) => navigateTo(path, 'user'), [navigateTo])
 
   useEffect(() => {
     document.documentElement.dataset.themeMode = themeMode
@@ -193,8 +196,6 @@ export default function App() {
   }, [stylePreset])
 
   useEffect(() => {
-    let reconnectTimer: ReturnType<typeof setTimeout>
-
     function connect() {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws'
       const ws = new WebSocket(`${proto}://${location.host}/events?path=${encodeURIComponent(window.location.pathname)}`)
@@ -202,6 +203,7 @@ export default function App() {
       setStatus('connecting')
 
       ws.onopen = () => {
+        reconnectController.opened()
         setStatus('connected')
         setError(null)
       }
@@ -215,12 +217,18 @@ export default function App() {
             scheduleTreeCommit(msg.tree)
           } else if (msg.type === 'patch') {
             if (vdomRef.current) {
-              let updated = vdomRef.current
-              for (const patch of msg.patches) {
-                updated = applyPatch(updated, patch)
+              try {
+                const updated = applyPatches(vdomRef.current, msg.patches)
+                vdomRef.current = updated
+                scheduleTreeCommit({ ...updated })
+              } catch (patchError) {
+                const message = patchError instanceof PatchApplicationError
+                  ? patchError.message
+                  : 'Unknown patch application failure'
+                console.error('[BrickflowUI] Invalid server patch', patchError)
+                setError(`Invalid server patch: ${message}. Reconnecting for a full render.`)
+                ws.close()
               }
-              vdomRef.current = updated
-              scheduleTreeCommit({ ...updated })
             }
           } else if (msg.type === 'event_complete') {
             setPendingEvents((prev) => {
@@ -242,7 +250,7 @@ export default function App() {
       ws.onclose = () => {
         setStatus('disconnected')
         setPendingEvents(new Map())
-        reconnectTimer = setTimeout(connect, 2500)
+        reconnectController.closed()
       }
 
       ws.onerror = () => {
@@ -252,20 +260,24 @@ export default function App() {
       }
     }
 
+    const reconnectController = createReconnectController(connect)
     connect()
 
-    const handlePopstate = () => navigate(window.location.pathname)
+    const handlePopstate = () => navigateTo(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+      'popstate',
+    )
     window.addEventListener('popstate', handlePopstate)
 
     return () => {
-      clearTimeout(reconnectTimer)
+      reconnectController.dispose()
       if (frameRef.current !== null) {
         window.cancelAnimationFrame(frameRef.current)
       }
       wsRef.current?.close()
       window.removeEventListener('popstate', handlePopstate)
     }
-  }, [navigate, scheduleTreeCommit])
+  }, [navigateTo, scheduleTreeCommit])
 
   if (!vdom) {
     return <LoadingVisual status={status} themeMode={themeMode} />
