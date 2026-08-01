@@ -92,6 +92,22 @@ This writes the packaged frontend bundle to:
 brickflowui/frontend/dist/
 ```
 
+Run the frontend quality gates from `frontend/`:
+
+```bash
+npm test -- --run
+npm run lint
+npm run typecheck
+npm run test:bundle
+npm run check:bundle
+npm run test:e2e
+```
+
+The end-user test starts the counter and component studio examples, launches
+the pinned Chromium build, exercises real WebSocket interactions, checks a
+mobile viewport, and fails on browser errors or serious/critical Axe findings.
+Install its browser runtime once with `npx playwright install chromium`.
+
 ## Frontend development with hot reload
 
 ```bash

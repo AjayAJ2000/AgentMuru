@@ -15,6 +15,7 @@ From the repository root:
 
 ```text
 python -m pytest -q -p no:cacheprovider
+python scripts/runtime_resilience.py
 python scripts/generate_component_reference.py
 git diff --exit-code -- docs/components/reference
 python -m mkdocs build --strict
@@ -30,6 +31,9 @@ npm run lint
 npm run typecheck
 npm audit --audit-level=high
 npm run build
+npm run test:bundle
+npm run check:bundle
+npm run test:e2e
 ```
 
 Release verification additionally inspects the wheel and source distribution, installs the wheel into an isolated environment, starts a minimal application outside the source tree, and checks browser load, WebSocket interaction, direct links, reconnect behavior, theme switching, narrow layouts, and browser-console errors.
@@ -38,5 +42,8 @@ Release verification additionally inspects the wheel and source distribution, in
 
 - `CatalogBrowser`, `WarehouseSelector`, and `JobTrigger` have server-driven renderer, loading, empty, disabled, error, and event contracts. Databricks operations remain explicit Python calls so credentials and SDK objects never enter the browser.
 - Per-user and shared-app identity are both supported. User SQL/SDK clients are operation-scoped from forwarded authorization headers; the guarded app-identity SQL connection is reusable. A deployment must still configure and verify the required Databricks authorization scopes.
-- Formal concurrency, load, long-running-session, and deployed Databricks Apps validation are separate production-lifecycle gates.
+- CI exercises Python 3.10 through 3.13. Local evidence may cover only the interpreters installed on the release workstation.
+- A bounded 20-session reconnect campaign is part of local validation. Sustained load, multi-process deployment, backpressure, and long-session memory campaigns remain production-lifecycle gates.
+- The Chromium end-user gate covers the counter and component studio at desktop and mobile widths, including serious/critical Axe checks. Cross-browser and formal accessibility conformance testing remain separate gates.
+- Live Databricks evidence is collected with the read-only procedure in [Databricks Release Validation](./DATABRICKS_RELEASE_VALIDATION.md); unavailable infrastructure is never inferred as passing.
 - Browser and platform results are recorded in the current verification report; unavailable infrastructure is reported as a limitation rather than inferred as passing.
