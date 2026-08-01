@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 import brickflowui as db
 import brickflowui.server as server
 from brickflowui.app import App
-from brickflowui.auth import HeaderAuthProvider, current_user
+from brickflowui.auth import AuthenticationRequired, HeaderAuthProvider, current_user
 from brickflowui.server import _minimal_html_shell, create_asgi_app
 from brickflowui.vdom import VNode
 
@@ -21,6 +21,14 @@ class _FailingAuthProvider:
 
     def authenticate_websocket(self, _source):
         raise RuntimeError("auth-provider-secret")
+
+
+class _RejectingAuthProvider:
+    def authenticate_request(self, _source):
+        raise AuthenticationRequired("auth-provider-secret")
+
+    def authenticate_websocket(self, _source):
+        raise AuthenticationRequired("auth-provider-secret")
 
 
 def _find_node_by_type(node: dict, node_type: str) -> dict | None:
@@ -142,6 +150,18 @@ def test_http_auth_provider_errors_are_correlated_and_redacted(caplog):
     assert "auth-provider-secret" not in response.text
     assert "auth-provider-secret" in caplog.text
     assert payload["error_id"] in caplog.text
+
+
+def test_http_authentication_rejections_use_a_constant_public_message():
+    app = App(auth_mode="user", auth_provider=_RejectingAuthProvider())
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app), raise_server_exceptions=False)
+
+    response = client.get("/api/private")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Authentication required."}
+    assert "auth-provider-secret" not in response.text
 
 
 def test_websocket_auth_provider_errors_close_safely_and_are_logged(caplog):

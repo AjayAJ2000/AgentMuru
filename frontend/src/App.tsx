@@ -4,6 +4,7 @@ import type { VNodeData, ServerMessage } from './types'
 import { PatchApplicationError, applyPatches } from './runtime/applyPatch'
 import { navigationAction, type NavigationSource } from './runtime/navigation'
 import { createReconnectController } from './runtime/reconnect'
+import { safeMediaUrl } from './runtime/media'
 
 type WsStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
 
@@ -73,8 +74,10 @@ function SafeText({ className, text }: { className: string; text: string }) {
 
 function LoadingVisual({ status, themeMode }: { status: WsStatus; themeMode: 'light' | 'dark' }) {
   const config = resolveLoadingConfig(themeMode)
-  const asset = config.video || config.asset
-  const kind = config.video ? 'video' : config.assetKind
+  const videoAsset = safeMediaUrl(config.video, window.location.href)
+  const configuredAsset = safeMediaUrl(config.asset, window.location.href)
+  const asset = videoAsset || configuredAsset
+  const kind = videoAsset ? 'video' : config.assetKind
   const animation = config.animation || 'spinner'
   const title = config.title || 'BrickflowUI'
   const subtitle = config.subtitle

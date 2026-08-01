@@ -231,10 +231,8 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                 allow_anonymous=dbrx_app.allow_anonymous,
                 source=request,
             )
-        except AuthenticationRequired as exc:
-            if request.url.path == "api" or request.url.path.startswith("/api/"):
-                return JSONResponse({"detail": str(exc)}, status_code=401)
-            raise
+        except AuthenticationRequired:
+            return JSONResponse({"detail": "Authentication required."}, status_code=401)
         except Exception:
             error_id = _log_correlated_exception("HTTP authentication failure")
             return JSONResponse(

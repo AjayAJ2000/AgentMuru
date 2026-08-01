@@ -21229,6 +21229,18 @@ function createReconnectController(connect, schedule = setTimeout, cancel = clea
     }
   };
 }
+function safeMediaUrl(value, baseUrl = "http://localhost/") {
+  if (typeof value !== "string") return void 0;
+  const candidate = value.trim();
+  if (!candidate) return void 0;
+  try {
+    const parsed = new URL(candidate, baseUrl);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return void 0;
+    return parsed.href;
+  } catch {
+    return void 0;
+  }
+}
 function readLoadingBootstrap() {
   const dataElement = document.getElementById("brickflow-bootstrap");
   if (dataElement?.textContent) {
@@ -21263,8 +21275,10 @@ function SafeText({ className, text }) {
 }
 function LoadingVisual({ status, themeMode }) {
   const config = resolveLoadingConfig(themeMode);
-  const asset = config.video || config.asset;
-  const kind = config.video ? "video" : config.assetKind;
+  const videoAsset = safeMediaUrl(config.video, window.location.href);
+  const configuredAsset = safeMediaUrl(config.asset, window.location.href);
+  const asset = videoAsset || configuredAsset;
+  const kind = videoAsset ? "video" : config.assetKind;
   const animation = config.animation || "spinner";
   const title = config.title || "BrickflowUI";
   const subtitle = config.subtitle;
@@ -21453,4 +21467,4 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-C-ki6LBd.js.map
+//# sourceMappingURL=index-CEFSKwxl.js.map
