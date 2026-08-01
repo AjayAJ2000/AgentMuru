@@ -29,6 +29,8 @@ The matrix job will:
 
 The full `validate` job will stop duplicating pytest after the matrix owns it. This makes the supported-version contract visible and keeps failures attributable to a specific Python version.
 
+Once the matrix is green, `pyproject.toml` and `docs/STABILITY.md` will list Python 3.13 alongside 3.10, 3.11, and 3.12 so metadata never promises less or more than the enforced matrix.
+
 ## 2. Accessibility and representative browser gate
 
 Add a separate Playwright-based browser suite rather than trying to infer accessibility from serialized VNodes or JSDOM. The suite will use `@playwright/test` and `@axe-core/playwright` with Chromium.
@@ -158,6 +160,7 @@ Expected modified files:
 
 - `.github/workflows/ci.yml`
 - `.github/workflows/publish.yml`
+- `pyproject.toml`
 - `frontend/package.json`
 - `frontend/package-lock.json`
 - `frontend/src/App.tsx`
@@ -190,4 +193,3 @@ The hardening pass is complete when:
 - Replacing Plotly or redesigning charts in this pass.
 - Claiming multi-process production capacity from a bounded local test.
 - Visually snapshotting every component state.
-
