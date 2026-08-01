@@ -25,6 +25,8 @@ site/
 # Frontend local-only dependencies and diagnostics
 frontend/node_modules/
 frontend/tsc_errors.txt
+frontend/test-results/
+frontend/playwright-report/
 
 # Local-only branding/vendor drop folder
 Branding_Files/

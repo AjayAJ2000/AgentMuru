@@ -18,7 +18,7 @@ import re
 import secrets
 import uuid
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 from urllib.parse import urlparse
 
 import uvicorn
@@ -67,6 +67,20 @@ def _full_tree_msg(vnode: VNode, handler_registry: dict, dbrx_app: "App") -> str
 def _patch_msg(patches: list, dbrx_app: "App") -> str:
     """Build patch WebSocket message."""
     return json.dumps({"type": "patch", "patches": dbrx_app.transform_serialized_tree(patches)})
+
+
+def _serialize_patch_values(value: Any, handler_registry: dict) -> Any:
+    """Convert VNodes nested in incremental prop patches to wire-safe values."""
+    if isinstance(value, VNode):
+        return value.serialize(handler_registry)
+    if isinstance(value, (list, tuple)):
+        return [_serialize_patch_values(item, handler_registry) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: _serialize_patch_values(item, handler_registry)
+            for key, item in value.items()
+        }
+    return value
 
 
 def _error_msg(message: str, error_id: Optional[str] = None) -> str:
@@ -331,6 +345,7 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                 ctx.run_effects()
                 ctx.dirty = False
                 patches = diff(old_tree, new_tree, new_handler_registry)
+                patches = _serialize_patch_values(patches, new_handler_registry)
                 previous_handler_registry = handler_registry
                 handler_registry = new_handler_registry
                 if patches:

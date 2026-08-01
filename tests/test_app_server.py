@@ -34,6 +34,24 @@ def _find_node_by_type(node: dict, node_type: str) -> dict | None:
     return None
 
 
+def test_patch_values_serialize_nested_vnodes_for_the_wire():
+    registry = {}
+    patches = [{
+        "op": "update_props",
+        "path": [],
+        "props": {"detail": VNode(type="Text", props={"value": "ready"})},
+    }]
+
+    serialized = server._serialize_patch_values(patches, registry)
+
+    assert serialized[0]["props"]["detail"] == {
+        "type": "Text",
+        "props": {"value": "ready"},
+        "children": [],
+        "key": None,
+    }
+
+
 def test_app_page_registration():
     app = App(title="Test App")
     

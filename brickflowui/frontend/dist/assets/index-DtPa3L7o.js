@@ -19874,20 +19874,20 @@ function renderNode(node, ctx, key) {
       return null;
     case "Modal":
       if (!p.visible) return null;
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-modal-overlay", onClick: () => ev("close"), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: resolveMotionClass(p, [`bf-modal`, `bf-modal-${p.size || "md"}`]), style: resolveMotionStyle(p), onClick: (e) => e.stopPropagation(), children: [
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-modal-overlay", onClick: () => ev("close"), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { role: "dialog", "aria-modal": "true", "aria-label": String(p.title || "Dialog"), className: resolveMotionClass(p, [`bf-modal`, `bf-modal-${p.size || "md"}`]), style: resolveMotionStyle(p), onClick: (e) => e.stopPropagation(), children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bf-modal-header", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "bf-modal-title", children: p.title }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "bf-modal-close", onClick: () => ev("close"), children: /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { name: "X", size: 16 }) })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "bf-modal-close", onClick: () => ev("close"), "aria-label": "Close dialog", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { name: "X", size: 16 }) })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-modal-body", children: renderChildren(children, ctx, key) })
       ] }) }, key);
     // ── Form ───────────────────────────────────────────────────────────────
     case "Drawer":
       if (!p.visible) return null;
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-drawer-overlay", onClick: () => ev("close"), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: resolveMotionClass(p, [`bf-drawer`, `bf-drawer-${p.side || "right"}`]), style: { width: p.width || "420px", ...resolveMotionStyle(p) }, onClick: (e) => e.stopPropagation(), children: [
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-drawer-overlay", onClick: () => ev("close"), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { role: "dialog", "aria-modal": "true", "aria-label": String(p.title || "Drawer"), className: resolveMotionClass(p, [`bf-drawer`, `bf-drawer-${p.side || "right"}`]), style: { width: p.width || "420px", ...resolveMotionStyle(p) }, onClick: (e) => e.stopPropagation(), children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bf-drawer-header", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "bf-drawer-title", children: p.title }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "bf-modal-close", onClick: () => ev("close"), children: /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { name: "X", size: 16 }) })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "bf-modal-close", onClick: () => ev("close"), "aria-label": "Close drawer", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { name: "X", size: 16 }) })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-drawer-body", children: renderChildren(children, ctx, key) })
       ] }) }, key);
@@ -19895,7 +19895,7 @@ function renderNode(node, ctx, key) {
       if (!p.visible) return null;
       return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `bf-popup-shell bf-popup-${p.placement || "center"}`, children: [
         Boolean(p.backdrop) ? /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "bf-popup-backdrop", onClick: () => ev("close"), "aria-label": "Close popup" }) : null,
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: resolveMotionClass(p, [`bf-popup`, `bf-popup-${p.size || "sm"}`]), style: resolveMotionStyle(p), onClick: (e) => e.stopPropagation(), children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { role: "dialog", "aria-modal": Boolean(p.backdrop), "aria-label": String(p.title || "Popup"), className: resolveMotionClass(p, [`bf-popup`, `bf-popup-${p.size || "sm"}`]), style: resolveMotionStyle(p), onClick: (e) => e.stopPropagation(), children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bf-popup-header", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "bf-popup-title", children: p.title }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "bf-modal-close", onClick: () => ev("close"), children: /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { name: "X", size: 16 }) })
@@ -20190,17 +20190,20 @@ function CheckboxComponent({ props: p, dispatch }) {
   ] });
 }
 function SelectComponent({ props: p, dispatch }) {
+  const generatedId = reactExports.useId();
+  const selectId = String(p.id || p.name || `bf-select-${generatedId}`);
   const incomingValue = String(p.value || "");
   const [value, setValue] = reactExports.useState(incomingValue);
   reactExports.useEffect(() => {
     setValue(incomingValue);
   }, [incomingValue]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: resolveMotionClass(p, ["bf-form-field"]), style: resolveMotionStyle(p), children: [
-    p.label && /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "bf-label", children: p.label }),
+    p.label && /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "bf-label", htmlFor: selectId, children: p.label }),
     p.loading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-field-loading", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-spinner bf-spinner-sm" }) }) : null,
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "select",
       {
+        id: selectId,
         name: p.name,
         className: "bf-select",
         value,
@@ -20219,16 +20222,19 @@ function SelectComponent({ props: p, dispatch }) {
   ] });
 }
 function SliderComponent({ props: p, dispatch }) {
+  const generatedId = reactExports.useId();
+  const sliderId = String(p.id || p.name || `bf-slider-${generatedId}`);
   const incomingValue = Number(p.value ?? 0);
   const [value, setValue] = reactExports.useState(incomingValue);
   reactExports.useEffect(() => {
     setValue(incomingValue);
   }, [incomingValue]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: resolveMotionClass(p, ["bf-slider-wrapper", p.loading ? "bf-is-loading" : ""]), style: resolveMotionStyle(p), children: [
-    p.label && /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "bf-label", children: p.label }),
+    p.label && /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "bf-label", htmlFor: sliderId, children: p.label }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       "input",
       {
+        id: sliderId,
         type: "range",
         className: "bf-slider",
         name: p.name,
@@ -20450,6 +20456,9 @@ function useDebouncedDispatcher(dispatch, delayMs) {
   return { flush, schedule };
 }
 function InputComponent({ props: p, dispatch }) {
+  const generatedId = reactExports.useId();
+  const inputId = String(p.id || p.name || `bf-input-${generatedId}`);
+  const errorId = `${inputId}-error`;
   const incomingValue = String(p.value || "");
   const [value, setValue] = reactExports.useState(incomingValue);
   const localDirtyRef = reactExports.useRef(false);
@@ -20475,11 +20484,14 @@ function InputComponent({ props: p, dispatch }) {
     else schedule(nextValue);
   }, [changeStrategy, flush, schedule]);
   const commonProps = {
+    id: inputId,
     name: p.name,
     placeholder: p.placeholder || "",
     value,
     disabled: Boolean(p.disabled),
     "aria-busy": Boolean(p.loading),
+    "aria-invalid": Boolean(p.error),
+    "aria-describedby": p.error ? errorId : void 0,
     onChange: (event) => {
       const nextValue = event.target.value;
       setValue(nextValue);
@@ -20492,13 +20504,17 @@ function InputComponent({ props: p, dispatch }) {
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: resolveMotionClass(p, ["bf-form-field"]), style: resolveMotionStyle(p), children: [
-    p.label && /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "bf-label", children: p.label }),
+    p.label && /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "bf-label", htmlFor: inputId, children: p.label }),
     p.loading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-field-loading", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-spinner bf-spinner-sm" }) }) : null,
     inputType === "textarea" ? /* @__PURE__ */ jsxRuntimeExports.jsx("textarea", { ...commonProps, className: "bf-textarea" }) : /* @__PURE__ */ jsxRuntimeExports.jsx("input", { ...commonProps, className: `bf-input${p.error ? " error" : ""}`, type: inputType }),
-    p.error && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "bf-input-error", children: p.error })
+    p.error && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "bf-input-error", id: errorId, children: p.error })
   ] });
 }
 function DateRangePickerComponent({ props: p, dispatch }) {
+  const generatedId = reactExports.useId();
+  const rangeName = String(p.label || p.name || "Date range");
+  const startId = `${String(p.id || p.name || `bf-date-range-${generatedId}`)}-start`;
+  const endId = `${String(p.id || p.name || `bf-date-range-${generatedId}`)}-end`;
   const [start, setStart] = reactExports.useState(p.start || "");
   const [end, setEnd] = reactExports.useState(p.end || "");
   reactExports.useEffect(() => {
@@ -20513,9 +20529,11 @@ function DateRangePickerComponent({ props: p, dispatch }) {
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "input",
         {
+          id: startId,
           className: "bf-input",
           type: "date",
           name: `${p.name}_start`,
+          "aria-label": `${rangeName} start`,
           value: start,
           disabled: Boolean(p.disabled) || Boolean(p.loading),
           onChange: (e) => {
@@ -20529,9 +20547,11 @@ function DateRangePickerComponent({ props: p, dispatch }) {
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "input",
         {
+          id: endId,
           className: "bf-input",
           type: "date",
           name: `${p.name}_end`,
+          "aria-label": `${rangeName} end`,
           value: end,
           disabled: Boolean(p.disabled) || Boolean(p.loading),
           onChange: (e) => {
@@ -21080,14 +21100,15 @@ function TableComponent({ props: p, dispatch }) {
   ] });
 }
 function TabsComponent({ props: p, children, ctx, nodeKey, dispatch }) {
+  const generatedId = reactExports.useId();
   const [active, setActive] = reactExports.useState(p.defaultActive || 0);
   reactExports.useEffect(() => {
     setActive(p.defaultActive || 0);
   }, [p.defaultActive]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: resolveMotionClass(p, ["bf-tabs"]), style: resolveMotionStyle(p), children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-tabs-list", children: children.map((child, i) => {
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-tabs-list", role: "tablist", children: children.map((child, i) => {
       const cp = child.props;
-      return /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: `bf-tab-trigger ${active === i ? "active" : ""}`, onClick: () => {
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", role: "tab", id: `${generatedId}-tab-${i}`, "aria-selected": active === i, "aria-controls": `${generatedId}-panel-${i}`, tabIndex: active === i ? 0 : -1, className: `bf-tab-trigger ${active === i ? "active" : ""}`, onClick: () => {
         setActive(i);
         const changeId = p.change;
         if (changeId) dispatch(changeId, { index: i });
@@ -21096,7 +21117,7 @@ function TabsComponent({ props: p, children, ctx, nodeKey, dispatch }) {
         cp.label
       ] }, i);
     }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-tab-content", children: children[active]?.children && renderChildren(children[active].children, ctx, `${nodeKey}-tab-${active}`) })
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-tab-content", role: "tabpanel", id: `${generatedId}-panel-${active}`, "aria-labelledby": `${generatedId}-tab-${active}`, children: children[active]?.children && renderChildren(children[active].children, ctx, `${nodeKey}-tab-${active}`) })
   ] });
 }
 class PatchApplicationError extends Error {
@@ -21426,4 +21447,4 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-D51HPc-c.js.map
+//# sourceMappingURL=index-DtPa3L7o.js.map
