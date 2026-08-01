@@ -1,6 +1,6 @@
 # Stability Contract
 
-BrickflowUI 0.1.13 targets Python 3.10, 3.11, and 3.12. The source metadata also permits newer interpreters, but each release claim is limited to the interpreters actually exercised by CI or the release report.
+BrickflowUI 0.1.13 targets Python 3.10, 3.11, 3.12, and 3.13. Each release claim is limited to the interpreters actually exercised by CI or the release report.
 
 ## Supported runtime contract
 
