@@ -21176,6 +21176,38 @@ function navigationAction(path, source) {
     history: source === "user" ? "push" : "none"
   };
 }
+function reconnectDelay(attempt) {
+  return Math.min(500 * 2 ** Math.max(0, attempt), 1e4);
+}
+function createReconnectController(connect, schedule = setTimeout, cancel = clearTimeout) {
+  let attempt = 0;
+  let timer = null;
+  let disposed = false;
+  const cancelPending = () => {
+    if (timer !== null) cancel(timer);
+    timer = null;
+  };
+  return {
+    opened() {
+      attempt = 0;
+      cancelPending();
+    },
+    closed() {
+      if (disposed || timer !== null) return;
+      const delay = reconnectDelay(attempt++);
+      const scheduledTimer = schedule(() => {
+        if (timer !== scheduledTimer) return;
+        timer = null;
+        if (!disposed) connect();
+      }, delay);
+      timer = scheduledTimer;
+    },
+    dispose() {
+      disposed = true;
+      cancelPending();
+    }
+  };
+}
 function readLoadingBootstrap() {
   const dataElement = document.getElementById("brickflow-bootstrap");
   if (dataElement?.textContent) {
@@ -21297,13 +21329,13 @@ function App() {
     document.documentElement.dataset.uiPreset = stylePreset;
   }, [stylePreset]);
   reactExports.useEffect(() => {
-    let reconnectTimer;
     function connect() {
       const proto = location.protocol === "https:" ? "wss" : "ws";
       const ws = new WebSocket(`${proto}://${location.host}/events?path=${encodeURIComponent(window.location.pathname)}`);
       wsRef.current = ws;
       setStatus("connecting");
       ws.onopen = () => {
+        reconnectController.opened();
         setStatus("connected");
         setError(null);
       };
@@ -21345,7 +21377,7 @@ function App() {
       ws.onclose = () => {
         setStatus("disconnected");
         setPendingEvents(/* @__PURE__ */ new Map());
-        reconnectTimer = setTimeout(connect, 2500);
+        reconnectController.closed();
       };
       ws.onerror = () => {
         setStatus("error");
@@ -21353,6 +21385,7 @@ function App() {
         ws.close();
       };
     }
+    const reconnectController = createReconnectController(connect);
     connect();
     const handlePopstate = () => navigateTo(
       `${window.location.pathname}${window.location.search}${window.location.hash}`,
@@ -21360,7 +21393,7 @@ function App() {
     );
     window.addEventListener("popstate", handlePopstate);
     return () => {
-      clearTimeout(reconnectTimer);
+      reconnectController.dispose();
       if (frameRef.current !== null) {
         window.cancelAnimationFrame(frameRef.current);
       }
@@ -21393,4 +21426,4 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-CLupveEy.js.map
+//# sourceMappingURL=index-D51HPc-c.js.map

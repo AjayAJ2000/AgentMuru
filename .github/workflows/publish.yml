@@ -48,6 +48,12 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Enforce frontend bundle budgets
+        working-directory: frontend
+        run: |
+          npm run test:bundle
+          npm run check:bundle
+
       - name: Run test suite
         run: python -m pytest -q
 

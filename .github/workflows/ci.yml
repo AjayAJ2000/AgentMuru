@@ -75,6 +75,12 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Enforce frontend bundle budgets
+        working-directory: frontend
+        run: |
+          npm run test:bundle
+          npm run check:bundle
+
       - name: Regenerate component reference pages
         run: python scripts/generate_component_reference.py
 
