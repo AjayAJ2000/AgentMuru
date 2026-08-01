@@ -124,15 +124,15 @@ def new(
 
     typer.echo(
         f"""
-[bold green]Created BrickflowUI app:[/bold green] {name}/
+Created BrickflowUI app: {name}/
 
-  [bold]Files created:[/bold]
+  Files created:
     {name}/app.py           -> Root app and pages
     {name}/app.yaml         -> Databricks Apps config
     {name}/requirements.txt -> Python dependencies
     {name}/.env.example     -> Environment variables template
 
-  [bold]Next steps:[/bold]
+  Next steps:
     {_env_copy_hint(name)}
     # Edit .env with your DATABRICKS_HOST and DATABRICKS_TOKEN
     brickflowui dev
@@ -154,7 +154,7 @@ def dev(
         typer.echo(f"[ERROR] {file} not found in current directory.", err=True)
         raise typer.Exit(1)
 
-    typer.echo(f"[bold]BrickflowUI Dev Server[/bold] -> http://localhost:{port}")
+    typer.echo(f"BrickflowUI Dev Server -> http://localhost:{port}")
     typer.echo("Press Ctrl+C to stop.\n")
 
     os.environ.setdefault("BRICKFLOWUI_DEV", "1")
