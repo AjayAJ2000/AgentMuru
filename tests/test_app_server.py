@@ -4,13 +4,23 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
+from fastapi import WebSocketDisconnect
 from fastapi.testclient import TestClient
+
 import brickflowui as db
 import brickflowui.server as server
 from brickflowui.app import App
 from brickflowui.auth import HeaderAuthProvider, current_user
 from brickflowui.server import _minimal_html_shell, create_asgi_app
 from brickflowui.vdom import VNode
+
+
+class _FailingAuthProvider:
+    def authenticate_request(self, _source):
+        raise RuntimeError("auth-provider-secret")
+
+    def authenticate_websocket(self, _source):
+        raise RuntimeError("auth-provider-secret")
 
 
 def _find_node_by_type(node: dict, node_type: str) -> dict | None:
@@ -115,6 +125,38 @@ def test_shell_escapes_title_favicon_and_bootstrap_html():
     assert "</title><img" not in response.text
     assert 'onload="alert(1)' not in response.text
     assert "</script><img" not in response.text
+
+
+def test_http_auth_provider_errors_are_correlated_and_redacted(caplog):
+    app = App(auth_mode="user", auth_provider=_FailingAuthProvider())
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app), raise_server_exceptions=False)
+
+    with caplog.at_level("ERROR", logger="brickflowui.server"):
+        response = client.get("/")
+
+    assert response.status_code == 500
+    payload = response.json()
+    assert payload["detail"] == "Authentication failed."
+    assert payload["error_id"]
+    assert "auth-provider-secret" not in response.text
+    assert "auth-provider-secret" in caplog.text
+    assert payload["error_id"] in caplog.text
+
+
+def test_websocket_auth_provider_errors_close_safely_and_are_logged(caplog):
+    app = App(auth_mode="user", auth_provider=_FailingAuthProvider())
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app))
+
+    with caplog.at_level("ERROR", logger="brickflowui.server"):
+        with pytest.raises(WebSocketDisconnect) as closed:
+            with client.websocket_connect("/events"):
+                pass
+
+    assert closed.value.code == 1011
+    assert "auth-provider-secret" not in str(closed.value)
+    assert "auth-provider-secret" in caplog.text
 
 
 def test_missing_frontend_bundle_returns_diagnostic(monkeypatch):

@@ -21255,6 +21255,12 @@ function BuiltinLoadingMark() {
     /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "bf-loading-mark-bar bf-loading-mark-bar-short" })
   ] }) });
 }
+function SafeText({ className, text }) {
+  const writeText = reactExports.useCallback((element) => {
+    if (element) element.textContent = text;
+  }, [text]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className, ref: writeText });
+}
 function LoadingVisual({ status, themeMode }) {
   const config = resolveLoadingConfig(themeMode);
   const asset = config.video || config.asset;
@@ -21274,10 +21280,10 @@ function LoadingVisual({ status, themeMode }) {
         loop: true,
         playsInline: true
       }
-    ) : asset ? /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "bf-loading-media", src: asset, alt: `${title} loading` }) : /* @__PURE__ */ jsxRuntimeExports.jsx(BuiltinLoadingMark, {}) : null,
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-loading-brand", children: title }),
-    subtitle ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-loading-subtitle", children: subtitle }) : null,
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bf-loading-hint", children: message })
+    ) : asset ? /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "bf-loading-media", src: asset, alt: "Loading indicator" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(BuiltinLoadingMark, {}) : null,
+    /* @__PURE__ */ jsxRuntimeExports.jsx(SafeText, { className: "bf-loading-brand", text: title }),
+    subtitle ? /* @__PURE__ */ jsxRuntimeExports.jsx(SafeText, { className: "bf-loading-subtitle", text: subtitle }) : null,
+    /* @__PURE__ */ jsxRuntimeExports.jsx(SafeText, { className: "bf-loading-hint", text: message })
   ] });
 }
 function resolveInitialThemeMode() {
@@ -21447,4 +21453,4 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-DtPa3L7o.js.map
+//# sourceMappingURL=index-C-ki6LBd.js.map

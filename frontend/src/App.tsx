@@ -63,6 +63,14 @@ function BuiltinLoadingMark() {
   )
 }
 
+function SafeText({ className, text }: { className: string; text: string }) {
+  const writeText = useCallback((element: HTMLDivElement | null) => {
+    if (element) element.textContent = text
+  }, [text])
+
+  return <div className={className} ref={writeText} />
+}
+
 function LoadingVisual({ status, themeMode }: { status: WsStatus; themeMode: 'light' | 'dark' }) {
   const config = resolveLoadingConfig(themeMode)
   const asset = config.video || config.asset
@@ -92,14 +100,14 @@ function LoadingVisual({ status, themeMode }: { status: WsStatus; themeMode: 'li
             playsInline
           />
         ) : asset ? (
-          <img className="bf-loading-media" src={asset} alt={`${title} loading`} />
+          <img className="bf-loading-media" src={asset} alt="Loading indicator" />
         ) : (
           <BuiltinLoadingMark />
         )
       ) : null}
-      <div className="bf-loading-brand">{title}</div>
-      {subtitle ? <div className="bf-loading-subtitle">{subtitle}</div> : null}
-      <div className="bf-loading-hint">{message}</div>
+      <SafeText className="bf-loading-brand" text={title} />
+      {subtitle ? <SafeText className="bf-loading-subtitle" text={subtitle} /> : null}
+      <SafeText className="bf-loading-hint" text={message} />
     </div>
   )
 }

@@ -90,10 +90,16 @@ def _error_msg(message: str, error_id: Optional[str] = None) -> str:
     return json.dumps(payload)
 
 
+def _log_correlated_exception(context: str) -> str:
+    """Log the active exception privately and return a safe correlation ID."""
+    error_id = uuid.uuid4().hex
+    logger.exception("%s error_id=%s", context, error_id)
+    return error_id
+
+
 def _runtime_error_msg(session_id: str, context: str) -> str:
     """Log a private exception trace and return a safe correlated browser message."""
-    error_id = uuid.uuid4().hex
-    logger.exception("[%s] %s error_id=%s", session_id, context, error_id)
+    error_id = _log_correlated_exception(f"[{session_id}] {context}")
     return _error_msg(
         f"Something went wrong. Reference error ID {error_id} when contacting support.",
         error_id,
@@ -229,6 +235,12 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
             if request.url.path == "api" or request.url.path.startswith("/api/"):
                 return JSONResponse({"detail": str(exc)}, status_code=401)
             raise
+        except Exception:
+            error_id = _log_correlated_exception("HTTP authentication failure")
+            return JSONResponse(
+                {"detail": "Authentication failed.", "error_id": error_id},
+                status_code=500,
+            )
         request.state.brickflow_principal = principal
         token = set_current_principal(principal)
         try:
@@ -285,13 +297,24 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
             await ws.close(code=1008)
             return
 
-        principal = resolve_principal(
-            auth_mode=dbrx_app.auth_mode,
-            auth_provider=dbrx_app.auth_provider,
-            app_principal=dbrx_app.app_principal,
-            allow_anonymous=dbrx_app.allow_anonymous,
-            source=ws,
-        )
+        try:
+            principal = resolve_principal(
+                auth_mode=dbrx_app.auth_mode,
+                auth_provider=dbrx_app.auth_provider,
+                app_principal=dbrx_app.app_principal,
+                allow_anonymous=dbrx_app.allow_anonymous,
+                source=ws,
+            )
+        except AuthenticationRequired:
+            await ws.close(code=1008)
+            return
+        except Exception:
+            error_id = _log_correlated_exception("WebSocket authentication failure")
+            await ws.close(
+                code=1011,
+                reason=f"Authentication failed. Reference error ID {error_id}.",
+            )
+            return
 
         await ws.accept()
 
