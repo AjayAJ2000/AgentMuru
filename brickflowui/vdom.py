@@ -155,11 +155,17 @@ def diff(
     if prop_diff:
         patches.append({"op": "update_props", "path": path, "props": prop_diff})
 
-    # Diff children
-    max_len = max(len(old.children), len(new.children))
-    for i in range(max_len):
-        old_child = old.children[i] if i < len(old.children) else None
-        new_child = new.children[i] if i < len(new.children) else None
-        patches.extend(diff(old_child, new_child, handler_registry, path + [i]))
+    # Diff shared child slots before structural changes. Extra removals must be
+    # emitted from the end so earlier removals do not shift later patch paths.
+    shared_len = min(len(old.children), len(new.children))
+    for i in range(shared_len):
+        patches.extend(diff(old.children[i], new.children[i], handler_registry, path + [i]))
+
+    if len(old.children) > len(new.children):
+        for i in range(len(old.children) - 1, len(new.children) - 1, -1):
+            patches.extend(diff(old.children[i], None, handler_registry, path + [i]))
+    else:
+        for i in range(len(old.children), len(new.children)):
+            patches.extend(diff(None, new.children[i], handler_registry, path + [i]))
 
     return patches

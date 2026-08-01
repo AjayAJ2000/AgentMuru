@@ -72,6 +72,24 @@ def test_diff_children_removal():
     assert patches[0]["op"] == "remove"
     assert patches[0]["path"] == [1]
 
+def test_diff_multiple_child_removals_are_ordered_from_end():
+    handler_registry = {}
+    old = VNode(type="div", children=[
+        VNode(type="span"),
+        VNode(type="b"),
+        VNode(type="i"),
+        VNode(type="strong"),
+    ])
+    new = VNode(type="div", children=[VNode(type="span")])
+
+    patches = diff(old, new, handler_registry)
+
+    assert patches == [
+        {"op": "remove", "path": [3]},
+        {"op": "remove", "path": [2]},
+        {"op": "remove", "path": [1]},
+    ]
+
 def test_diff_removed_prop_sets_null():
     handler_registry = {}
     old = VNode(type="div", props={"title": "hello", "color": "red"})
