@@ -1,170 +1,85 @@
-﻿# Roadmap
+# Roadmap
 
-This roadmap focuses on making BrickflowUI feel dependable in enterprise dashboard, portal, and internal-tool scenarios while keeping the framework practical for Python-first builders.
+BrickflowUI's roadmap prioritizes dependable enterprise dashboards, portals,
+and internal tools while keeping the framework practical for Python-first
+builders. The executive roadmap tracks outcomes; task-level implementation
+detail belongs in the linked issues and pull requests.
 
-It is shaped by both BrickflowUI's current direction and recurring pain seen in similar frameworks and internal-tool platforms.
+## Current Production Baseline: 0.1.17
 
-## What Similar Products Keep Getting Wrong
+BrickflowUI 0.1.17 is the current production baseline. The following behavior
+is shipped and covered by local or CI verification:
 
-Recurring themes from public issues and community feedback around similar tools:
+- Python 3.10–3.13 compatibility gates;
+- session-scoped state, reconnect recovery, and bounded multi-session
+  resilience checks;
+- maintained desktop and mobile browser journeys with Playwright and Axe
+  checks for serious and critical accessibility findings;
+- frontend build drift checks, dependency audits, and enforced bundle budgets;
+- validated WebSocket origins and browser CSRF boundaries, hardened HTML and
+  media configuration, fail-closed authentication errors, and safer
+  incremental patch values;
+- Databricks service contracts plus tested, read-only tooling for collecting
+  sanitized identity, catalog, warehouse, and job metadata evidence;
+- an explicit Ruff lint policy selecting `E4`, `E7`, `E9`, and `F`; and
+- release gates covering tests, browser QA, documentation, package builds,
+  trusted PyPI publishing, and digital attestations.
 
-- frequent rerenders and callback fan-out can make large apps feel laggy
-- tables and editors often lose scroll position or interaction context after refreshes
-- loading states are inconsistent when data is driven by variables instead of direct query bindings
-- mobile behavior is often an afterthought for admin and internal tools
-- auth and RBAC are usually treated as deployment workarounds instead of first-class framework concepts
-- proxy, CSP, and enterprise deployment constraints surface late and become release blockers
+### Verification Boundary
 
-These are not edge cases. They are the problems teams run into when they try to move from a demo to a real operational portal.
+The repository verifies framework behavior, security boundaries, packaging,
+browser journeys, and the Databricks evidence collector locally and in CI.
+That evidence does not prove behavior inside a real Databricks workspace.
 
-## Immediate Direction
+Until workspace evidence is collected and reviewed, BrickflowUI does not claim
+that real Databricks OAuth, Unity Catalog permissions, SQL warehouse access,
+or job execution has passed. The shipped evidence workflow is deliberately
+read-only: it does not deploy an app, execute SQL, run a job, change grants, or
+mutate workspace resources.
 
-The near-term goal is not to make BrickflowUI "feature busy." It is to make the framework more reliable, more scalable, and more deployment-ready while continuing to broaden the product surface in additive ways.
+## Next Milestone: 0.2.0
 
-## Next Update Tracks
+0.2.0 remains the next compatibility and product milestone. Recommended
+implementation order follows the current outcome-level roadmap issues.
 
-### Track 1: Runtime Performance And Large-State UX
+### A. Production Evidence And Delivery Maintenance
 
-Priority themes:
+- [#43: Validate identity and authorization in real Databricks Apps deployments](https://github.com/AjayAJ2000/brickflowUI/issues/43)
+- [#44: Validate sustained load, multi-process operation, and long-running sessions](https://github.com/AjayAJ2000/brickflowUI/issues/44)
+- [#45: Add production runtime observability and latency instrumentation](https://github.com/AjayAJ2000/brickflowUI/issues/45)
+- [#46: Upgrade GitHub Actions to Node 24-compatible action versions](https://github.com/AjayAJ2000/brickflowUI/issues/46)
 
-- reduce avoidable rerenders further
-- preserve local interaction state across backend-driven updates
-- improve table and editor behavior under heavy use
-- make loading and optimistic interactions more predictable
+These outcomes establish production evidence, operating limits, diagnostic
+visibility, and a maintained delivery foundation before the compatibility
+contract is finalized.
 
-Expected work:
+### B. Compatibility Contract
 
-- table scroll and focus preservation after patch updates
-- optional pagination helpers and dataset slicing patterns
-- more granular patch/update strategies for high-frequency components
-- better instrumentation hooks for event latency and render timing
+- [#47: Standardize public APIs and publish the 0.2 migration guide](https://github.com/AjayAJ2000/brickflowUI/issues/47)
 
-### Track 2: Enterprise App Shells
+The 0.2 contract should align naming, preferred composition patterns,
+visual-state conventions, deprecations, and validated migration guidance.
 
-Priority themes:
+### C. Product Capability Improvements
 
-- make professional app layouts easier to build without custom frontend work
-- improve navigation patterns for portals and admin tools
-- tighten mobile and tablet behavior
+- [#48: Preserve table focus and scroll during granular state patches](https://github.com/AjayAJ2000/brickflowUI/issues/48)
+- [#49: Build responsive enterprise application-shell primitives](https://github.com/AjayAJ2000/brickflowUI/issues/49)
+- [#50: Add first-class role-gated pages and route protection](https://github.com/AjayAJ2000/brickflowUI/issues/50)
+- [#51: Add linked analytics, drilldowns, and polished refresh/export workflows](https://github.com/AjayAJ2000/brickflowUI/issues/51)
+- [#52: Model pipelines, DAGs, and operational workflows](https://github.com/AjayAJ2000/brickflowUI/issues/52)
 
-Expected work:
+These epics improve data-heavy interaction stability, responsive application
+shells, authorization, linked analytics, and operational workflow modeling.
 
-- more complete app-shell primitives
-- better left-nav and top-nav composition patterns
-- denser admin/dashboard layout options
-- improved responsive behavior for data-heavy pages
-- premium visual primitives for design-led surfaces:
-  - `IconButton`
-  - `SegmentedControl`
-  - `Stack` / overlay helper
-  - `AspectFrame`
-  - glass surface tokens
-  - richer display typography control
-  - breakpoint-aware shell helpers for desktop-first composition
-  - stronger image framing and hero-media placement controls
+## Product Standard
 
-### Track 3: Security, Identity, And Governance
-
-Priority themes:
-
-- make secure defaults easier
-- improve auth and role-aware app patterns
-- document governance and deployment expectations clearly
-
-Expected work:
-
-- stronger examples for role-gated pages and route protection
-- clearer patterns for internal versus external users
-- better maintainer docs for GitHub repo hardening and release governance
-- more explicit deployment guidance for enterprise environments
-
-### Track 4: Data Product Surface
-
-Priority themes:
-
-- support more production dashboard use cases directly
-- improve interactive analytics workflows
-- make pipeline and operational views first-class
-
-Expected work:
-
-- better table drilldown and row detail patterns
-- richer chart interactions and linked views
-- more pipeline, DAG, status, and workflow representations
-- more polished export and refresh behaviors
-
-## Proposed Release Shape
-
-### `0.1.15`
-
-Current stabilization baseline:
-
-- session-scoped state and effect cleanup
-- token-safe render-context restoration
-- validated WebSocket origins and browser CSRF protection
-- hardened HTML configuration boundaries
-- explicit failure when the packaged frontend bundle is unavailable
-- correct browser Back and Forward navigation
-- validated immutable frontend patch application and reconnect recovery
-- formula-safe CSV export and IME-safe chat input
-- backend and frontend automated test gates
-- Python package, documentation, security, and release workflows
-- identity-safe per-user and shared-app Databricks service adapters
-- functional `CatalogBrowser`, `WarehouseSelector`, and `JobTrigger` contracts
-- bounded local assets and correlation-only browser runtime errors
-
-### `0.1.16`
-
-Current showcase baseline:
-
-- six maintained end-to-end examples backed by a validated manifest
-- a production-style Pipeline Command Center covering operations, reliability,
-  triage, lineage, and assistant workflows
-- browser-verified modal focus restoration and responsive navigation
-- source-checkout launch commands that cannot silently load stale global builds
-- reproducible CI, dependency-audit, package, and installed-wheel release gates
-
-### `0.1.17`
-
-Current end-user hardening baseline:
-
-- Python 3.10–3.13 compatibility gates
-- bounded reconnect and session-resilience validation
-- browser accessibility checks for maintained desktop and mobile journeys
-- safer authentication failures, media URLs, and incremental patch values
-- enforced frontend bundle budgets and complete dependency auditing
-- an explicit read-only procedure for live Databricks release evidence
-
-### `0.2.0`
-
-Recommended focus:
-
-- unify public API naming where it is still inconsistent
-- formalize preferred composition patterns
-- tighten visual-state conventions across components
-- ship a migration guide for any intentional cleanup
-- validate app/user authorization and Databricks components in a real Apps workspace
-- add sustained-load, multi-process, and long-session lifecycle verification
-
-## The Product Standard
-
-The framework should be able to support:
-
-- a serious executive dashboard
-- an operational pipeline portal
-- a secure internal admin tool
-- a branded customer or partner-facing workspace
-
-without the user having to break out of the library for core UX, security, or deployment expectations.
-
-That is the bar the roadmap should keep serving.
+The framework should support a serious executive dashboard, an operational
+pipeline portal, a secure internal admin tool, and a branded customer or
+partner-facing workspace without requiring users to leave the library for core
+UX, security, or deployment expectations.
 
 ## Delivery Process
 
-Operationally, roadmap work should move through:
-
-- `dev` for active integration
-- `test` for validation and release-candidate hardening
-- `main` for production release
-
-That keeps product evolution fast without making public release quality accidental.
+Roadmap work moves through `dev` for active integration, `test` for release
+candidate validation, and `main` for production releases. Release automation
+must continue to reject commits that are not reachable from `main`.
