@@ -1,15 +1,34 @@
 import dataclasses
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
+from fastapi import WebSocketDisconnect
 from fastapi.testclient import TestClient
+
 import brickflowui as db
 import brickflowui.server as server
 from brickflowui.app import App
-from brickflowui.auth import HeaderAuthProvider, current_user
+from brickflowui.auth import AuthenticationRequired, HeaderAuthProvider, current_user
 from brickflowui.server import _missing_frontend_shell, create_asgi_app
 from brickflowui.vdom import VNode
+
+
+class _FailingAuthProvider:
+    def authenticate_request(self, _source):
+        raise RuntimeError("auth-provider-secret")
+
+    def authenticate_websocket(self, _source):
+        raise RuntimeError("auth-provider-secret")
+
+
+class _RejectingAuthProvider:
+    def authenticate_request(self, _source):
+        raise AuthenticationRequired("auth-provider-secret")
+
+    def authenticate_websocket(self, _source):
+        raise AuthenticationRequired("auth-provider-secret")
 
 
 def _find_node_by_type(node: dict, node_type: str) -> dict | None:
@@ -31,6 +50,24 @@ def _find_node_by_type(node: dict, node_type: str) -> dict | None:
                     if found:
                         return found
     return None
+
+
+def test_patch_values_serialize_nested_vnodes_for_the_wire():
+    registry = {}
+    patches = [{
+        "op": "update_props",
+        "path": [],
+        "props": {"detail": VNode(type="Text", props={"value": "ready"})},
+    }]
+
+    serialized = server._serialize_patch_values(patches, registry)
+
+    assert serialized[0]["props"]["detail"] == {
+        "type": "Text",
+        "props": {"value": "ready"},
+        "children": [],
+        "key": None,
+    }
 
 
 def test_app_page_registration():
@@ -96,6 +133,50 @@ def test_shell_escapes_title_favicon_and_bootstrap_html():
     assert "</title><img" not in response.text
     assert 'onload="alert(1)' not in response.text
     assert "</script><img" not in response.text
+
+
+def test_http_auth_provider_errors_are_correlated_and_redacted(caplog):
+    app = App(auth_mode="user", auth_provider=_FailingAuthProvider())
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app), raise_server_exceptions=False)
+
+    with caplog.at_level("ERROR", logger="brickflowui.server"):
+        response = client.get("/")
+
+    assert response.status_code == 500
+    payload = response.json()
+    assert payload["detail"] == "Authentication failed."
+    assert payload["error_id"]
+    assert "auth-provider-secret" not in response.text
+    assert "auth-provider-secret" in caplog.text
+    assert payload["error_id"] in caplog.text
+
+
+def test_http_authentication_rejections_use_a_constant_public_message():
+    app = App(auth_mode="user", auth_provider=_RejectingAuthProvider())
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app), raise_server_exceptions=False)
+
+    response = client.get("/api/private")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Authentication required."}
+    assert "auth-provider-secret" not in response.text
+
+
+def test_websocket_auth_provider_errors_close_safely_and_are_logged(caplog):
+    app = App(auth_mode="user", auth_provider=_FailingAuthProvider())
+    app.mount(lambda: VNode(type="div"))
+    client = TestClient(create_asgi_app(app))
+
+    with caplog.at_level("ERROR", logger="brickflowui.server"):
+        with pytest.raises(WebSocketDisconnect) as closed:
+            with client.websocket_connect("/events"):
+                pass
+
+    assert closed.value.code == 1011
+    assert "auth-provider-secret" not in str(closed.value)
+    assert "auth-provider-secret" in caplog.text
 
 
 def test_missing_frontend_bundle_returns_diagnostic(monkeypatch):
@@ -956,3 +1037,110 @@ def test_previous_render_event_handler_remains_valid_for_one_generation():
 
     text_patch = next(patch for patch in second_patch["patches"] if patch["path"] == [0])
     assert text_patch["props"]["value"] == "accepted:1"
+
+
+def test_websocket_disconnect_cleans_session_and_effects():
+    app = App()
+    cleaned = {"count": 0}
+
+    @app.page("/")
+    def home():
+        db.use_effect(
+            lambda: lambda: cleaned.__setitem__("count", cleaned["count"] + 1),
+            [],
+        )
+        return db.Text("ready")
+
+    client = TestClient(create_asgi_app(app))
+    with client.websocket_connect("/events") as websocket:
+        assert websocket.receive_json()["type"] == "full"
+        assert len(app._sessions) == 1
+
+    assert app._sessions == {}
+    assert app._session_paths == {}
+    assert cleaned["count"] == 1
+
+
+def test_repeated_websocket_disconnects_do_not_grow_session_registries():
+    app = App()
+    app.mount(lambda: db.Text("ready"))
+    client = TestClient(create_asgi_app(app))
+
+    for _ in range(20):
+        with client.websocket_connect("/events") as websocket:
+            assert websocket.receive_json()["type"] == "full"
+
+        assert app._sessions == {}
+        assert app._session_paths == {}
+
+
+def test_websocket_sessions_keep_state_independent():
+    app = App()
+
+    @app.page("/")
+    def home():
+        count, set_count = db.use_state(0)
+        return db.Column(
+            [
+                db.Text(f"count:{count}"),
+                db.Button("Increment", on_click=lambda: set_count(count + 1)),
+            ]
+        )
+
+    client = TestClient(create_asgi_app(app))
+    with client.websocket_connect("/events") as first:
+        first_full = first.receive_json()
+        first_button = _find_node_by_type(first_full["tree"], "Button")
+        assert first_button is not None
+
+        with client.websocket_connect("/events") as second:
+            second_full = second.receive_json()
+            second_button = _find_node_by_type(second_full["tree"], "Button")
+            assert second_button is not None
+
+            first.send_json(
+                {"type": "event", "event_id": first_button["props"]["click"], "data": {}}
+            )
+            first_messages = [first.receive_json(), first.receive_json()]
+            first_patch = next(message for message in first_messages if message["type"] == "patch")
+
+            second.send_json(
+                {"type": "event", "event_id": second_button["props"]["click"], "data": {}}
+            )
+            second_messages = [second.receive_json(), second.receive_json()]
+            second_patch = next(message for message in second_messages if message["type"] == "patch")
+
+    first_text = next(patch for patch in first_patch["patches"] if patch["path"] == [0])
+    second_text = next(patch for patch in second_patch["patches"] if patch["path"] == [0])
+    assert first_text["props"]["value"] == "count:1"
+    assert second_text["props"]["value"] == "count:1"
+    assert app._sessions == {}
+    assert app._session_paths == {}
+
+
+def test_concurrent_websocket_sessions_keep_principals_isolated():
+    app = App(auth_mode="user", auth_provider=HeaderAuthProvider())
+
+    @app.page("/", access="user")
+    def home():
+        principal = current_user()
+        return db.Text(principal.subject if principal else "missing")
+
+    asgi = create_asgi_app(app)
+
+    def connect(subject: str) -> str:
+        with TestClient(asgi) as client:
+            with client.websocket_connect(
+                "/events",
+                headers={"x-brickflow-user-id": subject},
+            ) as websocket:
+                payload = websocket.receive_json()
+                return payload["tree"]["props"]["value"]
+
+    subjects = [f"user-{index}" for index in range(8)]
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        rendered = list(executor.map(connect, subjects))
+
+    assert sorted(rendered) == sorted(subjects)
+    assert app._sessions == {}
+    assert app._session_paths == {}

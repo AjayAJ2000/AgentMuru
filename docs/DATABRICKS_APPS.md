@@ -44,13 +44,13 @@ Important:
 Install from PyPI:
 
 ```text
-brickflowui>=0.1.16
+brickflowui>=0.1.17
 ```
 
 Install directly from GitHub:
 
 ```text
-brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.16
+brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@v0.1.17
 ```
 
 Install a branch from GitHub:

@@ -124,6 +124,17 @@ Current showcase baseline:
 - source-checkout launch commands that cannot silently load stale global builds
 - reproducible CI, dependency-audit, package, and installed-wheel release gates
 
+### `0.1.17`
+
+Current end-user hardening baseline:
+
+- Python 3.10–3.13 compatibility gates
+- bounded reconnect and session-resilience validation
+- browser accessibility checks for maintained desktop and mobile journeys
+- safer authentication failures, media URLs, and incremental patch values
+- enforced frontend bundle budgets and complete dependency auditing
+- an explicit read-only procedure for live Databricks release evidence
+
 ### `0.2.0`
 
 Recommended focus:

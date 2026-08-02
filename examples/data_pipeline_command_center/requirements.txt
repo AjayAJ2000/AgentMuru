@@ -1,1 +1,1 @@
-brickflowui[databricks]>=0.1.16,<0.3
+brickflowui[databricks]>=0.1.17,<0.3

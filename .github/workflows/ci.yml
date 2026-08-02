@@ -8,10 +8,12 @@ on:
 
 jobs:
   python:
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -87,11 +89,22 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Test frontend bundle budget checker
+        working-directory: frontend
+        run: npm run test:bundle
+
+      - name: Enforce frontend bundle budgets
+        working-directory: frontend
+        run: npm run check:bundle
+
       - name: Check committed frontend bundle drift
         run: git diff --exit-code -- brickflowui/frontend/dist
 
       - name: Smoke maintained examples
         run: python scripts/smoke_examples.py
+
+      - name: Run runtime resilience checks
+        run: python scripts/runtime_resilience.py
 
       - name: Regenerate component reference pages
         run: python scripts/generate_component_reference.py

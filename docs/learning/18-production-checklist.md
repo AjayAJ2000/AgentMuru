@@ -74,7 +74,7 @@ npm run build
 cd ..
 python -m mkdocs build
 python -m build
-python -m twine check dist/brickflowui-0.1.16*
+python -m twine check dist/brickflowui-0.1.17*
 ```
 
 ## Common Mistakes

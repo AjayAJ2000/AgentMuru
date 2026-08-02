@@ -125,7 +125,6 @@ def test_diff_children_removal():
     assert patches[0]["op"] == "remove"
     assert patches[0]["path"] == [1]
 
-
 def test_diff_removes_surplus_children_from_highest_index_first():
     patches = diff(
         VNode(type="Column", children=_text_children(5)),
@@ -255,7 +254,6 @@ def test_diff_applies_replacement_before_descending_adjacent_removals():
         ("remove", [2]),
     ]
     assert _apply_serialized_patches(old_serialized, patches) == new_serialized
-
 
 def test_diff_removed_prop_sets_null():
     handler_registry = {}

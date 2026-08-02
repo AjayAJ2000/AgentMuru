@@ -129,15 +129,47 @@ def test_required_command_lookup_rejects_multiline_shell_spoofs():
     assert _command_occurrences(workflow, required) == [("real", 0, None)]
 
 
-def test_publish_workflow_installs_visualization_test_dependencies():
+def test_publish_workflow_is_main_only_and_runs_complete_release_gates():
     workflow = _load_workflow("publish.yml")
+    tests_job = workflow["jobs"]["tests"]
+    assert tests_job["if"] == "${{ github.event_name == 'release' || github.ref == 'refs/heads/main' }}"
+
+    checkout = next(
+        step for step in tests_job["steps"] if step.get("uses") == "actions/checkout@v4"
+    )
+    assert checkout["with"]["fetch-depth"] == 0
+
+    main_gate = next(
+        step for step in tests_job["steps"]
+        if step.get("name") == "Verify release commit belongs to main"
+    )
+    assert "git fetch origin main --no-tags" in main_gate["run"]
+    assert "git merge-base --is-ancestor" in main_gate["run"]
+
     install_step = next(
-        step for step in workflow["jobs"]["tests"]["steps"]
+        step for step in tests_job["steps"]
         if step.get("name") == "Install dependencies"
     )
     install_lines = [line.strip() for line in install_step["run"].splitlines() if line.strip()]
+    assert 'python -m pip install -e ".[dev,docs,databricks,viz]"' in install_lines
 
-    assert 'python -m pip install -e ".[dev,docs,viz]"' in install_lines
+    required_commands = (
+        "python scripts/smoke_examples.py",
+        "python scripts/runtime_resilience.py",
+        "npx playwright install --with-deps chromium",
+        "npm run test:e2e",
+    )
+    for command in required_commands:
+        _assert_owned_by(workflow, command, "tests")
+
+    assert workflow["jobs"]["publish"]["needs"] == "tests"
+
+
+def test_publishing_docs_require_manual_runs_from_main():
+    publishing = (REPO_ROOT / "docs" / "PUBLISHING.md").read_text(encoding="utf-8")
+
+    assert "select the `main` branch" in publishing
+    assert "exact release branch or tag" not in publishing
 
 
 def test_ci_splits_python_matrix_from_python_311_integration_gates():
@@ -151,6 +183,7 @@ def test_ci_splits_python_matrix_from_python_311_integration_gates():
         "3.10",
         "3.11",
         "3.12",
+        "3.13",
     ]
     python_setup = next(
         step for step in python_job["steps"] if step.get("uses") == "actions/setup-python@v5"
@@ -198,6 +231,8 @@ def test_ci_splits_python_matrix_from_python_311_integration_gates():
         "npm audit --audit-level=high",
         "npm run typecheck",
         "npm run build",
+        "npm run test:bundle",
+        "npm run check:bundle",
     )
     for command in frontend_commands:
         _assert_owned_by(workflow, command, "integration")
@@ -206,6 +241,7 @@ def test_ci_splits_python_matrix_from_python_311_integration_gates():
     for command in (
         "git diff --exit-code -- brickflowui/frontend/dist",
         "python scripts/smoke_examples.py",
+        "python scripts/runtime_resilience.py",
         "python scripts/generate_component_reference.py",
         "git diff --exit-code -- docs/components/reference",
         "python -m mkdocs build --strict",
@@ -221,8 +257,11 @@ def test_ci_splits_python_matrix_from_python_311_integration_gates():
         "npm audit --audit-level=high",
         "npm run typecheck",
         "npm run build",
+        "npm run test:bundle",
+        "npm run check:bundle",
         "git diff --exit-code -- brickflowui/frontend/dist",
         "python scripts/smoke_examples.py",
+        "python scripts/runtime_resilience.py",
         "python scripts/generate_component_reference.py",
         "git diff --exit-code -- docs/components/reference",
         "python -m mkdocs build --strict",

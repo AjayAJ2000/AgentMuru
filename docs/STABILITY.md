@@ -1,10 +1,10 @@
 # Stability Contract
 
-BrickflowUI `0.1.16` is an alpha framework with a tested core-runtime baseline. “Stable” here means that the supported verification gates pass and there are no known reproducible core defects at release time. It is not a claim that undiscovered defects are impossible, nor is it a security or regulatory certification.
+BrickflowUI `0.1.17` is an alpha framework with a tested core-runtime baseline. “Stable” here means that the supported verification gates pass and there are no known reproducible core defects at release time. It is not a claim that undiscovered defects are impossible, nor is it a security or regulatory certification.
 
 ## Supported baseline
 
-- Python 3.10, 3.11, and 3.12 are supported package targets. CI runs the core
+- Python 3.10, 3.11, 3.12, and 3.13 are supported package targets. CI runs the core
   test, Ruff, and MyPy gates on every supported Python version; the complete
   frontend, documentation, example-smoke, bundle-drift, and package integration
   gate runs on Python 3.11.
@@ -18,8 +18,9 @@ BrickflowUI `0.1.16` is an alpha framework with a tested core-runtime baseline. 
 Run from the repository root:
 
 ```powershell
-python -m pytest -q
+python -m pytest -q -p no:cacheprovider
 python scripts/smoke_examples.py
+python scripts/runtime_resilience.py
 python scripts/generate_component_reference.py
 git diff --exit-code -- docs/components/reference
 python -m mkdocs build --strict
@@ -34,6 +35,9 @@ npm test -- --run
 npm run lint
 npm run typecheck
 npm run build
+npm run test:bundle
+npm run check:bundle
+npm run test:e2e
 git diff --exit-code -- ..\brickflowui\frontend\dist
 npm audit --audit-level=high
 ```
@@ -68,9 +72,13 @@ Theme files and application configuration are trusted developer inputs. Authenti
 
 ## Known capability boundaries
 
-`CatalogBrowser`, `WarehouseSelector`, and `JobTrigger` have server-driven renderer, loading, empty, disabled, error, and event contracts. Databricks operations remain explicit Python calls so credentials and SDK objects never enter the browser. Both per-user and shared-app identity are supported, but app/user authorization and the components still require validation in a real Databricks Apps workspace.
-
-Formal load limits, configurable idle-session policy, deployment observability, and an actual Databricks Apps environment test belong to the production-lifecycle validation phase. The WebSocket handler cleans session state in its `finally` path, but this does not substitute for measured concurrency and failure testing.
+- `CatalogBrowser`, `WarehouseSelector`, and `JobTrigger` have server-driven renderer, loading, empty, disabled, error, and event contracts. Databricks operations remain explicit Python calls so credentials and SDK objects never enter the browser.
+- Per-user and shared-app identity are both supported. User SQL/SDK clients are operation-scoped from forwarded authorization headers; the guarded app-identity SQL connection is reusable. A deployment must still configure and verify the required Databricks authorization scopes.
+- CI exercises Python 3.10 through 3.13. Local evidence may cover only the interpreters installed on the release workstation.
+- A bounded 20-session reconnect campaign is part of local validation. Sustained load, multi-process deployment, backpressure, and long-session memory campaigns remain production-lifecycle gates.
+- The Chromium end-user gate covers the counter and component studio at desktop and mobile widths, including serious/critical Axe checks. Cross-browser and formal accessibility conformance testing remain separate gates.
+- Live Databricks evidence is collected with the read-only procedure in [Databricks Release Validation](./DATABRICKS_RELEASE_VALIDATION.md); unavailable infrastructure is never inferred as passing.
+- Browser and platform results are recorded in the current verification report; unavailable infrastructure is reported as a limitation rather than inferred as passing.
 
 ## Reporting a regression
 

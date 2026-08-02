@@ -18,7 +18,7 @@ import re
 import secrets
 import uuid
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 from urllib.parse import urlparse
 
 import uvicorn
@@ -69,6 +69,20 @@ def _patch_msg(patches: list, dbrx_app: "App") -> str:
     return json.dumps({"type": "patch", "patches": dbrx_app.transform_serialized_tree(patches)})
 
 
+def _serialize_patch_values(value: Any, handler_registry: dict) -> Any:
+    """Convert VNodes nested in incremental prop patches to wire-safe values."""
+    if isinstance(value, VNode):
+        return value.serialize(handler_registry)
+    if isinstance(value, (list, tuple)):
+        return [_serialize_patch_values(item, handler_registry) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: _serialize_patch_values(item, handler_registry)
+            for key, item in value.items()
+        }
+    return value
+
+
 def _error_msg(message: str, error_id: Optional[str] = None) -> str:
     payload = {"type": "error", "message": message}
     if error_id:
@@ -76,10 +90,16 @@ def _error_msg(message: str, error_id: Optional[str] = None) -> str:
     return json.dumps(payload)
 
 
+def _log_correlated_exception(context: str) -> str:
+    """Log the active exception privately and return a safe correlation ID."""
+    error_id = uuid.uuid4().hex
+    logger.exception("%s error_id=%s", context, error_id)
+    return error_id
+
+
 def _runtime_error_msg(session_id: str, context: str) -> str:
     """Log a private exception trace and return a safe correlated browser message."""
-    error_id = uuid.uuid4().hex
-    logger.exception("[%s] %s error_id=%s", session_id, context, error_id)
+    error_id = _log_correlated_exception(f"[{session_id}] {context}")
     return _error_msg(
         f"Something went wrong. Reference error ID {error_id} when contacting support.",
         error_id,
@@ -284,10 +304,14 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                 allow_anonymous=dbrx_app.allow_anonymous,
                 source=request,
             )
-        except AuthenticationRequired as exc:
-            if request.url.path == "api" or request.url.path.startswith("/api/"):
-                return JSONResponse({"detail": str(exc)}, status_code=401)
-            raise
+        except AuthenticationRequired:
+            return JSONResponse({"detail": "Authentication required."}, status_code=401)
+        except Exception:
+            error_id = _log_correlated_exception("HTTP authentication failure")
+            return JSONResponse(
+                {"detail": "Authentication failed.", "error_id": error_id},
+                status_code=500,
+            )
         request.state.brickflow_principal = principal
         token = set_current_principal(principal)
         try:
@@ -344,13 +368,24 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
             await ws.close(code=1008)
             return
 
-        principal = resolve_principal(
-            auth_mode=dbrx_app.auth_mode,
-            auth_provider=dbrx_app.auth_provider,
-            app_principal=dbrx_app.app_principal,
-            allow_anonymous=dbrx_app.allow_anonymous,
-            source=ws,
-        )
+        try:
+            principal = resolve_principal(
+                auth_mode=dbrx_app.auth_mode,
+                auth_provider=dbrx_app.auth_provider,
+                app_principal=dbrx_app.app_principal,
+                allow_anonymous=dbrx_app.allow_anonymous,
+                source=ws,
+            )
+        except AuthenticationRequired:
+            await ws.close(code=1008)
+            return
+        except Exception:
+            error_id = _log_correlated_exception("WebSocket authentication failure")
+            await ws.close(
+                code=1011,
+                reason=f"Authentication failed. Reference error ID {error_id}.",
+            )
+            return
 
         await ws.accept()
 
@@ -406,10 +441,11 @@ def create_asgi_app(dbrx_app: "App") -> FastAPI:
                 ctx.run_effects()
                 ctx.dirty = False
                 patches = diff(old_tree, new_tree, new_handler_registry)
+                patches = _serialize_patch_values(patches, new_handler_registry)
+                previous_handler_registry = handler_registry
+                handler_registry = new_handler_registry
                 if patches:
                     await ws.send_text(_patch_msg(patches, dbrx_app))
-                    previous_handler_registry = handler_registry
-                    handler_registry = new_handler_registry
                 return new_tree
             except Exception:
                 await ws.send_text(_runtime_error_msg(session_id, "Re-render error"))

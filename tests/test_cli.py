@@ -57,6 +57,45 @@ def test_new_command_scaffolds_default_app(monkeypatch):
         shutil.rmtree(scratch_dir, ignore_errors=True)
 
 
+def test_new_command_renders_success_message_without_markup(monkeypatch):
+    repo_root = Path(__file__).resolve().parents[1]
+    app_name = f"sample_app_{uuid.uuid4().hex[:8]}"
+    scratch_dir = repo_root / f"_tmp_cli_{uuid.uuid4().hex[:8]}"
+
+    try:
+        scratch_dir.mkdir()
+        monkeypatch.setattr(Path, "cwd", lambda: scratch_dir)
+
+        result = runner.invoke(app, ["new", app_name], catch_exceptions=False)
+
+        assert result.exit_code == 0
+        assert "Created BrickflowUI app:" in result.output
+        assert "[bold" not in result.output
+        assert "[/bold" not in result.output
+    finally:
+        shutil.rmtree(scratch_dir, ignore_errors=True)
+
+
+def test_dev_command_renders_banner_without_markup(monkeypatch):
+    repo_root = Path(__file__).resolve().parents[1]
+    scratch_dir = repo_root / f"_tmp_cli_{uuid.uuid4().hex[:8]}"
+
+    try:
+        scratch_dir.mkdir()
+        (scratch_dir / "app.py").write_text("", encoding="utf-8")
+        monkeypatch.setattr(Path, "cwd", lambda: scratch_dir)
+        monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
+
+        result = runner.invoke(app, ["dev", "--no-reload"], catch_exceptions=False)
+
+        assert result.exit_code == 0
+        assert "BrickflowUI Dev Server" in result.output
+        assert "[bold" not in result.output
+        assert "[/bold" not in result.output
+    finally:
+        shutil.rmtree(scratch_dir, ignore_errors=True)
+
+
 def test_new_command_reports_permission_errors_cleanly(monkeypatch):
     repo_root = Path(__file__).resolve().parents[1]
     app_name = f"sample_app_{uuid.uuid4().hex[:8]}"

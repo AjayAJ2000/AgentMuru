@@ -20,6 +20,9 @@
   --db-primary-muted: rgba(67, 97, 238, 0.1);
 
   --db-success:       #15803D;
+  --db-success-text:  #166534;
+  --db-purple-text:   #6D28D9;
+  --db-orange-text:   #9A3412;
   --db-warning:       #B45309;
   --db-error:         #BE123C;
   --db-info:          #1D4ED8;
@@ -78,6 +81,9 @@
   --db-text-subtle: #64748B;
   --db-primary-muted: rgba(67, 97, 238, 0.16);
   --db-success: #22C55E;
+  --db-success-text: #4ADE80;
+  --db-purple-text: #C4B5FD;
+  --db-orange-text: #FDBA74;
   --db-warning: #F59E0B;
   --db-error: #F43F5E;
   --db-info: #3B82F6;
@@ -678,11 +684,11 @@ body {
   white-space: nowrap;
 }
 .bf-badge-blue    { background: var(--db-info-bg);    color: var(--db-info); }
-.bf-badge-green   { background: var(--db-success-bg); color: var(--db-success); }
+.bf-badge-green   { background: var(--db-success-bg); color: var(--db-success-text); }
 .bf-badge-red     { background: var(--db-error-bg);   color: var(--db-error); }
 .bf-badge-yellow  { background: var(--db-warning-bg); color: var(--db-warning); }
-.bf-badge-purple  { background: rgba(188,140,255,0.1); color: #bc8cff; }
-.bf-badge-orange  { background: rgba(210,140,60,0.1); color: #d28c3c; }
+.bf-badge-purple  { background: rgba(188,140,255,0.1); color: var(--db-purple-text); }
+.bf-badge-orange  { background: rgba(210,140,60,0.1); color: var(--db-orange-text); }
 .bf-badge-gray    { background: var(--db-surface-2); color: var(--db-text-muted); }
 
 /* ── Alert ──────────────────────────────────────────────────────────────── */
@@ -1121,7 +1127,7 @@ body {
 
 .bf-multiselect-chip.active {
   background: var(--db-primary-muted);
-  color: var(--db-primary);
+  color: var(--db-text);
   border-color: rgba(0, 48, 135, 0.18);
 }
 

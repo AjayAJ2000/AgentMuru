@@ -1160,10 +1160,10 @@ env:
 
 ```
 # From PyPI (supported release range):
-brickflowui>=0.1.16,<0.3
+brickflowui>=0.1.17,<0.3
 
 # Include Databricks integrations when the app uses them:
-brickflowui[databricks]>=0.1.16,<0.3
+brickflowui[databricks]>=0.1.17,<0.3
 
 # From main branch (for latest):
 brickflowui @ git+https://github.com/AjayAJ2000/brickflowUI.git@main

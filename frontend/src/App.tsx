@@ -4,6 +4,8 @@ import type { VNodeData, ServerMessage } from './types'
 import { applyPatches, PatchApplicationError } from './runtime/applyPatch'
 import { parseBootstrapData } from './runtime/bootstrap'
 import { navigationAction, type NavigationSource } from './runtime/navigation'
+import { createReconnectController } from './runtime/reconnect'
+import { safeMediaUrl } from './runtime/media'
 
 type WsStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
 
@@ -55,10 +57,20 @@ function BuiltinLoadingMark() {
   )
 }
 
+function SafeText({ className, text }: { className: string; text: string }) {
+  const writeText = useCallback((element: HTMLDivElement | null) => {
+    if (element) element.textContent = text
+  }, [text])
+
+  return <div className={className} ref={writeText} />
+}
+
 function LoadingVisual({ status, themeMode }: { status: WsStatus; themeMode: 'light' | 'dark' }) {
   const config = resolveLoadingConfig(themeMode)
-  const asset = config.video || config.asset
-  const kind = config.video ? 'video' : config.assetKind
+  const videoAsset = safeMediaUrl(config.video, window.location.href)
+  const configuredAsset = safeMediaUrl(config.asset, window.location.href)
+  const asset = videoAsset || configuredAsset
+  const kind = videoAsset ? 'video' : config.assetKind
   const animation = config.animation || 'spinner'
   const title = config.title || 'BrickflowUI'
   const subtitle = config.subtitle
@@ -84,14 +96,14 @@ function LoadingVisual({ status, themeMode }: { status: WsStatus; themeMode: 'li
             playsInline
           />
         ) : asset ? (
-          <img className="bf-loading-media" src={asset} alt={`${title} loading`} />
+          <img className="bf-loading-media" src={asset} alt="Loading indicator" />
         ) : (
           <BuiltinLoadingMark />
         )
       ) : null}
-      <div className="bf-loading-brand">{title}</div>
-      {subtitle ? <div className="bf-loading-subtitle">{subtitle}</div> : null}
-      <div className="bf-loading-hint">{message}</div>
+      <SafeText className="bf-loading-brand" text={title} />
+      {subtitle ? <SafeText className="bf-loading-subtitle" text={subtitle} /> : null}
+      <SafeText className="bf-loading-hint" text={message} />
     </div>
   )
 }
@@ -178,8 +190,6 @@ export default function App() {
   }, [stylePreset])
 
   useEffect(() => {
-    let reconnectTimer: ReturnType<typeof setTimeout>
-
     function connect() {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws'
       const ws = new WebSocket(`${proto}://${location.host}/events?path=${encodeURIComponent(window.location.pathname)}`)
@@ -187,6 +197,7 @@ export default function App() {
       setStatus('connecting')
 
       ws.onopen = () => {
+        reconnectController.opened()
         setStatus('connected')
         setError(null)
       }
@@ -237,7 +248,7 @@ export default function App() {
       ws.onclose = () => {
         setStatus('disconnected')
         setPendingEvents(new Map())
-        reconnectTimer = setTimeout(connect, 2500)
+        reconnectController.closed()
       }
 
       ws.onerror = () => {
@@ -247,6 +258,7 @@ export default function App() {
       }
     }
 
+    const reconnectController = createReconnectController(connect)
     connect()
 
     const handlePopstate = () => navigateFrom(
@@ -256,7 +268,7 @@ export default function App() {
     window.addEventListener('popstate', handlePopstate)
 
     return () => {
-      clearTimeout(reconnectTimer)
+      reconnectController.dispose()
       if (frameRef.current !== null) {
         window.cancelAnimationFrame(frameRef.current)
       }

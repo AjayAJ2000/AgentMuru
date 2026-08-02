@@ -2,6 +2,33 @@
 
 This page tracks the highest-signal changes for evaluators and adopters. It is not meant to replace commit history. It is meant to explain what changed, why it matters, and what to recheck when you upgrade.
 
+## 0.1.17
+
+Focus: end-user reliability, browser accessibility, safer runtime failure handling,
+and broader release validation.
+
+Highlights:
+
+- Python 3.13 joins the CI compatibility matrix alongside Python 3.10–3.12
+- WebSocket reconnect behavior, incremental VDOM patches, handler generations,
+  and bounded session cleanup have expanded regression and resilience coverage
+- authentication failures expose actionable status codes without leaking provider
+  exception details, while media URLs and runtime error messages receive stricter
+  browser-facing safety checks
+- browser tests now cover desktop and mobile user journeys plus serious and
+  critical Axe accessibility findings for maintained examples
+- frontend bundle budgets, dependency auditing, generated-document drift, example
+  smoke tests, and package-content checks are enforced together in release gates
+- a read-only Databricks validation procedure records live-platform evidence
+  separately from locally verified behavior
+
+Upgrade notes:
+
+- rebuild containers and Databricks App bundles with `brickflowui>=0.1.17`
+- regenerate and commit the packaged frontend bundle when building from source
+- validate identity and authorization scopes in the target Databricks workspace
+- no existing public component constructor was intentionally removed
+
 ## 0.1.16
 
 Focus: a smaller, end-to-end showcase foundation and a more resilient flagship

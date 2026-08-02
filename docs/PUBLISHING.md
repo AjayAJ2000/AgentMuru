@@ -39,7 +39,7 @@ python -m mkdocs build --strict
 ```bash
 python -m build
 python -m twine check dist/*
-python -m zipfile -l dist/brickflowui-0.1.16-py3-none-any.whl
+python -m zipfile -l dist/brickflowui-0.1.17-py3-none-any.whl
 ```
 
 4. Publish through GitHub trusted publishing. Manual Twine upload is an emergency fallback only when a project-scoped PyPI token is available:
@@ -68,25 +68,28 @@ The workflow is configured to:
 - publish to PyPI with GitHub OIDC trusted publishing
 
 It runs when a GitHub Release is published, and can also be started manually with `workflow_dispatch`.
+Every publish candidate is rejected unless its commit is reachable from `main`.
 
-For a manual workflow run, select the exact release branch or tag. Do not publish a version that is not committed and pushed.
+For a manual workflow run, select the `main` branch. For a GitHub Release, create
+the release tag from the merged `main` commit. Do not publish an unmerged branch,
+detached commit, or tag outside the `main` history.
 
 ## Post-publish smoke test
 
 Users should be able to run:
 
 ```bash
-python -m pip install --no-cache-dir brickflowui==0.1.16
+python -m pip install --no-cache-dir brickflowui==0.1.17
 ```
 
 Then:
 
 ```python
 import brickflowui as db
-assert db.__version__ == "0.1.16"
+assert db.__version__ == "0.1.17"
 ```
 
-Finally verify the immutable version endpoint: `https://pypi.org/pypi/brickflowui/0.1.16/json`.
+Finally verify the immutable version endpoint: `https://pypi.org/pypi/brickflowui/0.1.17/json`.
 
 ## Packaging notes
 

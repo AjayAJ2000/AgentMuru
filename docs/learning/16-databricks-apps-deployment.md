@@ -18,13 +18,13 @@ my_app/
 ## `requirements.txt`
 
 ```text
-brickflowui>=0.1.16
+brickflowui>=0.1.17
 ```
 
 If using Databricks SQL or Unity Catalog helpers:
 
 ```text
-brickflowui[databricks]>=0.1.16
+brickflowui[databricks]>=0.1.17
 ```
 
 ## `app.yaml`

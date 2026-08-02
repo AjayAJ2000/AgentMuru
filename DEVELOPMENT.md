@@ -66,6 +66,18 @@ npx tsc --noEmit
 root HTML response, and then shuts it down. Use this as the main "does the repo
 still run?" check before demos and release work.
 
+Exercise the real WebSocket protocol with concurrent, state-changing sessions:
+
+```bash
+python scripts/runtime_resilience.py
+```
+
+The check starts the counter example on an isolated port, connects 20 sessions,
+performs three click-and-render cycles per session, and exits within a bounded
+deadline. It fails on protocol errors, incomplete events, or excessive p95
+latency. Use `--help` to tune the load, deadline, port, or latency threshold for
+slower development machines.
+
 ## Frontend build
 
 ```bash
@@ -79,6 +91,22 @@ This writes the packaged frontend bundle to:
 ```text
 brickflowui/frontend/dist/
 ```
+
+Run the frontend quality gates from `frontend/`:
+
+```bash
+npm test -- --run
+npm run lint
+npm run typecheck
+npm run test:bundle
+npm run check:bundle
+npm run test:e2e
+```
+
+The end-user test starts the counter and component studio examples, launches
+the pinned Chromium build, exercises real WebSocket interactions, checks a
+mobile viewport, and fails on browser errors or serious/critical Axe findings.
+Install its browser runtime once with `npx playwright install chromium`.
 
 ## Frontend development with hot reload
 

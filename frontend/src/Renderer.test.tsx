@@ -210,4 +210,33 @@ describe('Modal accessibility', () => {
     act(() => action?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })))
     expect(dispatch).toHaveBeenCalledWith('close-modal', {})
   })
+
+  it('gives the popup close control an accessible name', () => {
+    const popupNode: VNodeData = {
+      type: 'Popup',
+      props: {
+        title: 'Quick filters',
+        visible: true,
+        close: 'close-popup',
+      },
+      children: [],
+      key: null,
+    }
+
+    act(() => {
+      root.render(
+        <Renderer
+          node={popupNode}
+          dispatch={dispatch}
+          navigate={vi.fn()}
+          pendingEvents={new Map()}
+          themeMode="light"
+          setThemeMode={vi.fn()}
+        />,
+      )
+    })
+
+    const close = container.querySelector<HTMLButtonElement>('.bf-popup .bf-modal-close')
+    expect(close?.getAttribute('aria-label')).toBe('Close Quick filters')
+  })
 })

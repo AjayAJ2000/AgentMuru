@@ -1,0 +1,5 @@
+name: BrickflowUI CodeQL configuration
+
+paths-ignore:
+  # Generated output contains minified third-party packages such as Plotly.
+  - brickflowui/frontend/dist/**

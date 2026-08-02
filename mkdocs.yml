@@ -171,6 +171,7 @@ nav:
   - Deploy:
       - Local Development: LOCAL_DEVELOPMENT.md
       - Databricks Apps: DATABRICKS_APPS.md
+      - Databricks Release Validation: DATABRICKS_RELEASE_VALIDATION.md
       - Build Guide: BUILD.md
       - Publishing: PUBLISHING.md
       - Release Checklist: RELEASE_CHECKLIST.md

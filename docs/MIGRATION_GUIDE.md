@@ -12,6 +12,23 @@ After every upgrade:
 4. verify custom branding, logos, and loading assets
 5. run your app against the current [Examples](./EXAMPLES.md) and [API Reference](./API_REFERENCE.md)
 
+## Upgrading To 0.1.17
+
+Version `0.1.17` preserves the public component API while strengthening runtime,
+browser, security, and release-validation behavior.
+
+Recheck these areas:
+
+- rebuild pinned containers and Databricks App bundles with
+  `brickflowui>=0.1.17`
+- exercise reconnect behavior and event-driven updates in long-lived pages
+- retest modals, popups, keyboard interaction, and mobile layouts with your
+  application-specific content
+- validate per-user and shared-app identity scopes in the target Databricks
+  workspace; local tests do not substitute for live authorization evidence
+- run the Python, frontend, example-smoke, resilience, strict-docs, package, and
+  browser gates from the [Release Checklist](./RELEASE_CHECKLIST.md)
+
 ## Upgrading To 0.1.16
 
 Version `0.1.16` preserves the public component API while consolidating the
