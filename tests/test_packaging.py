@@ -13,6 +13,12 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 CI uses the backpo
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_ruff_lint_policy_does_not_inherit_tool_defaults():
+    pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+
+    assert pyproject["tool"]["ruff"]["lint"]["select"] == ["E4", "E7", "E9", "F"]
+
+
 def test_public_tree_excludes_internal_agent_artifacts():
     tracked = subprocess.run(
         ["git", "ls-files"],
