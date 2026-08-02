@@ -11,6 +11,15 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 CI uses the backpo
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+NODE24_ACTION_MINIMUM_MAJORS = {
+    "actions/checkout": 5,
+    "actions/configure-pages": 6,
+    "actions/deploy-pages": 5,
+    "actions/setup-node": 5,
+    "actions/setup-python": 6,
+    "actions/upload-pages-artifact": 5,
+    "github/codeql-action": 4,
+}
 
 
 def test_ruff_lint_policy_does_not_inherit_tool_defaults():
@@ -71,6 +80,56 @@ def _load_workflow(name: str) -> dict:
     assert isinstance(workflow, dict)
     assert isinstance(workflow.get("jobs"), dict)
     return workflow
+
+
+def _uses_references(value: object):
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if key == "uses" and isinstance(child, str):
+                yield child
+            yield from _uses_references(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _uses_references(child)
+
+
+def test_workflows_do_not_use_pre_node24_action_majors():
+    violations: list[str] = []
+    workflow_paths = sorted(
+        {
+            *REPO_ROOT.glob(".github/workflows/*.yml"),
+            *REPO_ROOT.glob(".github/workflows/*.yaml"),
+        }
+    )
+    assert workflow_paths, "No GitHub Actions workflow files found"
+
+    for workflow_path in workflow_paths:
+        workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
+        for reference in _uses_references(workflow):
+            action_name, separator, version = reference.partition("@")
+            if not separator:
+                continue
+            policy_name = next(
+                (
+                    name
+                    for name in NODE24_ACTION_MINIMUM_MAJORS
+                    if action_name == name or action_name.startswith(f"{name}/")
+                ),
+                None,
+            )
+            if policy_name is None:
+                continue
+            major_match = re.fullmatch(r"v(\d+)(?:\.\d+){0,2}", version)
+            if major_match is None:
+                continue
+            minimum_major = NODE24_ACTION_MINIMUM_MAJORS[policy_name]
+            if int(major_match.group(1)) < minimum_major:
+                relative_path = workflow_path.relative_to(REPO_ROOT).as_posix()
+                violations.append(
+                    f"{relative_path}: {reference} requires {policy_name}@v{minimum_major}+"
+                )
+
+    assert not violations, "Deprecated GitHub Action versions:\n" + "\n".join(violations)
 
 
 def _single_command(step: dict) -> str | None:
@@ -141,7 +200,7 @@ def test_publish_workflow_is_main_only_and_runs_complete_release_gates():
     assert tests_job["if"] == "${{ github.event_name == 'release' || github.ref == 'refs/heads/main' }}"
 
     checkout = next(
-        step for step in tests_job["steps"] if step.get("uses") == "actions/checkout@v4"
+        step for step in tests_job["steps"] if step.get("uses") == "actions/checkout@v5"
     )
     assert checkout["with"]["fetch-depth"] == 0
 
@@ -192,7 +251,7 @@ def test_ci_splits_python_matrix_from_python_311_integration_gates():
         "3.13",
     ]
     python_setup = next(
-        step for step in python_job["steps"] if step.get("uses") == "actions/setup-python@v5"
+        step for step in python_job["steps"] if step.get("uses") == "actions/setup-python@v6"
     )
     assert python_setup["with"]["python-version"] == "${{ matrix.python-version }}"
     python_install = 'python -m pip install -e ".[dev,viz]"'
@@ -216,11 +275,11 @@ def test_ci_splits_python_matrix_from_python_311_integration_gates():
 
     integration_job = jobs["integration"]
     integration_setup = next(
-        step for step in integration_job["steps"] if step.get("uses") == "actions/setup-python@v5"
+        step for step in integration_job["steps"] if step.get("uses") == "actions/setup-python@v6"
     )
     assert integration_setup["with"]["python-version"] == "3.11"
     assert any(
-        step.get("uses") == "actions/setup-node@v4" for step in integration_job["steps"]
+        step.get("uses") == "actions/setup-node@v5" for step in integration_job["steps"]
     )
 
     integration_installs = (
@@ -282,7 +341,7 @@ def test_ci_splits_python_matrix_from_python_311_integration_gates():
 def test_security_audits_installed_project_dependencies():
     workflow = _load_workflow("security.yml")
     audit_job = workflow["jobs"]["audit"]
-    assert any(step.get("uses") == "actions/setup-node@v4" for step in audit_job["steps"])
+    assert any(step.get("uses") == "actions/setup-node@v5" for step in audit_job["steps"])
 
     audit_step = _required_command_step(audit_job, "python -m pip_audit")
     setuptools_upgrade = 'python -m pip install --upgrade pip "setuptools>=83"'
