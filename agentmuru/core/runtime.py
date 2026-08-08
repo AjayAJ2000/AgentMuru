@@ -105,6 +105,12 @@ class Runtime:
             raise RunNotFoundError(f"Run '{run_id}' was not found") from exc
         return await asyncio.shield(task)
 
+    def get_run(self, run_id: str) -> RunRecord:
+        try:
+            return self._runs[run_id]
+        except KeyError as exc:
+            raise RunNotFoundError(f"Run '{run_id}' was not found") from exc
+
     async def cancel(self, run_id: str) -> RunRecord:
         try:
             task = self._tasks[run_id]
