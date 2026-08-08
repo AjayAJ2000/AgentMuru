@@ -65,7 +65,7 @@ class ApprovalService:
         )
         try:
             return await asyncio.wait_for(asyncio.shield(waiter), timeout=timeout)
-        except TimeoutError:
+        except asyncio.TimeoutError:
             current = self.get(approval_id)
             expired = current.expire()
             self._requests[approval_id] = expired
