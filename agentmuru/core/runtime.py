@@ -289,6 +289,18 @@ class Runtime:
                     trace.id, name="model", kind="model", attributes={"turn": turn + 1}
                 )
                 self._emit(
+                    EventType.TRACE_SPAN_STARTED,
+                    session_id=session.id,
+                    run_id=run.id,
+                    trace_id=trace.id,
+                    parent_id=model_span.parent_id,
+                    payload={
+                        "span_id": model_span.id,
+                        "name": model_span.name,
+                        "kind": model_span.kind,
+                    },
+                )
+                self._emit(
                     EventType.MODEL_REQUEST_STARTED,
                     session_id=session.id,
                     run_id=run.id,
@@ -337,7 +349,19 @@ class Runtime:
                         )
                     elif isinstance(event, ModelFailed):
                         raise ModelExecutionError("Model execution failed")
-                self.tracer.finish_span(model_span.id)
+                completed_model_span = self.tracer.finish_span(model_span.id)
+                self._emit(
+                    EventType.TRACE_SPAN_COMPLETED,
+                    session_id=session.id,
+                    run_id=run.id,
+                    trace_id=trace.id,
+                    parent_id=completed_model_span.parent_id,
+                    payload={
+                        "span_id": completed_model_span.id,
+                        "status": completed_model_span.status,
+                        "duration_ms": completed_model_span.duration_ms,
+                    },
+                )
                 self._emit(
                     EventType.MODEL_REQUEST_COMPLETED,
                     session_id=session.id,
@@ -489,6 +513,14 @@ class Runtime:
             attributes={"tool": tool.name},
         )
         self._emit(
+            EventType.TRACE_SPAN_STARTED,
+            session_id=session.id,
+            run_id=run.id,
+            trace_id=trace_id,
+            parent_id=tool_span.parent_id,
+            payload={"span_id": tool_span.id, "name": tool_span.name, "kind": tool_span.kind},
+        )
+        self._emit(
             EventType.TOOL_CALL_STARTED,
             session_id=session.id,
             run_id=run.id,
@@ -499,10 +531,34 @@ class Runtime:
         try:
             result = await tool.invoke(call.arguments)
         except Exception as exc:
-            self.tracer.finish_span(tool_span.id, status="failed")
+            failed_span = self.tracer.finish_span(tool_span.id, status="failed")
+            self._emit(
+                EventType.TRACE_SPAN_COMPLETED,
+                session_id=session.id,
+                run_id=run.id,
+                trace_id=trace_id,
+                parent_id=failed_span.parent_id,
+                payload={
+                    "span_id": failed_span.id,
+                    "status": failed_span.status,
+                    "duration_ms": failed_span.duration_ms,
+                },
+            )
             self._tool_failure(run, trace_id, call, ToolRuntimeError.code, "Tool execution failed")
             raise ToolRuntimeError("Tool execution failed") from exc
-        self.tracer.finish_span(tool_span.id)
+        completed_tool_span = self.tracer.finish_span(tool_span.id)
+        self._emit(
+            EventType.TRACE_SPAN_COMPLETED,
+            session_id=session.id,
+            run_id=run.id,
+            trace_id=trace_id,
+            parent_id=completed_tool_span.parent_id,
+            payload={
+                "span_id": completed_tool_span.id,
+                "status": completed_tool_span.status,
+                "duration_ms": completed_tool_span.duration_ms,
+            },
+        )
         public_result = _public_value(result)
         session.messages.append(
             Message(

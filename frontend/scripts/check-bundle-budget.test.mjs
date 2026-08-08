@@ -8,7 +8,7 @@ import { checkBundleBudgets } from "./check-bundle-budget.mjs";
 
 
 test("accepts hashed production chunks within their byte budgets", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "brickflow-bundles-"));
+  const directory = await mkdtemp(join(tmpdir(), "muru-bundles-"));
   await writeFile(join(directory, "index-abc.js"), Buffer.alloc(8));
   await writeFile(join(directory, "vendor-def.js"), Buffer.alloc(4));
 
@@ -24,7 +24,7 @@ test("accepts hashed production chunks within their byte budgets", async () => {
 
 
 test("reports missing and oversized chunks", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "brickflow-bundles-"));
+  const directory = await mkdtemp(join(tmpdir(), "muru-bundles-"));
   await writeFile(join(directory, "index-abc.js"), Buffer.alloc(11));
 
   const result = await checkBundleBudgets(directory, {

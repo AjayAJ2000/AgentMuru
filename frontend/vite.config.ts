@@ -9,7 +9,7 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
   },
   build: {
-    outDir: '../brickflowui/frontend/dist',
+    outDir: '../agentmuru/frontend/dist',
     emptyOutDir: true,
     minify: false,
     cssMinify: false,
@@ -33,11 +33,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/events': {
-        target: 'ws://localhost:8050',
+      '/api/v1': {
+        target: 'http://localhost:8000',
         ws: true,
       },
-      '/api': 'http://localhost:8050',
     },
   },
   resolve: {
