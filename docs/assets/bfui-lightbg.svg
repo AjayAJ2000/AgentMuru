@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 38" fill="none">
-  <!-- Mark: three offset bricks -->
-  <rect x="9" y="3" width="22" height="8" rx="1.5" fill="#4361EE"/>
-  <rect x="13" y="15" width="22" height="8" rx="1.5" fill="#4361EE"/>
-  <rect x="20" y="27" width="22" height="8" rx="1.5" fill="#4361EE"/>
-  <!-- Wordmark -->
-  <text x="50" y="28" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="24" font-weight="700" fill="#0F172A" letter-spacing="-0.02em">BrickFlowUI</text>
-</svg>

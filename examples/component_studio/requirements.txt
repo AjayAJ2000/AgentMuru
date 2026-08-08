@@ -1,1 +1,0 @@
-brickflowui[viz]>=0.1.17

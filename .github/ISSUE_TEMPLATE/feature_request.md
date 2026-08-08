@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest a new component, pattern, or framework capability
+about: Suggest a new runtime, workspace, or extension capability
 title: "[Feature] "
 labels: enhancement
 assignees: ""
@@ -19,4 +19,4 @@ assignees: ""
 ## Why it matters
 
 - Which users need this?
-- Is this primarily for dashboards, portals, chat UIs, landing pages, or Databricks Apps?
+- Is this primarily for agents, tools, workflows, observability, or an integration?

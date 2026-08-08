@@ -9,7 +9,7 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
   },
   build: {
-    outDir: '../brickflowui/frontend/dist',
+    outDir: '../agentmuru/frontend/dist',
     emptyOutDir: true,
     minify: false,
     cssMinify: false,
@@ -17,9 +17,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules/recharts')) {
-            return 'charts'
-          }
           if (
             id.includes('node_modules/react/') ||
             id.includes('node_modules/react-dom/')
@@ -33,11 +30,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/events': {
-        target: 'ws://localhost:8050',
+      '/api/v1': {
+        target: 'http://localhost:8000',
         ws: true,
       },
-      '/api': 'http://localhost:8050',
     },
   },
   resolve: {

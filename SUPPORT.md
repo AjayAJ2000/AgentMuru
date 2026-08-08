@@ -2,9 +2,9 @@
 
 ## Where To Start
 
-- Read the docs site first: [https://ajayaj2000.github.io/brickflowUI/](https://ajayaj2000.github.io/brickflowUI/)
-- Use the local development guide for setup, assets, theming, and debugging.
-- Use the troubleshooting guide for packaging, Databricks, and runtime issues.
+- Read the docs site first: [https://ajayaj2000.github.io/agentmuru/](https://ajayaj2000.github.io/agentmuru/)
+- Use the getting-started guide for setup and runtime concepts.
+- Use the security and integration guides for deployment concerns.
 
 ## When To Open An Issue
 
@@ -13,14 +13,14 @@ Open a GitHub issue when:
 - a documented feature does not behave as described
 - an example app is broken
 - packaging or install behavior regressed
-- a component is missing a documented parameter or capability
+- a runtime capability differs from its documented contract
 
 Include:
 
-- BrickflowUI version
+- AgentMuru version
 - Python version
 - operating system
-- whether the issue happens locally, in Databricks Apps, or both
+- whether the issue happens locally, in Databricks Apps, or another deployment
 - a minimal reproduction
 
 ## Security Issues

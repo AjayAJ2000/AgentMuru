@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://ajayaj2000.github.io/brickflowUI/
-    about: Start with the docs site for setup, examples, and troubleshooting.
+    url: https://ajayaj2000.github.io/agentmuru/
+    about: Start with the docs site for setup, runtime concepts, and integration guides.
   - name: Security policy
-    url: https://github.com/AjayAJ2000/brickflowUI/blob/main/SECURITY.md
+    url: https://github.com/AjayAJ2000/agentmuru/blob/main/SECURITY.md
     about: Report security-sensitive issues privately instead of opening a public issue.

@@ -4,9 +4,7 @@ import { dirname, join, resolve } from "node:path";
 
 
 export const DEFAULT_BUDGETS = Object.freeze({
-  index: 850_000,
-  charts: 1_100_000,
-  "plotly.min": 7_500_000,
+  index: 100_000,
   vendor: 250_000,
 });
 
@@ -43,7 +41,7 @@ export async function checkBundleBudgets(directory, budgets = DEFAULT_BUDGETS) {
 async function main() {
   const scriptDirectory = dirname(fileURLToPath(import.meta.url));
   const directory = resolve(
-    process.argv[2] ?? join(scriptDirectory, "..", "..", "brickflowui", "frontend", "dist", "assets"),
+    process.argv[2] ?? join(scriptDirectory, "..", "..", "agentmuru", "frontend", "dist", "assets"),
   );
   const result = await checkBundleBudgets(directory);
   console.log(JSON.stringify({ directory, ...result }, null, 2));

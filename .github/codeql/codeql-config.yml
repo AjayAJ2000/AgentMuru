@@ -1,5 +1,5 @@
-name: BrickflowUI CodeQL configuration
+name: AgentMuru CodeQL configuration
 
 paths-ignore:
-  # Generated output contains minified third-party packages such as Plotly.
-  - brickflowui/frontend/dist/**
+  # Generated workspace output is verified separately from source.
+  - agentmuru/frontend/dist/**

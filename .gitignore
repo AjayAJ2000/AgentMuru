@@ -1,17 +1,10 @@
 # Python caches and environments
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
 pytest-cache-files-*/
 *.pyc
 __pycache__/
 .venv/
 .worktrees/
-.agents/
-.codex/
-.superpowers/
-docs/superpowers/
-docs/verification/
 
 # Local scratch and temporary build folders
 .tmp/
@@ -27,8 +20,6 @@ asset-*/
 build/
 /dist/
 site/
-site-*/
-release-*/
 *.egg-info/
 
 # Frontend local-only dependencies and diagnostics
@@ -39,3 +30,5 @@ frontend/playwright-report/
 
 # Local-only branding/vendor drop folder
 Branding_Files/
+
+scripts/
