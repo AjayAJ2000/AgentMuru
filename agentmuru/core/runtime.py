@@ -114,6 +114,36 @@ class Runtime:
             task.cancel()
         return await task
 
+    async def handoff(
+        self,
+        from_run_id: str,
+        *,
+        to_agent: str,
+        reason: str,
+    ) -> RunRecord:
+        try:
+            source = self._runs[from_run_id]
+        except KeyError as exc:
+            raise RunNotFoundError(f"Run '{from_run_id}' was not found") from exc
+        target = self.application.get_agent(to_agent)
+        session = self.sessions.get(source.session_id)
+        target_run = RunRecord(session_id=session.id, agent_name=target.name)
+        session.runs.append(target_run)
+        self._runs[target_run.id] = target_run
+        self._emit(
+            EventType.AGENT_HANDOFF,
+            session_id=session.id,
+            run_id=source.id,
+            payload={
+                "from_agent": source.agent_name,
+                "to_agent": target.name,
+                "reason": reason,
+                "target_run_id": target_run.id,
+            },
+        )
+        self._tasks[target_run.id] = asyncio.create_task(self._execute(target_run))
+        return target_run
+
     async def wait_for_approval(self, run_id: str) -> ApprovalRequest:
         if run_id not in self._runs:
             raise RunNotFoundError(f"Run '{run_id}' was not found")
@@ -225,7 +255,7 @@ class Runtime:
 
     async def _execute(self, run: RunRecord) -> RunRecord:
         session = self.sessions.get(run.session_id)
-        agent = self.application.agent
+        agent = self.application.get_agent(run.agent_name)
         trace = self.tracer.start_trace(
             session_id=session.id, run_id=run.id, name=f"agent:{agent.name}"
         )
