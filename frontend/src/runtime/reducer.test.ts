@@ -60,4 +60,14 @@ describe('reduceWorkspace', () => {
     expect(state.protocolError).toContain('Expected event sequence 1')
     expect(state.lastSequence).toBe(0)
   })
+
+  it('projects approval expiry as a terminal decision', () => {
+    let state = initialWorkspaceState('session-1')
+    state = reduceWorkspace(state, event(1, 'approval.requested', {
+      approval_id: 'approval-1', tool_call_id: 'call-1', tool_name: 'mutate', arguments: {}, risk: 'high',
+    }))
+    state = reduceWorkspace(state, event(2, 'approval.expired', { approval_id: 'approval-1' }))
+
+    expect(state.approvals[0].status).toBe('expired')
+  })
 })

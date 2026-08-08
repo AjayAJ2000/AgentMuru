@@ -36,6 +36,10 @@ class ToolRuntimeError(AgentMuruError):
     code = "tool_failed"
 
 
+class ApprovalExpiredError(AgentMuruError):
+    code = "approval_expired"
+
+
 def _public_value(value: Any) -> Any:
     try:
         return json.loads(json.dumps(value, allow_nan=False))
@@ -52,7 +56,10 @@ class Runtime:
         approvals: ApprovalService | None = None,
         tracer: Tracer | None = None,
         max_model_turns: int = 24,
+        approval_timeout: float | None = 300.0,
     ) -> None:
+        if approval_timeout is not None and approval_timeout <= 0:
+            raise ValueError("approval_timeout must be positive or None")
         self.application = application
         self.sessions = application.session_store
         self.artifacts = application.artifact_store
@@ -60,6 +67,7 @@ class Runtime:
         self.approvals = approvals or ApprovalService()
         self.tracer = tracer or Tracer()
         self.max_model_turns = max_model_turns
+        self.approval_timeout = approval_timeout
         self._runs: dict[str, RunRecord] = {}
         self._tasks: dict[str, asyncio.Task[RunRecord]] = {}
         self._idempotency: dict[tuple[str, str], str] = {}
@@ -475,6 +483,7 @@ class Runtime:
                 arguments=redacted,
                 permission=tool.permission,
                 risk=tool.risk.value,
+                timeout=self.approval_timeout,
             )
             run.status = RunStatus.WAITING_APPROVAL
             self._emit(
@@ -490,10 +499,21 @@ class Runtime:
                     "arguments": redacted,
                     "permission": tool.permission,
                     "risk": tool.risk.value,
+                    "expires_at": approval.expires_at.isoformat() if approval.expires_at else None,
                 },
             )
             approval = await self.approvals.wait(approval.id)
             run.status = RunStatus.RUNNING
+            if approval.status is ApprovalStatus.EXPIRED:
+                self._emit(
+                    EventType.APPROVAL_EXPIRED,
+                    session_id=session.id,
+                    run_id=run.id,
+                    trace_id=trace_id,
+                    parent_id=parent_span_id,
+                    payload={"approval_id": approval.id, "tool_name": tool.name},
+                )
+                raise ApprovalExpiredError(f"Approval for tool '{tool.name}' expired")
             if approval.status is ApprovalStatus.REJECTED:
                 session.messages.append(
                     Message(

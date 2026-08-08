@@ -22,8 +22,9 @@ class ApprovalService:
         arguments: Mapping[str, Any],
         permission: str | None,
         risk: str,
+        timeout: float | None = None,
     ) -> ApprovalRequest:
-        request = ApprovalRequest(
+        request = ApprovalRequest.with_timeout(
             session_id=session_id,
             run_id=run_id,
             tool_call_id=tool_call_id,
@@ -31,6 +32,7 @@ class ApprovalService:
             arguments=arguments,
             permission=permission,
             risk=risk,
+            timeout=timeout,
         )
         self._requests[request.id] = request
         self._waiters[request.id] = asyncio.get_running_loop().create_future()
@@ -54,7 +56,24 @@ class ApprovalService:
         request = self.get(approval_id)
         if request.status is not ApprovalStatus.PENDING:
             return request
-        return await self._waiters[approval_id]
+        waiter = self._waiters[approval_id]
+        if request.expires_at is None:
+            return await waiter
+        timeout = max(
+            0.0,
+            (request.expires_at - request.requested_at).total_seconds(),
+        )
+        try:
+            return await asyncio.wait_for(asyncio.shield(waiter), timeout=timeout)
+        except TimeoutError:
+            current = self.get(approval_id)
+            expired = current.expire()
+            self._requests[approval_id] = expired
+            if not waiter.done():
+                waiter.set_result(expired)
+            async with self._changed:
+                self._changed.notify_all()
+            return expired
 
     async def wait_for_run(self, run_id: str) -> ApprovalRequest:
         while True:

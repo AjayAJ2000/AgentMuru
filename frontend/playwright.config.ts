@@ -14,18 +14,10 @@ export default defineConfig({
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
-  webServer: [
-    {
-      command: "node scripts/start-example.mjs ../examples/counter/app.py 8065",
-      url: "http://127.0.0.1:8065",
-      timeout: 30_000,
-      reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: "node scripts/start-example.mjs ../examples/component_studio/app.py 8066",
-      url: "http://127.0.0.1:8066",
-      timeout: 30_000,
-      reuseExistingServer: !process.env.CI,
-    },
-  ],
+  webServer: {
+    command: "cd .. && python -m agentmuru.cli.main run examples.hello_agent:application --host 127.0.0.1 --port 8065",
+    url: "http://127.0.0.1:8065/api/v1/app",
+    timeout: 30_000,
+    reuseExistingServer: !process.env.CI,
+  },
 });

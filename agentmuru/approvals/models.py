@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Mapping
 from uuid import uuid4
@@ -31,6 +31,7 @@ class ApprovalRequest:
     id: str = field(default_factory=lambda: str(uuid4()))
     status: ApprovalStatus = ApprovalStatus.PENDING
     requested_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime | None = None
     decided_at: datetime | None = None
     actor: str | None = None
     reason: str | None = None
@@ -55,4 +56,23 @@ class ApprovalRequest:
             decided_at=datetime.now(timezone.utc),
             actor=actor,
             reason=reason,
+        )
+
+    def expire(self) -> "ApprovalRequest":
+        if self.status is not ApprovalStatus.PENDING:
+            return self
+        return replace(
+            self,
+            status=ApprovalStatus.EXPIRED,
+            decided_at=datetime.now(timezone.utc),
+            reason="Approval deadline elapsed",
+        )
+
+    @classmethod
+    def with_timeout(cls, *, timeout: float | None = None, **values: Any) -> "ApprovalRequest":
+        requested_at = datetime.now(timezone.utc)
+        return cls(
+            **values,
+            requested_at=requested_at,
+            expires_at=requested_at + timedelta(seconds=timeout) if timeout is not None else None,
         )

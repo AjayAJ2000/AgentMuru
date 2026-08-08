@@ -49,3 +49,39 @@ async def test_risky_tool_pauses_and_resumes_after_approval() -> None:
     assert decided.status is ApprovalStatus.APPROVED
     assert (await runtime.wait(run.id)).status is RunStatus.COMPLETED
     assert executed.is_set()
+
+
+@pytest.mark.asyncio
+async def test_approval_expires_and_fails_run_without_executing_tool() -> None:
+    executed = asyncio.Event()
+
+    @tool(permission="database.write", approval="required", risk="high")
+    async def mutate() -> str:
+        executed.set()
+        return "changed"
+
+    runtime = Runtime(
+        Application(
+            agent=Agent(
+                name="ops",
+                instructions="",
+                model=FakeModel.turns(
+                    [ToolCall(id="call-expiring", name="mutate", arguments={}), ModelCompleted()]
+                ),
+                tools=(mutate,),
+                permissions=frozenset({"database.write"}),
+            )
+        ),
+        approval_timeout=0.01,
+    )
+    session = runtime.create_session()
+    run = await runtime.submit(session.id, "change it")
+    approval = await runtime.wait_for_approval(run.id)
+
+    completed = await runtime.wait(run.id)
+
+    assert runtime.approvals.get(approval.id).status is ApprovalStatus.EXPIRED
+    assert completed.status is RunStatus.FAILED
+    assert completed.error_code == "approval_expired"
+    assert not executed.is_set()
+    assert any(event.type.value == "approval.expired" for event in session.events)

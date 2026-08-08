@@ -1,5 +1,5 @@
 """
-Databricks SQL Connector helpers for BrickflowUI.
+Databricks SQL Connector helpers for AgentMuru.
 
 Provides a simple interface to execute SQL queries against a Databricks SQL warehouse,
 using environment variables set by Databricks Apps or local .env files.

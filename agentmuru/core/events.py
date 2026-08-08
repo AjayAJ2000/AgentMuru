@@ -32,6 +32,7 @@ class EventType(str, Enum):
     APPROVAL_REQUESTED = "approval.requested"
     APPROVAL_GRANTED = "approval.granted"
     APPROVAL_REJECTED = "approval.rejected"
+    APPROVAL_EXPIRED = "approval.expired"
     ARTIFACT_CREATED = "artifact.created"
     ARTIFACT_UPDATED = "artifact.updated"
     WORKFLOW_STARTED = "workflow.started"

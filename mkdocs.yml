@@ -1,189 +1,43 @@
-site_name: BrickflowUI
-site_description: Databricks-first Python UI framework for dashboards, portals, and internal web apps.
-site_url: https://ajayaj2000.github.io/brickflowUI/
-repo_url: https://github.com/AjayAJ2000/brickflowUI
-repo_name: AjayAJ2000/brickflowUI
-
+site_name: AgentMuru
+site_description: Python-native runtime and workspace for observable, governed AI applications
+site_url: https://ajayaj2000.github.io/agentmuru/
+repo_url: https://github.com/AjayAJ2000/agentmuru
+repo_name: AjayAJ2000/agentmuru
 theme:
   name: material
-  logo: assets/favicon-light.svg
-  favicon: assets/favicon.svg
-  features:
-    - navigation.expand
-    - navigation.indexes
-    - navigation.sections
-    - navigation.top
-    - toc.follow
-    - content.code.copy
-    - search.highlight
-    - search.suggest
   palette:
-    - scheme: default
-      primary: indigo
-      accent: amber
-      toggle:
-        icon: material/weather-night
-        name: Switch to dark mode
-    - scheme: slate
-      primary: indigo
-      accent: amber
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to light mode
-  font:
-    text: Inter
-    code: JetBrains Mono
-
-extra:
-  generator: false
-
-extra_css:
-  - stylesheets/brand.css
-
+    scheme: slate
+    primary: green
+    accent: green
+  features:
+    - navigation.instant
+    - navigation.sections
+    - content.code.copy
+nav:
+  - Overview: index.md
+  - Getting started: getting-started.md
+  - Concepts:
+      - Runtime and events: concepts/runtime-and-events.md
+      - Agents and models: concepts/agents-and-models.md
+      - Tools and approvals: concepts/tools-and-approvals.md
+      - Sessions and memory: concepts/sessions-and-memory.md
+      - Artifacts and traces: concepts/artifacts-and-traces.md
+      - Workflows and handoffs: concepts/workflows-and-handoffs.md
+  - Guides:
+      - Add a model provider: guides/model-provider.md
+      - Add a session store: guides/session-store.md
+      - Secure a deployment: guides/security.md
+      - Databricks: guides/databricks.md
+  - Architecture:
+      - Current state: architecture/current-state.md
+      - Target state: architecture/target-state.md
+      - Transformation log: architecture/ai-native-transformation.md
+      - Decisions: architecture/decisions.md
+  - Migration: migration-from-legacy-ui.md
+  - Changelog: CHANGELOG.md
 markdown_extensions:
   - admonition
-  - toc:
-      permalink: true
-  - pymdownx.superfences
+  - attr_list
   - pymdownx.highlight
-  - pymdownx.inlinehilite
-  - pymdownx.details
-  - tables
-
-nav:
-  - Get Started:
-      - Documentation Home: index.md
-      - Why BrickflowUI: WHY_BRICKFLOWUI.md
-      - Quick Start: GETTING_STARTED.md
-      - Vibe Coding Skills: VIBECODING.md
-      - Architecture: ARCHITECTURE.md
-      - How It Works: HOW_IT_WORKS.md
-  - Learn:
-      - Overview: learning/index.md
-      - What Is BrickflowUI: learning/01-what-is-brickflowui.md
-      - Install And Run: learning/02-install-and-run.md
-      - Your First App: learning/03-your-first-app.md
-      - Mental Model: learning/04-mental-model.md
-      - Layout Skills: learning/05-layout-skills.md
-      - Components And Composition: learning/06-components-and-composition.md
-      - State And Events: learning/07-state-and-events.md
-      - Inputs And User Actions: learning/08-inputs-and-user-actions.md
-      - Forms And API Routes: learning/09-forms-and-api-routes.md
-      - Tables And Data Display: learning/10-tables-and-data-display.md
-      - Charts And Visualizations: learning/11-charts-and-visualizations.md
-      - Pipeline Dashboards: learning/12-pipeline-dashboards.md
-      - Chatbot And Assistant UI: learning/13-chatbot-and-assistant-ui.md
-      - Theming And Branding: learning/14-theming-and-branding.md
-      - Navigation And App Structure: learning/15-navigation-and-app-structure.md
-      - Databricks Apps Deployment: learning/16-databricks-apps-deployment.md
-      - Debugging And Reliability: learning/17-debugging-and-reliability.md
-      - Production Checklist: learning/18-production-checklist.md
-      - Capstone Project: learning/19-capstone-project.md
-      - Glossary: learning/glossary.md
-  - Components:
-      - Overview: components/index.md
-      - Component Pages: components/catalog.md
-      - Layout And Surfaces: components/layout-and-surfaces.md
-      - Content And Feedback: components/content-and-feedback.md
-      - Inputs And Forms: components/inputs-and-forms.md
-      - Navigation And Overlays: components/navigation-and-overlays.md
-      - Tables And Data: components/tables-and-data.md
-      - Charts And Visualizations: components/charts-and-visualizations.md
-      - Workflow Patterns: components/workflow-patterns.md
-      - Databricks Components: components/databricks-components.md
-      - Component Reference:
-          - Accordion: components/reference/accordion.md
-          - Accordion Item: components/reference/accordion-item.md
-          - Alert: components/reference/alert.md
-          - Area Chart: components/reference/area-chart.md
-          - Badge: components/reference/badge.md
-          - Bar Chart: components/reference/bar-chart.md
-          - Breadcrumbs: components/reference/breadcrumbs.md
-          - Button: components/reference/button.md
-          - Card: components/reference/card.md
-          - Catalog Browser: components/reference/catalog-browser.md
-          - Chat Input: components/reference/chat-input.md
-          - Chat Message: components/reference/chat-message.md
-          - Checkbox: components/reference/checkbox.md
-          - Code: components/reference/code.md
-          - Column: components/reference/column.md
-          - Composed Chart: components/reference/composed-chart.md
-          - Date Range Picker: components/reference/date-range-picker.md
-          - Divider: components/reference/divider.md
-          - Donut Chart: components/reference/donut-chart.md
-          - Drawer: components/reference/drawer.md
-          - Embed: components/reference/embed.md
-          - Empty State: components/reference/empty-state.md
-          - Form: components/reference/form.md
-          - Funnel Chart: components/reference/funnel-chart.md
-          - Gauge Chart: components/reference/gauge-chart.md
-          - Grid: components/reference/grid.md
-          - Heatmap: components/reference/heatmap.md
-          - Hero: components/reference/hero.md
-          - Image: components/reference/image.md
-          - Input: components/reference/input.md
-          - Job Trigger: components/reference/job-trigger.md
-          - Kanban Board: components/reference/kanban-board.md
-          - Line Chart: components/reference/line-chart.md
-          - Modal: components/reference/modal.md
-          - Multi Select: components/reference/multi-select.md
-          - Nav Item: components/reference/nav-item.md
-          - Pipeline Graph: components/reference/pipeline-graph.md
-          - Plot: components/reference/plot.md
-          - Popup: components/reference/popup.md
-          - Progress: components/reference/progress.md
-          - Radar Chart: components/reference/radar-chart.md
-          - Row: components/reference/row.md
-          - Scatter Chart: components/reference/scatter-chart.md
-          - Section Header: components/reference/section-header.md
-          - Select: components/reference/select.md
-          - Sidebar: components/reference/sidebar.md
-          - Slider: components/reference/slider.md
-          - Spacer: components/reference/spacer.md
-          - Sparkline Stat: components/reference/sparkline-stat.md
-          - Spinner: components/reference/spinner.md
-          - Stat: components/reference/stat.md
-          - Status Strip: components/reference/status-strip.md
-          - Stepper: components/reference/stepper.md
-          - Tab Item: components/reference/tab-item.md
-          - Table: components/reference/table.md
-          - Tabs: components/reference/tabs.md
-          - Text: components/reference/text.md
-          - Theme Toggle: components/reference/theme-toggle.md
-          - Timeline: components/reference/timeline.md
-          - Toast: components/reference/toast.md
-          - Toggle: components/reference/toggle.md
-          - TopNav: components/reference/top-nav.md
-          - Tree Map: components/reference/tree-map.md
-          - Video: components/reference/video.md
-          - Warehouse Selector: components/reference/warehouse-selector.md
-  - API Reference:
-      - API Reference: API_REFERENCE.md
-      - Theming: THEMING.md
-  - Examples:
-      - Examples: EXAMPLES.md
-      - First App Tutorial: TUTORIAL.md
-      - Build A Real Portal: PORTAL_TUTORIAL.md
-      - Geometric UI And Glassmorphism: GEOMETRIC_UI.md
-      - Visualizations And Pipelines: VISUALIZATIONS.md
-      - Recipes: RECIPES.md
-      - Polish Guide: POLISH_GUIDE.md
-  - Deploy:
-      - Local Development: LOCAL_DEVELOPMENT.md
-      - Databricks Apps: DATABRICKS_APPS.md
-      - Databricks Release Validation: DATABRICKS_RELEASE_VALIDATION.md
-      - Build Guide: BUILD.md
-      - Publishing: PUBLISHING.md
-  - Operate:
-      - Stability Contract: STABILITY.md
-      - Performance And Scalability: PERFORMANCE.md
-      - Auth And Security: AUTH_AND_SECURITY.md
-      - Troubleshooting: TROUBLESHOOTING.md
-      - FAQ: FAQ.md
-      - Changelog: CHANGELOG.md
-      - Migration Guide: MIGRATION_GUIDE.md
-      - Community: COMMUNITY.md
-      - Branch Strategy: BRANCH_STRATEGY.md
-      - Project Standards: PROJECT_STANDARDS.md
-      - Repository Administration: REPOSITORY_ADMIN.md
-      - Roadmap: ROADMAP.md
+  - pymdownx.superfences
+strict: true

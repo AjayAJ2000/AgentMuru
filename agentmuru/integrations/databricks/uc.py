@@ -1,5 +1,5 @@
 """
-Unity Catalog helpers for BrickflowUI.
+Unity Catalog helpers for AgentMuru.
 
 Provides functions to list catalogs, schemas, and tables using
 the Databricks SDK or SQL queries as fallback.
@@ -28,7 +28,7 @@ def _validated_limit(limit: int) -> int:
 
 
 def _workspace_client():
-    """Get a workspace client bound to the current BrickflowUI identity."""
+    """Get a workspace client bound to the current AgentMuru identity."""
     from . import services
 
     return services.workspace_client()

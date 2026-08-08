@@ -12,7 +12,7 @@ assignees: ""
 
 ## Environment
 
-- BrickflowUI version:
+- AgentMuru version:
 - Python version:
 - OS:
 - Local / Databricks / other:

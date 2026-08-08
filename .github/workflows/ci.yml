@@ -31,6 +31,11 @@ jobs:
       - name: Run Python tests
         run: python -m pytest -q -p no:cacheprovider
 
+      - name: Run Python lint and type checks
+        run: |
+          python -m ruff check agentmuru tests examples
+          python -m mypy agentmuru
+
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -80,12 +85,6 @@ jobs:
         run: |
           npm run test:bundle
           npm run check:bundle
-
-      - name: Regenerate component reference pages
-        run: python scripts/generate_component_reference.py
-
-      - name: Check component reference drift
-        run: git diff --exit-code -- docs/components/reference
 
       - name: Build docs
         run: python -m mkdocs build --strict

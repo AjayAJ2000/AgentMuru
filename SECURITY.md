@@ -1,39 +1,16 @@
-# Security Policy
+# AgentMuru security
 
-## Supported versions
+Report vulnerabilities privately through the repository security advisory workflow.
+Do not open a public issue containing exploit details, credentials, or sensitive traces.
 
-This project is early-stage. Security fixes are applied to the latest release on `main`.
+## Security boundary
 
-## Reporting a vulnerability
+AgentMuru validates tool arguments and policy before invoking handlers, but Python tool
+handlers execute with the host process's authority. Run untrusted tools in an external
+sandbox. Production deployments must configure authentication, trusted hosts, allowed
+WebSocket origins, TLS, secret storage, and durable-store encryption.
 
-Please do not open public GitHub issues for security vulnerabilities.
-
-Use one of these paths instead:
-
-1. GitHub private vulnerability reporting, if it is enabled for this repository.
-2. Email the maintainer directly with:
-   - a clear description of the issue
-   - affected version or commit
-   - reproduction steps or proof of concept
-   - impact assessment, if known
-
-Please include enough detail for us to reproduce the problem quickly.
-
-## Disclosure policy
-
-- We will acknowledge receipt as quickly as possible.
-- We may ask follow-up questions to validate impact and scope.
-- We will work on a fix before any public disclosure.
-- After a fix is available, we may publish a security advisory or release note.
-
-## Scope
-
-Security reports are especially helpful for:
-
-- authentication or authorization bypass
-- secret exposure
-- injection vulnerabilities
-- unsafe file handling
-- remote code execution
-- dependency or supply-chain issues
-- insecure default behavior in public-facing apps built with this library
+Public runtime events redact declared sensitive arguments and avoid exception details.
+Application authors must mark sensitive tool fields and must not return secrets as tool
+results or artifact content. Review custom exporters and model adapters for accidental
+prompt, trace, or credential disclosure.

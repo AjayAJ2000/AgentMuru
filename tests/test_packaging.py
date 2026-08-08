@@ -1,18 +1,23 @@
 from pathlib import Path
-import re
+
+import tomllib
 
 
-def test_frontend_distribution_contains_only_one_current_entry_bundle():
-    repo_root = Path(__file__).resolve().parents[1]
-    dist = repo_root / "brickflowui" / "frontend" / "dist"
-    index_html = (dist / "index.html").read_text(encoding="utf-8")
-    assets = dist / "assets"
+ROOT = Path(__file__).resolve().parents[1]
 
-    entry_bundles = list(assets.glob("index-*.js"))
-    assert len(entry_bundles) == 1, (
-        "frontend/dist contains stale entry bundles; run a clean frontend build"
-    )
 
-    references = re.findall(r'(?:src|href)="/assets/([^"]+)"', index_html)
-    assert references
-    assert all((assets / reference).is_file() for reference in references)
+def test_distribution_package_and_cli_are_agentmuru_only() -> None:
+    config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+
+    assert config["project"]["name"] == "agentmuru"
+    assert config["project"]["scripts"] == {"muru": "agentmuru.cli.main:app"}
+    assert config["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == ["agentmuru"]
+    assert (ROOT / "agentmuru" / "frontend" / "dist" / "index.html").exists()
+    assert not (ROOT / "brickflowui").exists()
+
+
+def test_optional_all_extra_references_agentmuru() -> None:
+    config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    assert config["project"]["optional-dependencies"]["all"] == [
+        "agentmuru[databricks,dev,docs]"
+    ]

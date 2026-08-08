@@ -2,7 +2,7 @@
 
 ## Our Standard
 
-We want BrickflowUI to be a project where engineers, designers, evaluators, and community contributors can collaborate without friction or intimidation.
+We want AgentMuru to be a project where engineers, designers, evaluators, and community contributors can collaborate without friction or intimidation.
 
 Examples of behavior that help:
 

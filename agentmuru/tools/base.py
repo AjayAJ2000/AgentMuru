@@ -5,7 +5,7 @@ import inspect
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, get_type_hints
+from typing import Any, get_type_hints, overload
 
 from .schema import coerce_value, json_schema
 
@@ -79,6 +79,38 @@ class Tool:
             except Exception as exc:
                 last_error = exc
         raise ToolExecutionError(f"Tool '{self.name}' failed: {last_error}") from last_error
+
+
+@overload
+def tool(
+    function: Callable[..., Any],
+    *,
+    name: str | None = None,
+    description: str | None = None,
+    permission: str | None = None,
+    approval: str | ApprovalMode = ApprovalMode.AUTO,
+    risk: str | RiskLevel = RiskLevel.LOW,
+    timeout: float = 30.0,
+    retries: int = 0,
+    side_effects: bool = False,
+    sensitive_fields: set[str] | frozenset[str] | None = None,
+) -> Tool: ...
+
+
+@overload
+def tool(
+    function: None = None,
+    *,
+    name: str | None = None,
+    description: str | None = None,
+    permission: str | None = None,
+    approval: str | ApprovalMode = ApprovalMode.AUTO,
+    risk: str | RiskLevel = RiskLevel.LOW,
+    timeout: float = 30.0,
+    retries: int = 0,
+    side_effects: bool = False,
+    sensitive_fields: set[str] | frozenset[str] | None = None,
+) -> Callable[[Callable[..., Any]], Tool]: ...
 
 
 def tool(

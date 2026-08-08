@@ -57,11 +57,8 @@ jobs:
       - name: Run test suite
         run: python -m pytest -q
 
-      - name: Check generated documentation and strict docs build
-        run: |
-          python scripts/generate_component_reference.py
-          git diff --exit-code -- docs/components/reference
-          python -m mkdocs build --strict
+      - name: Build documentation strictly
+        run: python -m mkdocs build --strict
 
       - name: Build and inspect distributions
         run: |

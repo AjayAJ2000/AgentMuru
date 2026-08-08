@@ -15,6 +15,9 @@ export function SessionRail({ appName, sessions, selectedId, onCreate, onSelect 
       <header className="muru-brand">
         <span className="muru-brand-mark" aria-hidden="true"><Bot size={18} /></span>
         <span><strong>{appName}</strong><small>Muru Workspace</small></span>
+        <button className="muru-mobile-new" type="button" onClick={onCreate} aria-label="New session">
+          <Plus size={17} />
+        </button>
       </header>
       <button className="muru-primary-action" type="button" onClick={onCreate}>
         <Plus size={16} /> New session

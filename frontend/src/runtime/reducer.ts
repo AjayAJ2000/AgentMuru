@@ -278,9 +278,12 @@ export function reduceWorkspace(state: WorkspaceState, event: RuntimeEvent): Wor
         }],
       }
     case 'approval.granted':
-    case 'approval.rejected': {
+    case 'approval.rejected':
+    case 'approval.expired': {
       const approvalId = stringValue(payload.approval_id)
-      const status: ApprovalStatus = event.type.endsWith('granted') ? 'approved' : 'rejected'
+      const status: ApprovalStatus = event.type.endsWith('granted')
+        ? 'approved'
+        : event.type.endsWith('expired') ? 'expired' : 'rejected'
       return {
         ...next,
         approvals: state.approvals.map((approval) => approval.id === approvalId

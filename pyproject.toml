@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "brickflowui"
-version = "0.1.13"
-description = "A Databricks-first Python UI framework for building secure dashboards, portals, and web apps with pure Python."
+name = "agentmuru"
+version = "0.1.0"
+description = "A Python-native runtime and workspace for observable, human-governed AI applications."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
-authors = [{ name = "BrickflowUI Contributors" }]
-keywords = ["databricks", "ui", "dashboard", "portal", "fastapi", "python-framework"]
+authors = [{ name = "AgentMuru Contributors" }]
+keywords = ["ai", "agents", "runtime", "tools", "workflows", "human-in-the-loop", "observability"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -20,8 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
-    "Topic :: Software Development :: User Interfaces",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
 dependencies = [
@@ -40,9 +39,6 @@ databricks = [
     "databricks-sql-connector>=3.0.0",
     "pandas>=2.0.0",
 ]
-viz = [
-    "plotly>=5.0.0",
-]
 dev = [
     "pytest>=9.0.3",
     "pytest-asyncio>=0.23.0",
@@ -55,24 +51,24 @@ docs = [
     "mkdocs-material>=9.6.0",
 ]
 all = [
-    "brickflowui[databricks,viz,dev,docs]",
+    "agentmuru[databricks,dev,docs]",
 ]
 
 [project.scripts]
-brickflowui = "brickflowui.cli.main:app"
+muru = "agentmuru.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/AjayAJ2000/brickflowUI"
-Documentation = "https://ajayaj2000.github.io/brickflowUI/"
-Repository = "https://github.com/AjayAJ2000/brickflowUI"
-Issues = "https://github.com/AjayAJ2000/brickflowUI/issues"
+Homepage = "https://github.com/AjayAJ2000/agentmuru"
+Documentation = "https://ajayaj2000.github.io/agentmuru/"
+Repository = "https://github.com/AjayAJ2000/agentmuru"
+Issues = "https://github.com/AjayAJ2000/agentmuru/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["brickflowui"]
+packages = ["agentmuru"]
 
 [tool.hatch.build]
 artifacts = [
-  "brickflowui/frontend/dist/**",
+  "agentmuru/frontend/dist/**",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -80,7 +76,7 @@ include = [
     "/README.md",
     "/LICENSE",
     "/pyproject.toml",
-    "/brickflowui",
+    "/agentmuru",
     "/docs",
     "/examples",
     "/tests",

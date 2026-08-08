@@ -262,6 +262,7 @@ def create_asgi_app(
                 "risk": item.risk,
                 "status": item.status.value,
                 "reason": item.reason,
+                "expires_at": item.expires_at.isoformat() if item.expires_at else None,
             }
             for item in runtime.approvals.list(session_id=session.id)
         ]
