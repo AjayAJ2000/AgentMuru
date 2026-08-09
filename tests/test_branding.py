@@ -1,7 +1,16 @@
 from pathlib import Path
 
+import yaml
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
+    import tomli as tomllib
+
 
 ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_URL = "https://github.com/AjayAJ2000/AgentMuru"
+DOCUMENTATION_URL = "https://ajayaj2000.github.io/AgentMuru/"
 ALLOWED_HISTORY = {
     ROOT / "docs" / "migration-from-legacy-ui.md",
     ROOT / "docs" / "architecture" / "current-state.md",
@@ -32,3 +41,34 @@ def test_frontend_source_has_no_legacy_protocol_identity() -> None:
         if "brickflow" in path.read_text(encoding="utf-8", errors="replace").lower():
             failures.append(str(path.relative_to(ROOT)))
     assert failures == []
+
+
+def test_public_release_urls_use_exact_agentmuru_identity() -> None:
+    package = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    assert package["project"]["urls"] == {
+        "Homepage": REPOSITORY_URL,
+        "Documentation": DOCUMENTATION_URL,
+        "Repository": REPOSITORY_URL,
+        "Issues": f"{REPOSITORY_URL}/issues",
+    }
+
+    docs = yaml.safe_load((ROOT / "mkdocs.yml").read_text(encoding="utf-8"))
+    assert docs["site_url"] == DOCUMENTATION_URL
+    assert docs["repo_url"] == REPOSITORY_URL
+    assert docs["repo_name"] == "AjayAJ2000/AgentMuru"
+
+    issue_config = yaml.safe_load(
+        (ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml").read_text(encoding="utf-8")
+    )
+    assert issue_config["contact_links"][0]["url"] == DOCUMENTATION_URL
+    assert issue_config["contact_links"][1]["url"] == f"{REPOSITORY_URL}/blob/main/SECURITY.md"
+
+
+def test_public_install_and_documentation_are_featured() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    support = (ROOT / "SUPPORT.md").read_text(encoding="utf-8")
+
+    assert "python -m pip install agentmuru" in readme
+    assert "https://pypi.org/project/agentmuru/" in readme
+    assert f"[{DOCUMENTATION_URL}]({DOCUMENTATION_URL})" in readme
+    assert f"[{DOCUMENTATION_URL}]({DOCUMENTATION_URL})" in support
