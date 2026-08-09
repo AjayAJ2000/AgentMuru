@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import agentmuru
@@ -22,6 +23,9 @@ def test_distribution_package_and_cli_are_agentmuru_only() -> None:
     assert not (ROOT / "brickflowui").exists()
     assert config["project"]["version"] == "0.2.0"
     assert agentmuru.__version__ == "0.2.0"
+    assert json.loads((ROOT / "frontend" / "package.json").read_text(encoding="utf-8"))[
+        "version"
+    ] == "0.2.0"
     assert "/qualification" in config["tool"]["hatch"]["build"]["targets"]["sdist"]["include"]
 
 
