@@ -24,6 +24,7 @@ nav:
   - Public API: reference/public-api.md
   - Qualification: qualification.md
   - Integration status: integration-status.md
+  - Product roadmap: product/roadmap.md
   - Concepts:
       - Runtime and events: concepts/runtime-and-events.md
       - Agents and models: concepts/agents-and-models.md
