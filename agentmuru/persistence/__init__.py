@@ -2,9 +2,11 @@
 
 from .codecs import decode_content, decode_json, encode_content, encode_json
 from .database import SQLiteDatabase
+from .artifact_store import SQLiteArtifactStore
 from .session_store import SQLiteSessionStore
 
 __all__ = [
+    "SQLiteArtifactStore",
     "SQLiteDatabase",
     "SQLiteSessionStore",
     "decode_content",
