@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Mapping
 from urllib.request import urlopen
@@ -145,7 +146,11 @@ def _server_check(
     }
 
 
-def qualify(wheel: Path, report_path: Path) -> dict[str, object]:
+def qualify(
+    wheel: Path,
+    report_path: Path,
+    markdown_path: Path | None = None,
+) -> dict[str, object]:
     wheel = wheel.expanduser().resolve()
     if not wheel.is_file():
         raise FileNotFoundError(f"Wheel was not found: {wheel}")
@@ -263,6 +268,7 @@ def qualify(wheel: Path, report_path: Path) -> dict[str, object]:
 
     report: dict[str, object] = {
         "environment": {
+            "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "driver_python": sys.executable,
             "driver_version": sys.version,
             "workdir": str(workdir),
@@ -281,6 +287,15 @@ def qualify(wheel: Path, report_path: Path) -> dict[str, object]:
     report_path = report_path.expanduser().resolve()
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+    if markdown_path is not None and not failures:
+        try:
+            from .render_report import render_report
+        except ImportError:  # Direct script execution.
+            from render_report import render_report
+
+        markdown_path = markdown_path.expanduser().resolve()
+        markdown_path.parent.mkdir(parents=True, exist_ok=True)
+        markdown_path.write_text(render_report(report), encoding="utf-8")
     return report
 
 
@@ -288,8 +303,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Qualify an AgentMuru wheel in isolation")
     parser.add_argument("--wheel", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--markdown", type=Path)
     args = parser.parse_args()
-    report = qualify(args.wheel, args.report)
+    report = qualify(args.wheel, args.report, args.markdown)
     print(json.dumps({"report": str(args.report), "failures": report["failures"]}))
     return 1 if report["failures"] else 0
 

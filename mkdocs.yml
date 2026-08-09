@@ -22,6 +22,8 @@ nav:
   - Overview: index.md
   - Getting started: getting-started.md
   - Public API: reference/public-api.md
+  - Qualification: qualification.md
+  - Integration status: integration-status.md
   - Concepts:
       - Runtime and events: concepts/runtime-and-events.md
       - Agents and models: concepts/agents-and-models.md
