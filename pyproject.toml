@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentmuru"
-version = "0.1.0"
+version = "0.2.0"
 description = "A Python-native runtime and workspace for observable, human-governed AI applications."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -81,6 +81,7 @@ include = [
     "/docs",
     "/examples",
     "/tests",
+    "/qualification",
 ]
 
 [tool.ruff]
