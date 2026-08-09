@@ -49,8 +49,11 @@ button:focus-visible, textarea:focus-visible, a:focus-visible {
 }
 .muru-brand { display: flex; align-items: center; gap: 10px; padding: 0 5px 8px; }
 .muru-brand-mark {
-  width: 32px; height: 32px; display: grid; place-items: center;
-  color: #07110b; background: var(--muru-accent); border-radius: 8px;
+  position: relative; width: 32px; height: 40px; flex: 0 0 auto; overflow: hidden;
+}
+.muru-brand-mark-image {
+  position: absolute; top: 50%; left: 50%; width: 210%; max-width: none; height: auto;
+  transform: translate(-50%, -50%);
 }
 .muru-brand > span:nth-child(2) { display: flex; min-width: 0; flex-direction: column; line-height: 1.2; }
 .muru-mobile-new { display: none; }

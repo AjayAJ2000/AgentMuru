@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 
 import yaml
@@ -11,6 +12,7 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_URL = "https://github.com/AjayAJ2000/AgentMuru"
 DOCUMENTATION_URL = "https://ajayaj2000.github.io/AgentMuru/"
+APPROVED_MARK_SHA256 = "44dc00f0415775733b6a3aef3dd0f037c9666afbced6d6676552b76b2f54c5a2"
 ALLOWED_HISTORY = {
     ROOT / "docs" / "migration-from-legacy-ui.md",
     ROOT / "docs" / "architecture" / "current-state.md",
@@ -97,15 +99,26 @@ def test_public_install_and_documentation_are_featured() -> None:
 def test_docs_use_agentmuru_product_family_identity() -> None:
     config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
     css = (ROOT / "docs" / "stylesheets" / "agentmuru.css").read_text(encoding="utf-8")
-    logo = (ROOT / "docs" / "assets" / "agentmuru-mark.svg").read_text(encoding="utf-8")
     index = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
 
-    assert "docs/assets/agentmuru-mark.svg" in config
+    assert "assets/agentmuru-mark.png" in config
     assert "stylesheets/agentmuru.css" in config
     assert all(color in css for color in ("#0A7C7F", "#0D5F8A", "#C48A1F", "#0D0F14", "#F4F7FB"))
     assert all(font in config for font in ("Inter", "JetBrains Mono"))
-    assert "AgentMuru Hybrid Vel Eye mark" in logo
     assert "Build agents you can see, steer, and trust." in index
+
+
+def test_every_bundled_mark_is_the_approved_datamuru_master() -> None:
+    marks = (
+        ROOT / "docs" / "assets" / "agentmuru-mark.png",
+        ROOT / "frontend" / "public" / "agentmuru-mark.png",
+        ROOT / "agentmuru" / "frontend" / "dist" / "agentmuru-mark.png",
+    )
+
+    assert {
+        path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in marks
+    } == {path.relative_to(ROOT).as_posix(): APPROVED_MARK_SHA256 for path in marks}
 
 
 def test_release_copy_describes_verified_agentmuru_0_2() -> None:

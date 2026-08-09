@@ -716,7 +716,7 @@ function RunComposer({ disabled, running, onSubmit, onCancel }) {
 function SessionRail({ appName, sessions, selectedId, onCreate, onSelect }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { className: "muru-session-rail", "aria-label": "Agent sessions", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "muru-brand", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "muru-brand-mark", "aria-hidden": "true", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bot, { size: 18 }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "muru-brand-mark", "aria-hidden": "true", children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "muru-brand-mark-image", src: "/agentmuru-mark.png", alt: "", width: 512, height: 512 }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: appName }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "Muru Workspace" })
@@ -982,4 +982,4 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-8Q9oMbUB.js.map
+//# sourceMappingURL=index-1_xbKG2R.js.map

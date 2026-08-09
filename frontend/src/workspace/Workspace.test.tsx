@@ -22,6 +22,7 @@ describe('Muru Workspace', () => {
 
     expect(html).toContain('Start an agent session')
     expect(html).toContain('New session')
+    expect(html).toContain('src="/agentmuru-mark.png"')
   })
 
   it('renders approval controls with explicit risk and permission context', () => {

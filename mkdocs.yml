@@ -5,8 +5,8 @@ repo_url: https://github.com/AjayAJ2000/AgentMuru
 repo_name: AjayAJ2000/AgentMuru
 theme:
   name: material
-  logo: assets/agentmuru-mark.svg # source: docs/assets/agentmuru-mark.svg
-  favicon: assets/agentmuru-mark.svg
+  logo: assets/agentmuru-mark.png # exact DataMuru approved Hybrid Vel Eye master
+  favicon: assets/agentmuru-favicon-64.png
   font:
     text: Inter
     code: JetBrains Mono

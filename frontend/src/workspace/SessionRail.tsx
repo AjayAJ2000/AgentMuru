@@ -1,4 +1,4 @@
-import { Bot, Plus, Radio } from 'lucide-react'
+import { Plus, Radio } from 'lucide-react'
 import type { SessionSummary } from '../runtime/protocol'
 
 interface SessionRailProps {
@@ -13,7 +13,9 @@ export function SessionRail({ appName, sessions, selectedId, onCreate, onSelect 
   return (
     <aside className="muru-session-rail" aria-label="Agent sessions">
       <header className="muru-brand">
-        <span className="muru-brand-mark" aria-hidden="true"><Bot size={18} /></span>
+        <span className="muru-brand-mark" aria-hidden="true">
+          <img className="muru-brand-mark-image" src="/agentmuru-mark.png" alt="" width={512} height={512} />
+        </span>
         <span><strong>{appName}</strong><small>Muru Workspace</small></span>
         <button className="muru-mobile-new" type="button" onClick={onCreate} aria-label="New session">
           <Plus size={17} />
