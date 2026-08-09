@@ -1,8 +1,8 @@
 site_name: AgentMuru
 site_description: Python-native runtime and workspace for observable, governed AI applications
-site_url: https://ajayaj2000.github.io/agentmuru/
-repo_url: https://github.com/AjayAJ2000/agentmuru
-repo_name: AjayAJ2000/agentmuru
+site_url: https://ajayaj2000.github.io/AgentMuru/
+repo_url: https://github.com/AjayAJ2000/AgentMuru
+repo_name: AjayAJ2000/AgentMuru
 theme:
   name: material
   palette:

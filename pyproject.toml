@@ -59,10 +59,10 @@ all = [
 muru = "agentmuru.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/AjayAJ2000/agentmuru"
-Documentation = "https://ajayaj2000.github.io/agentmuru/"
-Repository = "https://github.com/AjayAJ2000/agentmuru"
-Issues = "https://github.com/AjayAJ2000/agentmuru/issues"
+Homepage = "https://github.com/AjayAJ2000/AgentMuru"
+Documentation = "https://ajayaj2000.github.io/AgentMuru/"
+Repository = "https://github.com/AjayAJ2000/AgentMuru"
+Issues = "https://github.com/AjayAJ2000/AgentMuru/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["agentmuru"]

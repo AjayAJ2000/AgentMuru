@@ -2,7 +2,7 @@
 
 ## Where To Start
 
-- Read the docs site first: [https://ajayaj2000.github.io/agentmuru/](https://ajayaj2000.github.io/agentmuru/)
+- Read the docs site first: [https://ajayaj2000.github.io/AgentMuru/](https://ajayaj2000.github.io/AgentMuru/)
 - Use the getting-started guide for setup and runtime concepts.
 - Use the security and integration guides for deployment concerns.
 

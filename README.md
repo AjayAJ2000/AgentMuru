@@ -1,5 +1,11 @@
 # AgentMuru
 
+[![PyPI](https://img.shields.io/pypi/v/agentmuru?label=PyPI)](https://pypi.org/project/agentmuru/)
+[![Python](https://img.shields.io/pypi/pyversions/agentmuru)](https://pypi.org/project/agentmuru/)
+[![CI](https://github.com/AjayAJ2000/AgentMuru/actions/workflows/ci.yml/badge.svg)](https://github.com/AjayAJ2000/AgentMuru/actions/workflows/ci.yml)
+[![Documentation](https://img.shields.io/badge/docs-online-5b5bd6)](https://ajayaj2000.github.io/AgentMuru/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 AgentMuru is a Python-native runtime and workspace for building observable,
 human-governed AI applications. Agents, tools, events, sessions, approvals,
 artifacts, workflows, and traces are the application. Muru Workspace is their UI.
@@ -41,17 +47,29 @@ Open `http://127.0.0.1:8000` to use Muru Workspace.
 ## Install and run
 
 ```powershell
-python -m pip install -e ".[dev,docs]"
+python -m pip install agentmuru
 muru doctor
-muru run examples.hello_agent:application
 ```
 
-Create a project:
+Create and run a project:
 
 ```powershell
 muru init my-agent --name "My Agent"
 cd my-agent
 muru dev app:application
+```
+
+Open `http://127.0.0.1:8000` to use Muru Workspace. Read the complete
+[AgentMuru documentation](https://ajayaj2000.github.io/AgentMuru/) for runtime,
+tool, approval, integration, and deployment guides.
+
+For source development:
+
+```powershell
+git clone https://github.com/AjayAJ2000/AgentMuru.git
+cd AgentMuru
+python -m pip install -e ".[dev,docs]"
+muru run examples.hello_agent:application
 ```
 
 ## Runtime flow
@@ -88,8 +106,8 @@ npm run lint
 npm run build
 ```
 
-See the [getting started guide](docs/getting-started.md),
-[architecture](docs/architecture/target-state.md), and
+See [https://ajayaj2000.github.io/AgentMuru/](https://ajayaj2000.github.io/AgentMuru/),
+the [architecture](docs/architecture/target-state.md), and the
 [migration guide](docs/migration-from-legacy-ui.md).
 
 ## Status
