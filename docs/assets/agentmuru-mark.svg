@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="agentmuru-mark-title">
+  <title id="agentmuru-mark-title">AgentMuru Hybrid Vel Eye mark</title>
+  <path fill="#0A7C7F" d="M32 5 58 20v24L32 59 6 44V20L32 5Zm0 8L14 24v16l18 11 18-11V24L32 13Z"/>
+  <path fill="#0D5F8A" d="M12 32c5.2-8.2 11.9-12.3 20-12.3S46.8 23.8 52 32c-5.2 8.2-11.9 12.3-20 12.3S17.2 40.2 12 32Zm9.1 0c3.2 3.8 6.8 5.7 10.9 5.7s7.7-1.9 10.9-5.7c-3.2-3.8-6.8-5.7-10.9-5.7S24.3 28.2 21.1 32Z"/>
+  <circle cx="32" cy="32" r="5.2" fill="#C48A1F"/>
+  <path fill="#F4F7FB" d="M29.3 10h5.4v13.2l-2.7 3.1-2.7-3.1V10Zm0 30.8 2.7-3.1 2.7 3.1V54h-5.4V40.8Z"/>
+</svg>

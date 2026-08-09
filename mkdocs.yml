@@ -5,10 +5,15 @@ repo_url: https://github.com/AjayAJ2000/AgentMuru
 repo_name: AjayAJ2000/AgentMuru
 theme:
   name: material
+  logo: assets/agentmuru-mark.svg # source: docs/assets/agentmuru-mark.svg
+  favicon: assets/agentmuru-mark.svg
+  font:
+    text: Inter
+    code: JetBrains Mono
   palette:
-    scheme: slate
-    primary: green
-    accent: green
+    scheme: default
+    primary: custom
+    accent: custom
   features:
     - navigation.instant
     - navigation.sections
@@ -41,3 +46,5 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
 strict: true
+extra_css:
+  - stylesheets/agentmuru.css

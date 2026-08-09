@@ -1,0 +1,107 @@
+:root {
+  --muru-teal: #0A7C7F;
+  --muru-cobalt: #0D5F8A;
+  --muru-gold: #C48A1F;
+  --muru-obsidian: #0D0F14;
+  --muru-mist: #F4F7FB;
+  --muru-ink: #111827;
+  --md-primary-fg-color: var(--muru-teal);
+  --md-accent-fg-color: var(--muru-cobalt);
+}
+
+body,
+input {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.md-header__title {
+  font-family: "DM Sans", "Inter", system-ui, sans-serif;
+}
+
+code,
+kbd,
+pre {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.md-header {
+  background: var(--muru-obsidian);
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.muru-hero {
+  margin: 0 -1.2rem 2rem;
+  padding: clamp(2.5rem, 7vw, 5.5rem) clamp(1.2rem, 6vw, 4rem);
+  color: var(--muru-mist);
+  background: var(--muru-obsidian);
+  border-bottom: 4px solid var(--muru-teal);
+}
+
+.muru-hero h1 {
+  max-width: 18ch;
+  margin: 0 0 1rem;
+  color: var(--muru-mist);
+  font-size: clamp(2.25rem, 6vw, 4.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.muru-hero p {
+  max-width: 64ch;
+  color: #cbd5e1;
+  font-size: 1.05rem;
+}
+
+.muru-kicker {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--muru-gold);
+  font: 600 0.75rem/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.muru-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.5rem;
+}
+
+.muru-actions .md-button--primary {
+  color: white;
+  background: var(--muru-teal);
+  border-color: var(--muru-teal);
+}
+
+.muru-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1px;
+  margin: 2rem 0;
+  background: #dbe2ea;
+  border: 1px solid #dbe2ea;
+}
+
+.muru-feature-grid article {
+  padding: 1.25rem;
+  background: white;
+}
+
+.muru-feature-grid h3 {
+  margin-top: 0;
+  color: var(--muru-cobalt);
+}
+
+[data-md-color-scheme="slate"] .muru-feature-grid,
+[data-md-color-scheme="slate"] .muru-feature-grid article {
+  background: var(--muru-obsidian);
+}

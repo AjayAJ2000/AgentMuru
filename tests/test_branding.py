@@ -92,3 +92,17 @@ def test_public_install_and_documentation_are_featured() -> None:
     assert "https://pypi.org/project/agentmuru/" in readme
     assert f"[{DOCUMENTATION_URL}]({DOCUMENTATION_URL})" in readme
     assert f"[{DOCUMENTATION_URL}]({DOCUMENTATION_URL})" in support
+
+
+def test_docs_use_agentmuru_product_family_identity() -> None:
+    config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    css = (ROOT / "docs" / "stylesheets" / "agentmuru.css").read_text(encoding="utf-8")
+    logo = (ROOT / "docs" / "assets" / "agentmuru-mark.svg").read_text(encoding="utf-8")
+    index = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
+
+    assert "docs/assets/agentmuru-mark.svg" in config
+    assert "stylesheets/agentmuru.css" in config
+    assert all(color in css for color in ("#0A7C7F", "#0D5F8A", "#C48A1F", "#0D0F14", "#F4F7FB"))
+    assert all(font in config for font in ("Inter", "JetBrains Mono"))
+    assert "AgentMuru Hybrid Vel Eye mark" in logo
+    assert "Build agents you can see, steer, and trust." in index
