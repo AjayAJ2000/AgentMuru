@@ -37,6 +37,13 @@ nav:
       - Add a session store: guides/session-store.md
       - Secure a deployment: guides/security.md
       - Databricks: guides/databricks.md
+  - Cookbook:
+      - Overview: cookbook/index.md
+      - Governed tools: cookbook/governed-tools.md
+      - Artifacts: cookbook/artifacts.md
+      - Durable sessions: cookbook/durable-sessions.md
+      - Workflows and handoffs: cookbook/workflows-and-handoffs.md
+      - Databricks: cookbook/databricks.md
   - Architecture:
       - Current state: architecture/current-state.md
       - Target state: architecture/target-state.md

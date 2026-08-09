@@ -2,6 +2,8 @@ import importlib
 import runpy
 from pathlib import Path
 
+import pytest
+
 from agentmuru import Application
 
 
@@ -30,3 +32,20 @@ def test_complete_scenario_gallery_imports_without_credentials() -> None:
         "examples.databricks_agent",
     ):
         assert importlib.import_module(module_name) is not None
+
+
+@pytest.mark.parametrize(
+    ("example", "page"),
+    [
+        ("examples/governed_tool_agent.py", "docs/cookbook/governed-tools.md"),
+        ("examples/artifact_agent.py", "docs/cookbook/artifacts.md"),
+        ("examples/durable_agent.py", "docs/cookbook/durable-sessions.md"),
+        ("examples/handoff_agent.py", "docs/cookbook/workflows-and-handoffs.md"),
+        ("examples/databricks_agent.py", "docs/cookbook/databricks.md"),
+    ],
+)
+def test_scenario_has_cookbook_page(example: str, page: str) -> None:
+    text = (ROOT / page).read_text(encoding="utf-8")
+    module_name = example.replace("/", ".").removesuffix(".py")
+    assert module_name in text
+    assert f"python {example}" in text

@@ -68,5 +68,5 @@ python -m pip install -e ".[dev,docs]"
 python -m pytest -q
 ```
 
-Continue with the [public API](reference/public-api.md) or
+Continue with the [cookbook](cookbook/index.md), [public API](reference/public-api.md), or
 [server and Workspace operations](guides/server-and-workspace.md).
