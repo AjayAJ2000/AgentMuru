@@ -60,7 +60,7 @@ Acceptance signals:
 
 ## Archived legacy direction
 
-The former component-catalog and virtual-DOM roadmap belonged to BrickFlowUI. Those
-outcomes are not relabeled as completed AgentMuru work and do not belong in the active
-product board. Any useful migration context remains in the
+The former component-catalog and virtual-DOM roadmap belonged to the pre-AgentMuru
+UI-framework direction. Those outcomes are not relabeled as completed AgentMuru work and
+do not belong in the active product board. Any useful migration context remains in the
 [legacy UI migration guide](../migration-from-legacy-ui.md).
