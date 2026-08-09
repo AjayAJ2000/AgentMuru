@@ -4,11 +4,12 @@ import asyncio
 from typing import Any, Mapping
 
 from .models import ApprovalDecision, ApprovalRequest, ApprovalStatus
+from .store import ApprovalStore, InMemoryApprovalStore
 
 
 class ApprovalService:
-    def __init__(self) -> None:
-        self._requests: dict[str, ApprovalRequest] = {}
+    def __init__(self, store: ApprovalStore | None = None) -> None:
+        self.store = store or InMemoryApprovalStore()
         self._waiters: dict[str, asyncio.Future[ApprovalRequest]] = {}
         self._changed = asyncio.Condition()
 
@@ -34,29 +35,26 @@ class ApprovalService:
             risk=risk,
             timeout=timeout,
         )
-        self._requests[request.id] = request
+        self.store.create(request)
         self._waiters[request.id] = asyncio.get_running_loop().create_future()
         async with self._changed:
             self._changed.notify_all()
         return request
 
     def get(self, approval_id: str) -> ApprovalRequest:
-        try:
-            return self._requests[approval_id]
-        except KeyError as exc:
-            raise KeyError(f"Approval '{approval_id}' was not found") from exc
+        return self.store.get(approval_id)
 
     def list(self, *, session_id: str | None = None) -> list[ApprovalRequest]:
-        requests = list(self._requests.values())
-        if session_id is not None:
-            requests = [item for item in requests if item.session_id == session_id]
-        return requests
+        return self.store.list(session_id=session_id)
 
     async def wait(self, approval_id: str) -> ApprovalRequest:
         request = self.get(approval_id)
         if request.status is not ApprovalStatus.PENDING:
             return request
-        waiter = self._waiters[approval_id]
+        waiter = self._waiters.get(approval_id)
+        if waiter is None:
+            waiter = asyncio.get_running_loop().create_future()
+            self._waiters[approval_id] = waiter
         if request.expires_at is None:
             return await waiter
         timeout = max(
@@ -68,7 +66,7 @@ class ApprovalService:
         except asyncio.TimeoutError:
             current = self.get(approval_id)
             expired = current.expire()
-            self._requests[approval_id] = expired
+            self.store.save(expired)
             if not waiter.done():
                 waiter.set_result(expired)
             async with self._changed:
@@ -80,7 +78,7 @@ class ApprovalService:
             pending = next(
                 (
                     item
-                    for item in self._requests.values()
+                    for item in self.store.list()
                     if item.run_id == run_id and item.status is ApprovalStatus.PENDING
                 ),
                 None,
@@ -99,9 +97,9 @@ class ApprovalService:
         reason: str | None = None,
     ) -> ApprovalRequest:
         decided = self.get(approval_id).decide(decision, actor=actor, reason=reason)
-        self._requests[approval_id] = decided
-        waiter = self._waiters[approval_id]
-        if not waiter.done():
+        self.store.save(decided)
+        waiter = self._waiters.get(approval_id)
+        if waiter is not None and not waiter.done():
             waiter.set_result(decided)
         async with self._changed:
             self._changed.notify_all()
