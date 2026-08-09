@@ -102,6 +102,9 @@ button:focus-visible, textarea:focus-visible, a:focus-visible {
 .muru-run-state small { color: var(--muru-subtle); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 .muru-run-state strong { font-size: 12px; font-weight: 650; text-transform: capitalize; }
 .muru-error-banner { display: flex; align-items: center; gap: 8px; padding: 9px 24px; color: #ffd4d1; background: rgba(255,123,114,.1); border-bottom: 1px solid rgba(255,123,114,.28); font-size: 12px; }
+.muru-recovery-banner { display: flex; align-items: center; gap: 9px; padding: 10px 24px; color: var(--muru-text); background: rgba(196,138,31,.09); border-bottom: 1px solid rgba(196,138,31,.3); font-size: 12px; }
+.muru-recovery-banner span { flex: 1; }
+.muru-recovery-banner button { border: 1px solid rgba(196,138,31,.55); border-radius: var(--muru-radius); padding: 6px 9px; color: var(--muru-text); background: transparent; cursor: pointer; }
 .muru-run-scroll { min-height: 0; overflow: auto; padding: 28px clamp(20px, 5vw, 64px); }
 
 .muru-conversation { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }

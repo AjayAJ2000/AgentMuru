@@ -7,10 +7,13 @@ Muru Workspace / CLI / integrations / FastAPI
                        |
             Runtime / workflows / agents
                        |
-       events / sessions / tools / protocols
+       events / store protocols / tools / approvals
+                       |
+         SQLite adapters / future PostgreSQL
 ```
 
 Dependencies point inward. Core packages have no browser, server, Databricks, or vendor
-model dependency. Runtime state changes are typed events. Session and artifact persistence,
-model providers, retrieval, MCP, and exporters are replaceable protocols. The workspace
-consumes protocol version 1 and can be rebuilt without changing agent execution.
+model dependency. Runtime state changes are typed events and explicit store operations.
+SQLite is the implemented durable local adapter; production model providers and PostgreSQL
+are planned adapters. Retrieval, MCP, and exporters remain provider-neutral seams. The
+Workspace consumes protocol version 1 and can be rebuilt without changing execution.

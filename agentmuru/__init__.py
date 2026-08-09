@@ -6,6 +6,7 @@ from .core.application import Application
 from .core.events import EventType, RuntimeEvent
 from .core.runtime import Runtime
 from .models import FakeModel
+from .persistence import SQLitePersistence
 from .sessions import InMemorySessionStore, Session
 from .tools import Tool, tool
 from .version import __version__
@@ -20,6 +21,7 @@ __all__ = [
     "InMemorySessionStore",
     "RuntimeEvent",
     "Runtime",
+    "SQLitePersistence",
     "Session",
     "Tool",
     "__version__",

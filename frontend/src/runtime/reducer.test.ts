@@ -70,4 +70,16 @@ describe('reduceWorkspace', () => {
 
     expect(state.approvals[0].status).toBe('expired')
   })
+
+  it('projects interrupted process recovery as an honest failed run', () => {
+    let state = initialWorkspaceState('session-1')
+    state = reduceWorkspace(state, event(1, 'run.failed', {
+      code: 'process_interrupted', status: 'failed',
+    }))
+
+    expect(state.runs['run-1']).toMatchObject({
+      status: 'failed',
+      errorCode: 'process_interrupted',
+    })
+  })
 })

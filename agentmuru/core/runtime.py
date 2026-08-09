@@ -68,9 +68,17 @@ class Runtime:
         self.tracer = tracer or Tracer()
         self.max_model_turns = max_model_turns
         self.approval_timeout = approval_timeout
-        self._runs: dict[str, RunRecord] = {}
         self._tasks: dict[str, asyncio.Task[RunRecord]] = {}
-        self._idempotency: dict[tuple[str, str], str] = {}
+        for recovered in self.sessions.recover_interrupted_runs():
+            self._emit(
+                EventType.RUN_FAILED,
+                session_id=recovered.session_id,
+                run_id=recovered.id,
+                payload={
+                    "code": "process_interrupted",
+                    "status": recovered.status.value,
+                },
+            )
 
     def create_session(self, *, user_id: str | None = None, title: str | None = None) -> Session:
         session = self.sessions.create(user_id=user_id, title=title)
@@ -87,43 +95,43 @@ class Runtime:
         if not content.strip():
             raise ValueError("Message content cannot be empty")
         if idempotency_key is not None:
-            existing = self._idempotency.get((session_id, idempotency_key))
+            existing = self.sessions.get_idempotent_run(session_id, idempotency_key)
             if existing is not None:
-                return self._runs[existing]
-        session = self.sessions.get(session_id)
+                return existing
+        self.sessions.get(session_id)
         message = Message(role=MessageRole.USER, content=content)
-        session.messages.append(message)
+        self.sessions.append_message(session_id, message)
         self._emit(
             EventType.USER_MESSAGE_RECEIVED,
             session_id=session_id,
             payload={"message_id": message.id, "content": content},
         )
         run = RunRecord(session_id=session_id, agent_name=self.application.agent.name)
-        session.runs.append(run)
-        self._runs[run.id] = run
+        self.sessions.create_run(run)
         if idempotency_key is not None:
-            self._idempotency[(session_id, idempotency_key)] = run.id
+            self.sessions.bind_idempotency_key(session_id, idempotency_key, run.id)
         self._tasks[run.id] = asyncio.create_task(self._execute(run))
         return run
 
     async def wait(self, run_id: str) -> RunRecord:
-        try:
-            task = self._tasks[run_id]
-        except KeyError as exc:
-            raise RunNotFoundError(f"Run '{run_id}' was not found") from exc
+        task = self._tasks.get(run_id)
+        if task is None:
+            run = self.sessions.get_run(run_id)
+            if run.status in {RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED}:
+                return run
+            raise RunNotFoundError(f"Run '{run_id}' has no active process")
         return await asyncio.shield(task)
 
     def get_run(self, run_id: str) -> RunRecord:
-        try:
-            return self._runs[run_id]
-        except KeyError as exc:
-            raise RunNotFoundError(f"Run '{run_id}' was not found") from exc
+        return self.sessions.get_run(run_id)
 
     async def cancel(self, run_id: str) -> RunRecord:
-        try:
-            task = self._tasks[run_id]
-        except KeyError as exc:
-            raise RunNotFoundError(f"Run '{run_id}' was not found") from exc
+        task = self._tasks.get(run_id)
+        if task is None:
+            run = self.sessions.get_run(run_id)
+            if run.status in {RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED}:
+                return run
+            raise RunNotFoundError(f"Run '{run_id}' has no active process")
         if not task.done():
             task.cancel()
         return await task
@@ -135,15 +143,11 @@ class Runtime:
         to_agent: str,
         reason: str,
     ) -> RunRecord:
-        try:
-            source = self._runs[from_run_id]
-        except KeyError as exc:
-            raise RunNotFoundError(f"Run '{from_run_id}' was not found") from exc
+        source = self.sessions.get_run(from_run_id)
         target = self.application.get_agent(to_agent)
         session = self.sessions.get(source.session_id)
         target_run = RunRecord(session_id=session.id, agent_name=target.name)
-        session.runs.append(target_run)
-        self._runs[target_run.id] = target_run
+        self.sessions.create_run(target_run)
         self._emit(
             EventType.AGENT_HANDOFF,
             session_id=session.id,
@@ -159,10 +163,13 @@ class Runtime:
         return target_run
 
     async def wait_for_approval(self, run_id: str) -> ApprovalRequest:
-        if run_id not in self._runs:
-            raise RunNotFoundError(f"Run '{run_id}' was not found")
+        self.sessions.get_run(run_id)
         approval_waiter = asyncio.create_task(self.approvals.wait_for_run(run_id))
-        run_task = self._tasks[run_id]
+        try:
+            run_task = self._tasks[run_id]
+        except KeyError as exc:
+            approval_waiter.cancel()
+            raise RunNotFoundError(f"Run '{run_id}' has no active process") from exc
         done, _ = await asyncio.wait(
             {approval_waiter, run_task}, return_when=asyncio.FIRST_COMPLETED
         )
@@ -282,6 +289,7 @@ class Runtime:
             )
         )
         run.status = RunStatus.RUNNING
+        self.sessions.update_run(run)
         self._emit(
             EventType.AGENT_STARTED,
             session_id=session.id,
@@ -317,7 +325,7 @@ class Runtime:
                     payload={"provider": agent.model.name, "turn": turn + 1},
                 )
                 request = ModelRequest(
-                    messages=tuple(session.messages),
+                    messages=tuple(self.sessions.get(session.id).messages),
                     instructions=agent.instructions,
                     tools=tuple(item.provider_schema() for item in agent.tools),
                     settings=agent.model_settings,
@@ -380,7 +388,7 @@ class Runtime:
                 )
                 if assistant_text:
                     message = Message(role=MessageRole.ASSISTANT, content="".join(assistant_text))
-                    session.messages.append(message)
+                    self.sessions.append_message(session.id, message)
                     self._emit(
                         EventType.ASSISTANT_MESSAGE_COMPLETED,
                         session_id=session.id,
@@ -395,6 +403,7 @@ class Runtime:
 
             run.status = RunStatus.COMPLETED
             run.completed_at = datetime.now(timezone.utc)
+            self.sessions.update_run(run)
             self.tracer.finish_trace(trace.id)
             self._emit(
                 EventType.AGENT_COMPLETED,
@@ -413,6 +422,7 @@ class Runtime:
         except asyncio.CancelledError:
             run.status = RunStatus.CANCELLED
             run.completed_at = datetime.now(timezone.utc)
+            self.sessions.update_run(run)
             self.tracer.finish_trace(trace.id, status="cancelled")
             self._emit(
                 EventType.RUN_CANCELLED,
@@ -425,6 +435,7 @@ class Runtime:
             run.status = RunStatus.FAILED
             run.completed_at = datetime.now(timezone.utc)
             run.error_code = exc.code if isinstance(exc, AgentMuruError) else "runtime_error"
+            self.sessions.update_run(run)
             self.tracer.finish_trace(trace.id, status="failed")
             self._emit(
                 EventType.AGENT_FAILED,
@@ -452,8 +463,8 @@ class Runtime:
         parent_span_id: str,
         call: ToolCall,
     ) -> None:
-        session = self.sessions.get(run.session_id)
-        agent = self.application.agent
+        self.sessions.get(run.session_id)
+        agent = self.application.get_agent(run.agent_name)
         try:
             tool = agent.tool(call.name)
         except KeyError as exc:
@@ -463,7 +474,7 @@ class Runtime:
         redacted = tool.redact_arguments(call.arguments)
         self._emit(
             EventType.TOOL_CALL_REQUESTED,
-            session_id=session.id,
+            session_id=run.session_id,
             run_id=run.id,
             trace_id=trace_id,
             parent_id=parent_span_id,
@@ -476,7 +487,7 @@ class Runtime:
             raise PermissionDeniedError(message)
         if decision is PermissionDecision.REQUIRE_APPROVAL:
             approval = await self.approvals.create(
-                session_id=session.id,
+                session_id=run.session_id,
                 run_id=run.id,
                 tool_call_id=call.id,
                 tool_name=tool.name,
@@ -486,9 +497,10 @@ class Runtime:
                 timeout=self.approval_timeout,
             )
             run.status = RunStatus.WAITING_APPROVAL
+            self.sessions.update_run(run)
             self._emit(
                 EventType.APPROVAL_REQUESTED,
-                session_id=session.id,
+                session_id=run.session_id,
                 run_id=run.id,
                 trace_id=trace_id,
                 parent_id=parent_span_id,
@@ -504,10 +516,11 @@ class Runtime:
             )
             approval = await self.approvals.wait(approval.id)
             run.status = RunStatus.RUNNING
+            self.sessions.update_run(run)
             if approval.status is ApprovalStatus.EXPIRED:
                 self._emit(
                     EventType.APPROVAL_EXPIRED,
-                    session_id=session.id,
+                    session_id=run.session_id,
                     run_id=run.id,
                     trace_id=trace_id,
                     parent_id=parent_span_id,
@@ -515,7 +528,8 @@ class Runtime:
                 )
                 raise ApprovalExpiredError(f"Approval for tool '{tool.name}' expired")
             if approval.status is ApprovalStatus.REJECTED:
-                session.messages.append(
+                self.sessions.append_message(
+                    run.session_id,
                     Message(
                         role=MessageRole.TOOL,
                         name=tool.name,
@@ -534,7 +548,7 @@ class Runtime:
         )
         self._emit(
             EventType.TRACE_SPAN_STARTED,
-            session_id=session.id,
+            session_id=run.session_id,
             run_id=run.id,
             trace_id=trace_id,
             parent_id=tool_span.parent_id,
@@ -542,7 +556,7 @@ class Runtime:
         )
         self._emit(
             EventType.TOOL_CALL_STARTED,
-            session_id=session.id,
+            session_id=run.session_id,
             run_id=run.id,
             trace_id=trace_id,
             parent_id=tool_span.id,
@@ -554,7 +568,7 @@ class Runtime:
             failed_span = self.tracer.finish_span(tool_span.id, status="failed")
             self._emit(
                 EventType.TRACE_SPAN_COMPLETED,
-                session_id=session.id,
+                session_id=run.session_id,
                 run_id=run.id,
                 trace_id=trace_id,
                 parent_id=failed_span.parent_id,
@@ -569,7 +583,7 @@ class Runtime:
         completed_tool_span = self.tracer.finish_span(tool_span.id)
         self._emit(
             EventType.TRACE_SPAN_COMPLETED,
-            session_id=session.id,
+            session_id=run.session_id,
             run_id=run.id,
             trace_id=trace_id,
             parent_id=completed_tool_span.parent_id,
@@ -580,7 +594,8 @@ class Runtime:
             },
         )
         public_result = _public_value(result)
-        session.messages.append(
+        self.sessions.append_message(
+            run.session_id,
             Message(
                 role=MessageRole.TOOL,
                 name=tool.name,
@@ -590,7 +605,7 @@ class Runtime:
         )
         self._emit(
             EventType.TOOL_CALL_COMPLETED,
-            session_id=session.id,
+            session_id=run.session_id,
             run_id=run.id,
             trace_id=trace_id,
             parent_id=tool_span.id,

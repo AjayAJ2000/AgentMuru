@@ -5,6 +5,7 @@ pytest-cache-files-*/
 __pycache__/
 .venv/
 .worktrees/
+.superpowers/
 
 # Local scratch and temporary build folders
 .tmp/

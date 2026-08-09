@@ -66,4 +66,31 @@ describe('Muru Workspace', () => {
     expect(html).toContain('Reconnecting')
     expect(html).toContain('Cancel run')
   })
+
+  it('explains interrupted process recovery and offers a clear continuation', () => {
+    const state = initialWorkspaceState('session-1')
+    state.runs['run-1'] = {
+      id: 'run-1',
+      agent: 'researcher',
+      status: 'failed',
+      errorCode: 'process_interrupted',
+    }
+    const html = renderToStaticMarkup(
+      <Workspace
+        appName="AgentMuru"
+        sessions={[{ id: 'session-1', title: 'Research', updatedAt: '', eventSequence: 1 }]}
+        state={state}
+        connection="connected"
+        onCreateSession={() => undefined}
+        onSelectSession={() => undefined}
+        onSubmit={() => undefined}
+        onCancel={() => undefined}
+        onApproval={() => undefined}
+      />,
+    )
+
+    expect(html).toContain('Previous process was interrupted')
+    expect(html).toContain('Durable history is intact')
+    expect(html).toContain('Start a new run')
+  })
 })

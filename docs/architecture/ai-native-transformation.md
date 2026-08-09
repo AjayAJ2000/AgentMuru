@@ -10,6 +10,9 @@
 - Replaced VDOM transport with protocol version 1 HTTP/WebSocket runtime actions and event streaming.
 - Rebuilt the browser as Muru Workspace with sessions, streaming, tools, approvals, artifacts, errors, usage, and traces.
 - Migrated useful Databricks adapters beneath an optional integration boundary.
+- Added standard-library SQLite persistence for sessions, messages, runs, events, artifacts,
+  approvals, and idempotency with atomic sequence allocation and restart recovery.
+- Added complete scenario, clean-wheel, server, Workspace, and documentation qualification.
 
 ## Removed
 
@@ -20,7 +23,8 @@
 
 ## Verification status
 
-Local deterministic verification covers domain, runtime, security, server, integrations,
-workflow, frontend projection, packaging, CLI, examples, and documentation. Production
-provider credentials, durable external stores, and hosted Databricks resources require
-environment-specific validation and are not represented as locally verified features.
+Fresh 0.2 evidence includes 124 Python tests, 9 frontend tests, 3 Chromium flows, static
+analysis, strict documentation, built distributions, and a second isolated wheel environment
+with no source-path injection. SQLite and in-memory stores are implemented. Databricks
+adapter contracts and optional imports are tested, but hosted credential verification is
+separate. Production model providers and PostgreSQL remain planned.

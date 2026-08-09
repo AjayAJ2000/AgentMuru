@@ -786,6 +786,7 @@ function TracePanel({ spans, usage }) {
 function Workspace(props) {
   const [panel, setPanel] = reactExports.useState("artifacts");
   const activeRun = props.state ? Object.values(props.state.runs).find((run) => ["queued", "running", "waiting_approval"].includes(run.status)) : void 0;
+  const interruptedRun = props.state ? Object.values(props.state.runs).find((run) => run.errorCode === "process_interrupted") : void 0;
   const connectionLabel = props.connection === "connected" ? "Runtime connected" : props.connection === "reconnecting" ? "Reconnecting" : props.connection;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("main", { className: "muru-workspace", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -821,6 +822,21 @@ function Workspace(props) {
         (props.error || props.state.protocolError) && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "muru-error-banner", role: "alert", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { size: 16 }),
           props.error || props.state.protocolError
+        ] }),
+        interruptedRun && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "muru-recovery-banner", role: "status", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { size: 16 }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Previous process was interrupted." }),
+            " Durable history is intact."
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              onClick: () => document.getElementById("muru-objective")?.focus(),
+              children: "Start a new run"
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "muru-run-scroll", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -966,4 +982,4 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-D_Bubrbt.js.map
+//# sourceMappingURL=index-8Q9oMbUB.js.map

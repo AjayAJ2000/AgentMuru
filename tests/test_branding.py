@@ -17,6 +17,26 @@ ALLOWED_HISTORY = {
     ROOT / "docs" / "architecture" / "ai-native-transformation.md",
     ROOT / "docs" / "superpowers" / "specs" / "2026-08-08-agentmuru-ai-native-rearchitecture-design.md",
     ROOT / "docs" / "superpowers" / "plans" / "2026-08-08-agentmuru-ai-native-rearchitecture.md",
+    ROOT
+    / "docs"
+    / "superpowers"
+    / "specs"
+    / "2026-08-09-agentmuru-qualification-persistence-and-launch-design.md",
+    ROOT
+    / "docs"
+    / "superpowers"
+    / "plans"
+    / "2026-08-09-agentmuru-persistence-and-qualification.md",
+    ROOT
+    / "docs"
+    / "superpowers"
+    / "plans"
+    / "2026-08-09-agentmuru-documentation-and-release.md",
+    ROOT
+    / "docs"
+    / "superpowers"
+    / "plans"
+    / "2026-08-09-agentmuru-landing-and-launch.md",
 }
 
 
@@ -72,3 +92,32 @@ def test_public_install_and_documentation_are_featured() -> None:
     assert "https://pypi.org/project/agentmuru/" in readme
     assert f"[{DOCUMENTATION_URL}]({DOCUMENTATION_URL})" in readme
     assert f"[{DOCUMENTATION_URL}]({DOCUMENTATION_URL})" in support
+
+
+def test_docs_use_agentmuru_product_family_identity() -> None:
+    config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    css = (ROOT / "docs" / "stylesheets" / "agentmuru.css").read_text(encoding="utf-8")
+    logo = (ROOT / "docs" / "assets" / "agentmuru-mark.svg").read_text(encoding="utf-8")
+    index = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
+
+    assert "docs/assets/agentmuru-mark.svg" in config
+    assert "stylesheets/agentmuru.css" in config
+    assert all(color in css for color in ("#0A7C7F", "#0D5F8A", "#C48A1F", "#0D0F14", "#F4F7FB"))
+    assert all(font in config for font in ("Inter", "JetBrains Mono"))
+    assert "AgentMuru Hybrid Vel Eye mark" in logo
+    assert "Build agents you can see, steer, and trust." in index
+
+
+def test_release_copy_describes_verified_agentmuru_0_2() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    changelog = (ROOT / "docs" / "CHANGELOG.md").read_text(encoding="utf-8")
+    transformation = (
+        ROOT / "docs" / "architecture" / "ai-native-transformation.md"
+    ).read_text(encoding="utf-8")
+
+    assert "python -m pip install agentmuru==0.2.0" in readme
+    assert "SQLitePersistence" in readme
+    assert "## 0.2.0" in changelog
+    assert "process_interrupted" in changelog
+    assert "124 Python tests" in transformation
+    assert "durable external stores" not in readme

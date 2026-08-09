@@ -27,6 +27,9 @@ export function Workspace(props: WorkspaceProps) {
   const activeRun = props.state
     ? Object.values(props.state.runs).find((run) => ['queued', 'running', 'waiting_approval'].includes(run.status))
     : undefined
+  const interruptedRun = props.state
+    ? Object.values(props.state.runs).find((run) => run.errorCode === 'process_interrupted')
+    : undefined
   const connectionLabel = props.connection === 'connected'
     ? 'Runtime connected' : props.connection === 'reconnecting' ? 'Reconnecting' : props.connection
 
@@ -63,6 +66,18 @@ export function Workspace(props: WorkspaceProps) {
             </header>
             {(props.error || props.state.protocolError) && (
               <div className="muru-error-banner" role="alert"><CircleAlert size={16} />{props.error || props.state.protocolError}</div>
+            )}
+            {interruptedRun && (
+              <div className="muru-recovery-banner" role="status">
+                <CircleAlert size={16} />
+                <span><strong>Previous process was interrupted.</strong> Durable history is intact.</span>
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('muru-objective')?.focus()}
+                >
+                  Start a new run
+                </button>
+              </div>
             )}
             <div className="muru-run-scroll">
               <Conversation

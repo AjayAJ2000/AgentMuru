@@ -5,10 +5,15 @@ repo_url: https://github.com/AjayAJ2000/AgentMuru
 repo_name: AjayAJ2000/AgentMuru
 theme:
   name: material
+  logo: assets/agentmuru-mark.svg # source: docs/assets/agentmuru-mark.svg
+  favicon: assets/agentmuru-mark.svg
+  font:
+    text: Inter
+    code: JetBrains Mono
   palette:
-    scheme: slate
-    primary: green
-    accent: green
+    scheme: default
+    primary: custom
+    accent: custom
   features:
     - navigation.instant
     - navigation.sections
@@ -16,6 +21,10 @@ theme:
 nav:
   - Overview: index.md
   - Getting started: getting-started.md
+  - Public API: reference/public-api.md
+  - Qualification: qualification.md
+  - Integration status: integration-status.md
+  - Product roadmap: product/roadmap.md
   - Concepts:
       - Runtime and events: concepts/runtime-and-events.md
       - Agents and models: concepts/agents-and-models.md
@@ -24,16 +33,28 @@ nav:
       - Artifacts and traces: concepts/artifacts-and-traces.md
       - Workflows and handoffs: concepts/workflows-and-handoffs.md
   - Guides:
+      - SQLite persistence: guides/sqlite-persistence.md
+      - Server and Workspace: guides/server-and-workspace.md
+      - Deployment: guides/deployment.md
       - Add a model provider: guides/model-provider.md
       - Add a session store: guides/session-store.md
       - Secure a deployment: guides/security.md
       - Databricks: guides/databricks.md
+  - Cookbook:
+      - Overview: cookbook/index.md
+      - Governed tools: cookbook/governed-tools.md
+      - Artifacts: cookbook/artifacts.md
+      - Durable sessions: cookbook/durable-sessions.md
+      - Workflows and handoffs: cookbook/workflows-and-handoffs.md
+      - Databricks: cookbook/databricks.md
   - Architecture:
       - Current state: architecture/current-state.md
       - Target state: architecture/target-state.md
       - Transformation log: architecture/ai-native-transformation.md
       - Decisions: architecture/decisions.md
-  - Migration: migration-from-legacy-ui.md
+  - Migration:
+      - Custom stores in 0.2: migration-custom-stores-0.2.md
+      - From the legacy UI: migration-from-legacy-ui.md
   - Changelog: CHANGELOG.md
 markdown_extensions:
   - admonition
@@ -41,3 +62,5 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
 strict: true
+extra_css:
+  - stylesheets/agentmuru.css
