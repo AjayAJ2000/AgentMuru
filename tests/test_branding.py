@@ -106,3 +106,18 @@ def test_docs_use_agentmuru_product_family_identity() -> None:
     assert all(font in config for font in ("Inter", "JetBrains Mono"))
     assert "AgentMuru Hybrid Vel Eye mark" in logo
     assert "Build agents you can see, steer, and trust." in index
+
+
+def test_release_copy_describes_verified_agentmuru_0_2() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    changelog = (ROOT / "docs" / "CHANGELOG.md").read_text(encoding="utf-8")
+    transformation = (
+        ROOT / "docs" / "architecture" / "ai-native-transformation.md"
+    ).read_text(encoding="utf-8")
+
+    assert "python -m pip install agentmuru==0.2.0" in readme
+    assert "SQLitePersistence" in readme
+    assert "## 0.2.0" in changelog
+    assert "process_interrupted" in changelog
+    assert "124 Python tests" in transformation
+    assert "durable external stores" not in readme
