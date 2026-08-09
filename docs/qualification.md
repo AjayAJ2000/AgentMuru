@@ -1,6 +1,6 @@
 # AgentMuru qualification evidence
 
-Evidence time: `2026-08-09T08:45:26.000903Z`
+Evidence time: `2026-08-09T08:54:18.015188Z`
 
 This page is generated from the clean-wheel qualification report. Contract tests and
 credential-backed live verification are intentionally separate.
@@ -21,15 +21,15 @@ credential-backed live verification are intentionally separate.
 
 | Command | Result | Duration (seconds) |
 | --- | --- | ---: |
-| create_venv | Passed | 9.824 |
-| install_wheel_with_databricks_extra | Passed | 95.121 |
-| pip_check | Passed | 1.476 |
-| cli_version | Passed | 1.046 |
-| cli_doctor | Passed | 0.72 |
-| cli_init | Passed | 0.74 |
-| scaffold_import | Passed | 0.294 |
-| installed_smoke | Passed | 11.402 |
-| installed_server_health | Passed | 1.17 |
+| create_venv | Passed | 7.658 |
+| install_wheel_with_databricks_extra | Passed | 76.926 |
+| pip_check | Passed | 1.231 |
+| cli_version | Passed | 0.702 |
+| cli_doctor | Passed | 0.63 |
+| cli_init | Passed | 0.638 |
+| scaffold_import | Passed | 0.249 |
+| installed_smoke | Passed | 15.734 |
+| installed_server_health | Passed | 1.211 |
 
 ## Result
 
