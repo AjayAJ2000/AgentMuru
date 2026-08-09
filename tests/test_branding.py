@@ -17,6 +17,26 @@ ALLOWED_HISTORY = {
     ROOT / "docs" / "architecture" / "ai-native-transformation.md",
     ROOT / "docs" / "superpowers" / "specs" / "2026-08-08-agentmuru-ai-native-rearchitecture-design.md",
     ROOT / "docs" / "superpowers" / "plans" / "2026-08-08-agentmuru-ai-native-rearchitecture.md",
+    ROOT
+    / "docs"
+    / "superpowers"
+    / "specs"
+    / "2026-08-09-agentmuru-qualification-persistence-and-launch-design.md",
+    ROOT
+    / "docs"
+    / "superpowers"
+    / "plans"
+    / "2026-08-09-agentmuru-persistence-and-qualification.md",
+    ROOT
+    / "docs"
+    / "superpowers"
+    / "plans"
+    / "2026-08-09-agentmuru-documentation-and-release.md",
+    ROOT
+    / "docs"
+    / "superpowers"
+    / "plans"
+    / "2026-08-09-agentmuru-landing-and-launch.md",
 }
 
 
