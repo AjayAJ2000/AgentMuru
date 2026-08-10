@@ -19,12 +19,26 @@ theme:
     - navigation.sections
     - content.code.copy
 nav:
-  - Overview: index.md
-  - Getting started: getting-started.md
-  - Public API: reference/public-api.md
-  - Qualification: qualification.md
-  - Integration status: integration-status.md
-  - Product roadmap: product/roadmap.md
+  - Home: index.md
+  - Start:
+      - Choose a path: getting-started.md
+      - Installation: getting-started/installation.md
+      - Five-minute local quickstart: getting-started/quickstart.md
+  - Tutorials:
+      - Choose a tutorial: cookbook/index.md
+      - Govern tool execution: cookbook/governed-tools.md
+      - Create artifacts: cookbook/artifacts.md
+      - Reopen durable sessions: cookbook/durable-sessions.md
+      - Run workflows and handoffs: cookbook/workflows-and-handoffs.md
+      - Check Databricks readiness: cookbook/databricks.md
+  - How-to guides:
+      - Run the server and Workspace: guides/server-and-workspace.md
+      - Persist sessions with SQLite: guides/sqlite-persistence.md
+      - Deploy AgentMuru: guides/deployment.md
+      - Add a model provider: guides/model-provider.md
+      - Add a session store: guides/session-store.md
+      - Secure a deployment: guides/security.md
+      - Connect Databricks: guides/databricks.md
   - Concepts:
       - Runtime and events: concepts/runtime-and-events.md
       - Agents and models: concepts/agents-and-models.md
@@ -32,30 +46,13 @@ nav:
       - Sessions and memory: concepts/sessions-and-memory.md
       - Artifacts and traces: concepts/artifacts-and-traces.md
       - Workflows and handoffs: concepts/workflows-and-handoffs.md
-  - Guides:
-      - SQLite persistence: guides/sqlite-persistence.md
-      - Server and Workspace: guides/server-and-workspace.md
-      - Deployment: guides/deployment.md
-      - Add a model provider: guides/model-provider.md
-      - Add a session store: guides/session-store.md
-      - Secure a deployment: guides/security.md
-      - Databricks: guides/databricks.md
-  - Cookbook:
-      - Overview: cookbook/index.md
-      - Governed tools: cookbook/governed-tools.md
-      - Artifacts: cookbook/artifacts.md
-      - Durable sessions: cookbook/durable-sessions.md
-      - Workflows and handoffs: cookbook/workflows-and-handoffs.md
-      - Databricks: cookbook/databricks.md
-  - Architecture:
-      - Current state: architecture/current-state.md
-      - Target state: architecture/target-state.md
-      - Transformation log: architecture/ai-native-transformation.md
-      - Decisions: architecture/decisions.md
-  - Migration:
-      - Custom stores in 0.2: migration-custom-stores-0.2.md
-      - From the legacy UI: migration-from-legacy-ui.md
-  - Changelog: CHANGELOG.md
+  - Reference:
+      - Stable public API: reference/public-api.md
+      - Current capabilities and limits: integration-status.md
+      - Release notes: CHANGELOG.md
+      - Upgrade custom stores to 0.2: migration-custom-stores-0.2.md
+      - Move from the legacy UI: migration-from-legacy-ui.md
+      - Product roadmap: product/roadmap.md
 markdown_extensions:
   - admonition
   - attr_list

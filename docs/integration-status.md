@@ -1,6 +1,7 @@
-# Integration status
+# Current capabilities and limits
 
-AgentMuru uses four precise states:
+Use this page to confirm what AgentMuru 0.2 supports before you choose an integration or
+deployment shape. Capability claims use four precise states:
 
 - **Implemented**: shipped in the runtime and exercised directly.
 - **Contract tested**: adapter behavior is verified with deterministic fakes.

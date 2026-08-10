@@ -1,8 +1,8 @@
-# Executable cookbook
+# Choose a tutorial
 
-Every recipe names a source module, direct command, expected result, Workspace projection,
-failure boundary, and automated qualification test. The same examples run without provider
-credentials.
+Each tutorial guides one complete outcome using a runnable example. It includes the command,
+expected result, Workspace projection, recovery boundary, and the automated check that keeps
+the behavior current. The examples run without provider credentials.
 
 - [Governed tools](governed-tools.md): allow, deny, approve, reject, and expire.
 - [Artifacts](artifacts.md): create typed, addressable outputs.

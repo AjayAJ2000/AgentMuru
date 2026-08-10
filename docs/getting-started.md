@@ -1,72 +1,29 @@
-# Getting started
+# Choose a starting path
 
-## Install the verified release
+AgentMuru can be evaluated locally without provider credentials. Choose the shortest path
+that matches what you need to accomplish.
 
-```powershell
-python -m pip install agentmuru==0.2.0
-muru doctor
-```
+## Before you begin
 
-Create a small application and run it:
+You need Python 3.10 or later and a terminal. Git is required only if you plan to
+contribute or run examples directly from the source repository.
 
-```powershell
-muru init hello-muru --name "Hello Muru"
-cd hello-muru
-muru run app:application
-```
+## Choose your path
 
-Open `http://127.0.0.1:8000`. The starter uses `FakeModel`, so it needs no provider
-credentials. `muru doctor` verifies the Python runtime and bundled Workspace assets.
+| Goal | Start here |
+| --- | --- |
+| Install the verified 0.2 release | [Install AgentMuru](getting-started/installation.md) |
+| Build and run a local agent | [Five-minute local quickstart](getting-started/quickstart.md) |
+| Learn with complete runnable examples | [Choose a tutorial](cookbook/index.md) |
+| Add restart-safe local history | [Persist sessions with SQLite](guides/sqlite-persistence.md) |
+| Operate the server and browser Workspace | [Run the server and Workspace](guides/server-and-workspace.md) |
+| Check supported integrations and limits | [Current capabilities and limits](integration-status.md) |
+| Look up a stable import | [Stable public API](reference/public-api.md) |
 
-## Add a durable local store
+## Understand the 0.2 boundary
 
-The default application uses in-memory stores. For restart-safe sessions, compose the
-application with SQLite:
-
-```python
-from pathlib import Path
-
-from agentmuru import Agent, Application, FakeModel, Runtime, SQLitePersistence
-
-persistence = SQLitePersistence(Path("agentmuru.db"))
-application = Application(
-    agent=Agent(
-        name="assistant",
-        instructions="Help the operator.",
-        model=FakeModel.responses("Ready."),
-    ),
-    session_store=persistence.sessions,
-    artifact_store=persistence.artifacts,
-)
-runtime = Runtime(application, approvals=persistence.approval_service())
-```
-
-SQLite is the verified default for one local Runtime process and modest write concurrency.
-Read the [SQLite operator guide](guides/sqlite-persistence.md) before deploying it.
-
-## Add a tool
-
-```python
-from agentmuru import tool
-
-@tool(permission="catalog.read")
-def lookup_table(name: str) -> dict[str, str]:
-    return {"name": name, "owner": "data-platform"}
-```
-
-Grant `catalog.read` on the `Agent`. If a permission is declared but not granted, the
-runtime blocks the call. Set `approval="required"` for actions that need a human decision.
-
-## Contribute from source
-
-Source installation is for contributors, not the primary product path:
-
-```powershell
-git clone https://github.com/AjayAJ2000/AgentMuru.git
-cd AgentMuru
-python -m pip install -e ".[dev,docs]"
-python -m pytest -q
-```
-
-Continue with the [cookbook](cookbook/index.md), [public API](reference/public-api.md), or
-[server and Workspace operations](guides/server-and-workspace.md).
+AgentMuru 0.2 includes the Python runtime, governed tools and approvals, replayable session
+events, artifacts, workflows, the browser Workspace, and SQLite persistence for one local
+runtime process with modest write concurrency. Production model providers and PostgreSQL
+persistence remain planned. Review [current capabilities and limits](integration-status.md)
+before choosing a deployment shape.
