@@ -12,8 +12,8 @@ jobs:
     if: github.event.release.prerelease
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: edge/go.mod
           cache-dependency-path: edge/go.sum
@@ -40,8 +40,8 @@ jobs:
     if: github.event.release.prerelease
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: edge/go.mod
           cache-dependency-path: edge/go.sum
