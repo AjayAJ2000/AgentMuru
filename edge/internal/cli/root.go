@@ -43,6 +43,17 @@ func NewRoot(deps Dependencies) *cobra.Command {
 	root.SetErr(deps.ErrOut)
 	root.AddCommand(newDoctorCommand(deps))
 	root.AddCommand(&cobra.Command{
+		Use:   "ui",
+		Short: "Open the local agent workspace",
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			if deps.OpenWorkspace == nil {
+				return errors.New("terminal workspace is unavailable")
+			}
+			return deps.OpenWorkspace()
+		},
+	})
+	root.AddCommand(&cobra.Command{
 		Use:   "version",
 		Short: "Print the AgentMuru version",
 		Args:  cobra.NoArgs,

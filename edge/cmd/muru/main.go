@@ -24,8 +24,15 @@ func main() {
 		Out:     os.Stdout,
 		ErrOut:  os.Stderr,
 		OpenWorkspace: func() error {
-			_, err := fmt.Fprintln(os.Stdout, "AgentMuru terminal workspace is starting soon.")
-			return err
+			hardware, err := platform.Discover(context.Background(), paths)
+			if err != nil {
+				return err
+			}
+			return cli.OpenWorkspace(cli.WorkspaceDependencies{
+				In:       os.Stdin,
+				Out:      os.Stdout,
+				Hardware: hardware,
+			})
 		},
 		DiscoverHardware: func(ctx context.Context) (contracts.HardwareProfile, error) {
 			return platform.Discover(ctx, paths)
