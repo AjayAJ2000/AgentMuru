@@ -1,0 +1,62 @@
+name: Publish native preview assets
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    if: github.event.release.prerelease
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: edge/go.mod
+          cache-dependency-path: edge/go.sum
+      - name: Test and package
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          Push-Location edge
+          go test ./...
+          go build -trimpath -ldflags "-X main.version=$tag" -o ../dist/native/muru.exe ./cmd/muru
+          Pop-Location
+          $archive = "dist/native/agentmuru-$tag-windows-x64.zip"
+          Compress-Archive -LiteralPath dist/native/muru.exe -DestinationPath $archive
+          $digest = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
+          "$digest  $(Split-Path -Leaf $archive)" | Set-Content -Encoding ascii "$archive.sha256"
+      - name: Upload release assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/native/* --clobber
+
+  linux:
+    if: github.event.release.prerelease
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: edge/go.mod
+          cache-dependency-path: edge/go.sum
+      - name: Test and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ github.event.release.tag_name }}"
+          mkdir -p dist/native
+          cd edge
+          go test ./...
+          go build -trimpath -ldflags "-X main.version=$tag" -o ../dist/native/muru ./cmd/muru
+          cd ../dist/native
+          tar -czf "agentmuru-$tag-linux-x64.tar.gz" muru
+          sha256sum "agentmuru-$tag-linux-x64.tar.gz" > "agentmuru-$tag-linux-x64.tar.gz.sha256"
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/native/* --clobber
