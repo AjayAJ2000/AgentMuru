@@ -1,10 +1,45 @@
 package pack
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/contracts"
 )
+
+func TestLoadRequiresChecksumManifest(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "pack")
+	if err := Export(root, fixturePack()); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(filepath.Join(root, "checksums.txt")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(root); err == nil || !strings.Contains(err.Error(), "checksum") {
+		t.Fatalf("Load() error = %v, want required checksum error", err)
+	}
+}
+
+func TestLoadRequiresChecksumsForEveryRuntimeContractFile(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "pack")
+	if err := Export(root, fixturePack()); err != nil {
+		t.Fatal(err)
+	}
+	checksumPath := filepath.Join(root, "checksums.txt")
+	data, err := os.ReadFile(checksumPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+	if err := os.WriteFile(checksumPath, []byte(strings.Join(lines[1:], "\n")+"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(root); err == nil || !strings.Contains(err.Error(), "missing checksum") {
+		t.Fatalf("Load() error = %v, want missing checksum error", err)
+	}
+}
 
 func TestValidateRejectsCapabilityMissingFromPolicy(t *testing.T) {
 	value := fixturePack()

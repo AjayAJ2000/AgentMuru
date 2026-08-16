@@ -2,6 +2,7 @@ package policy
 
 import (
 	"net"
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -18,12 +19,34 @@ func TestBrokerRestrictsFileReadsToCanonicalApprovedRoots(t *testing.T) {
 	root := t.TempDir()
 	broker := NewBroker(Policy{FileReadRoots: []string{root}})
 	inside := filepath.Join(root, "reports", "today.txt")
+	if err := os.MkdirAll(filepath.Dir(inside), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(inside, []byte("fixture"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	if decision := broker.Decide(Request{Capability: FileRead, Target: inside}); decision.Kind != Allow {
 		t.Fatalf("approved path denied: %#v", decision)
 	}
 	outside := filepath.Join(root, "..", "secret.txt")
 	if decision := broker.Decide(Request{Capability: FileRead, Target: outside}); decision.Kind != Deny {
 		t.Fatalf("traversal escaped approved root: %#v", decision)
+	}
+}
+
+func TestBrokerRejectsSymlinkEscapeFromApprovedRoot(t *testing.T) {
+	root := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "secret.txt")
+	if err := os.WriteFile(outside, []byte("secret"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "linked.txt")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Skipf("symlink creation unavailable: %v", err)
+	}
+	broker := NewBroker(Policy{FileReadRoots: []string{root}})
+	if decision := broker.Decide(Request{Capability: FileRead, Target: link}); decision.Kind != Deny {
+		t.Fatalf("symlink escaped approved root: %#v", decision)
 	}
 }
 

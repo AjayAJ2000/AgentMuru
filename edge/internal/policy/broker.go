@@ -71,12 +71,20 @@ func (broker *Broker) decideFileRead(target string) Decision {
 	if target == "" || isWindowsDevicePath(target) {
 		return Decision{Kind: Deny, Code: "invalid_path"}
 	}
-	canonicalTarget, err := filepath.Abs(filepath.Clean(target))
+	canonicalTarget, err := filepath.EvalSymlinks(target)
+	if err != nil {
+		return Decision{Kind: Deny, Code: "invalid_path"}
+	}
+	canonicalTarget, err = filepath.Abs(filepath.Clean(canonicalTarget))
 	if err != nil {
 		return Decision{Kind: Deny, Code: "invalid_path"}
 	}
 	for _, rawRoot := range broker.policy.FileReadRoots {
-		root, err := filepath.Abs(filepath.Clean(rawRoot))
+		root, err := filepath.EvalSymlinks(rawRoot)
+		if err != nil {
+			continue
+		}
+		root, err = filepath.Abs(filepath.Clean(root))
 		if err != nil {
 			continue
 		}

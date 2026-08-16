@@ -21,6 +21,7 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.event.release.tag_name }}"
+          New-Item -ItemType Directory -Force dist/native | Out-Null
           Push-Location edge
           go test ./...
           go build -trimpath -ldflags "-X main.version=$tag" -o ../dist/native/muru.exe ./cmd/muru

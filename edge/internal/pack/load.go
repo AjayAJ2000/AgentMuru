@@ -79,16 +79,22 @@ func decodeStrict(path string, destination any) error {
 func verifyChecksums(root string) error {
 	data, err := os.ReadFile(filepath.Join(root, "checksums.txt"))
 	if errors.Is(err, os.ErrNotExist) {
-		return nil
+		return errors.New("pack checksum manifest is required")
 	}
 	if err != nil {
 		return err
 	}
+	seen := map[string]bool{}
 	for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
 		parts := strings.Fields(line)
 		if len(parts) != 2 || len(parts[0]) != 64 || filepath.IsAbs(parts[1]) || strings.Contains(parts[1], "..") {
 			return errors.New("invalid pack checksum entry")
 		}
+		name := filepath.ToSlash(filepath.Clean(parts[1]))
+		if seen[name] {
+			return fmt.Errorf("duplicate pack checksum for %s", name)
+		}
+		seen[name] = true
 		content, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(parts[1])))
 		if err != nil {
 			return err
@@ -96,6 +102,11 @@ func verifyChecksums(root string) error {
 		digest := sha256.Sum256(content)
 		if hex.EncodeToString(digest[:]) != parts[0] {
 			return fmt.Errorf("pack checksum mismatch for %s", parts[1])
+		}
+	}
+	for _, required := range []string{"actions.json", "agents.json", "evals.jsonl", "manifest.json", "policy.json"} {
+		if !seen[required] {
+			return fmt.Errorf("missing checksum for %s", required)
 		}
 	}
 	return nil
