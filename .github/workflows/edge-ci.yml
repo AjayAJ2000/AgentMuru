@@ -1,6 +1,13 @@
 name: Native edge CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      build_llama:
+        description: "Build pinned Windows llama.cpp variants"
+        required: false
+        default: false
+        type: boolean
   push:
     branches: [dev, test, main]
     paths:
@@ -43,3 +50,18 @@ jobs:
 
       - name: Build
         run: go build -trimpath -o muru${{ runner.os == 'Windows' && '.exe' || '' }} ./cmd/muru
+
+  llama-windows:
+    if: github.event_name == 'workflow_dispatch' && inputs.build_llama
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Build pinned CPU variants
+        shell: pwsh
+        run: ./tools/build-llama-windows.ps1
+      - name: Upload unsigned qualification artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: llama-windows-qualification
+          path: artifacts/llama-windows/
