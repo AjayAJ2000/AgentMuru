@@ -10,6 +10,15 @@ type Dependencies struct {
 	Hardware      contracts.HardwareProfile
 	SessionPath   string
 	RequestAction func(string) error
+	Models        []ModelViewState
+}
+
+type ModelViewState struct {
+	ID          string
+	State       string
+	Digest      string
+	MemoryBytes uint64
+	Reason      string
 }
 
 type RuntimeEventMsg struct {
@@ -33,7 +42,7 @@ const (
 	ModeConfirmQuit Mode = "confirm-quit"
 )
 
-var paneOrder = []string{"agent-map", "run-stream", "inspector", "resources"}
+var paneOrder = []string{"agent-map", "run-stream", "inspector", "models", "resources"}
 
 type Model struct {
 	dependencies    Dependencies
@@ -51,6 +60,7 @@ type Model struct {
 	paletteQuery    string
 	helpOpen        bool
 	whichKeyOpen    bool
+	models          map[string]ModelViewState
 }
 
 func New(dependencies Dependencies) *Model {
@@ -61,6 +71,10 @@ func New(dependencies Dependencies) *Model {
 		activeTab:     paneOrder[0],
 		selectedEvent: -1,
 		mode:          ModeNavigate,
+		models:        make(map[string]ModelViewState),
+	}
+	for _, state := range dependencies.Models {
+		model.models[state.ID] = state
 	}
 	if dependencies.SessionPath != "" {
 		snapshot, warning := loadSession(dependencies.SessionPath)
@@ -114,4 +128,8 @@ func (model *Model) FocusedPane() string {
 
 func (model *Model) Mode() Mode {
 	return model.mode
+}
+
+func (model *Model) ModelStatus(id string) string {
+	return model.models[id].State
 }

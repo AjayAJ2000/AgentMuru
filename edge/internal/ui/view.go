@@ -74,7 +74,7 @@ func (model *Model) contextLine(width int) string {
 func (model *Model) renderWide(width, height int) string {
 	left, right := wideColumns(width)
 	center := max(24, width-left-right-2)
-	topHeight := max(8, height-11)
+	topHeight := max(8, height-13)
 	safeEvents := sanitizeEvents(model.events)
 	safeStatuses := sanitizeStatuses(model.agentStatuses)
 
@@ -82,8 +82,12 @@ func (model *Model) renderWide(width, height int) string {
 	runStream := panes.RunStream(safeEvents, model.selectedEvent, center, topHeight, model.focusedPane == "run-stream")
 	inspector := panes.Inspector(selectedEvent(safeEvents, model.selectedEvent), right, topHeight, model.focusedPane == "inspector")
 	top := joinHorizontal([]string{agentMap, runStream, inspector}, " ")
-	resources := panes.Resources(model.dependencies.Hardware, width, 4, model.focusedPane == "resources")
-	return top + "\n" + resources
+	modelsWidth := width * 2 / 3
+	resourceWidth := width - modelsWidth - 1
+	modelPane := panes.Models(model.paneModelStates(), modelsWidth, 6, model.focusedPane == "models")
+	loaded, memory := model.resourceStats()
+	resources := panes.Resources(model.dependencies.Hardware, loaded, memory, resourceWidth, 6, model.focusedPane == "resources")
+	return top + "\n" + joinHorizontal([]string{modelPane, resources}, " ")
 }
 
 func (model *Model) renderTabbed(width, height int) string {
@@ -103,11 +107,37 @@ func (model *Model) renderPane(name string, width, height int) string {
 		return panes.RunStream(events, model.selectedEvent, width, height, true)
 	case "inspector":
 		return panes.Inspector(selectedEvent(events, model.selectedEvent), width, height, true)
+	case "models":
+		return panes.Models(model.paneModelStates(), width, height, true)
 	case "resources":
-		return panes.Resources(model.dependencies.Hardware, width, height, true)
+		loaded, memory := model.resourceStats()
+		return panes.Resources(model.dependencies.Hardware, loaded, memory, width, height, true)
 	default:
 		return panes.AgentMap(sanitizeStatuses(model.agentStatuses), width, height, true)
 	}
+}
+
+func (model *Model) paneModelStates() []panes.ModelState {
+	states := make([]panes.ModelState, 0, len(model.models))
+	for _, state := range model.models {
+		states = append(states, panes.ModelState{
+			ID: sanitize(state.ID), State: sanitize(state.State), Digest: sanitize(state.Digest),
+			MemoryBytes: state.MemoryBytes, Reason: sanitize(state.Reason),
+		})
+	}
+	return states
+}
+
+func (model *Model) resourceStats() (int, uint64) {
+	loaded := 0
+	var memory uint64
+	for _, state := range model.models {
+		if state.State == "loaded" {
+			loaded++
+			memory += state.MemoryBytes
+		}
+	}
+	return loaded, memory
 }
 
 func (model *Model) tabBar() string {

@@ -36,6 +36,7 @@ func (model *Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 				model.agentStatuses[agent] = "failed"
 			}
 		}
+		model.projectModelEvent(typed.Event)
 		return model, model.waitForEvent()
 	case tea.KeyPressMsg:
 		return model.updateKey(typed)
@@ -151,8 +152,12 @@ func (model *Model) updateMouse(message tea.MouseClickMsg) (tea.Model, tea.Cmd) 
 		return model, nil
 	}
 	if SelectLayout(model.width) == LayoutPanes {
-		if message.Y >= model.height-6 {
-			model.focus("resources")
+		if message.Y >= model.height-8 {
+			if message.X < model.width*2/3 {
+				model.focus("models")
+			} else {
+				model.focus("resources")
+			}
 		} else {
 			left, right := wideColumns(model.width)
 			switch {
@@ -201,9 +206,42 @@ func (model *Model) hasActiveWork() bool {
 }
 
 func whichKeyPane(stroke string) (string, bool) {
-	panes := map[string]string{"a": "agent-map", "r": "run-stream", "i": "inspector", "s": "resources"}
+	panes := map[string]string{"a": "agent-map", "r": "run-stream", "i": "inspector", "m": "models", "s": "resources"}
 	pane, ok := panes[stroke]
 	return pane, ok
+}
+
+func (model *Model) projectModelEvent(event contracts.Event) {
+	modelID, _ := event.Payload["model_id"].(string)
+	if modelID == "" {
+		return
+	}
+	state := model.models[modelID]
+	state.ID = modelID
+	if digest, ok := event.Payload["artifact_digest"].(string); ok {
+		state.Digest = digest
+	}
+	if reason, ok := event.Payload["reason"].(string); ok {
+		state.Reason = reason
+	}
+	if memory, ok := event.Payload["memory_bytes"].(float64); ok && memory >= 0 {
+		state.MemoryBytes = uint64(memory)
+	}
+	switch event.Type {
+	case "model.install.started":
+		state.State = "installing"
+	case "model.installed", "model.unloaded":
+		state.State = "sleeping"
+	case "model.load.started":
+		state.State = "loading"
+	case "model.loaded":
+		state.State = "loaded"
+	case "model.unload.started":
+		state.State = "unloading"
+	case "model.process.failed":
+		state.State = "failed"
+	}
+	model.models[modelID] = state
 }
 
 func wideColumns(width int) (left int, right int) {

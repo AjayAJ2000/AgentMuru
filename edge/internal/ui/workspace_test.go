@@ -199,6 +199,31 @@ func TestWorkspaceGoldenLayouts(t *testing.T) {
 	}
 }
 
+func TestModelPaneShowsLifecycleDigestMemoryAndReason(t *testing.T) {
+	model := New(Dependencies{Models: []ModelViewState{
+		{ID: "router-small", State: "loaded", Digest: strings.Repeat("a", 64), MemoryBytes: 512 << 20},
+		{ID: "specialist", State: "incompatible", Reason: "requires AVX2"},
+	}})
+	next, _ := model.Update(tea.WindowSizeMsg{Width: 160, Height: 32})
+	view := next.(*Model).View().Content
+	for _, expected := range []string{"router-small", "loaded", "aaaaaaaaaaaa", "512 MiB", "requires AVX2"} {
+		if !strings.Contains(view, expected) {
+			t.Fatalf("model pane is missing %q:\n%s", expected, view)
+		}
+	}
+}
+
+func TestModelLifecycleEventUpdatesTheProjection(t *testing.T) {
+	model := New(Dependencies{})
+	next, _ := model.Update(RuntimeEventMsg{Event: contracts.Event{
+		Type: "model.loaded", Payload: map[string]any{"model_id": "router-small", "artifact_digest": strings.Repeat("b", 64), "memory_bytes": float64(256 << 20)},
+	}})
+	updated := next.(*Model)
+	if got := updated.ModelStatus("router-small"); got != "loaded" {
+		t.Fatalf("ModelStatus() = %q, want loaded", got)
+	}
+}
+
 func newWorkspaceModel(width int) *Model {
 	model := New(Dependencies{})
 	next, _ := model.Update(tea.WindowSizeMsg{Width: width, Height: 32})
@@ -218,6 +243,7 @@ func goldenModel(width int) *Model {
 	model.selectedEvent = 1
 	model.agentStatuses["router"] = "active"
 	model.agentStatuses["writer"] = "waiting"
+	model.models["router-small"] = ModelViewState{ID: "router-small", State: "loaded", Digest: strings.Repeat("a", 64), MemoryBytes: 512 << 20}
 	return model
 }
 

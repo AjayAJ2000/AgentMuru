@@ -6,6 +6,7 @@ func WhichKey(width int) string {
 		"a  agent map",
 		"r  run stream",
 		"i  inspector",
+		"m  models",
 		"s  resources",
 	}, min(width, 42))
 }
