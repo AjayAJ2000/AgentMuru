@@ -24,6 +24,7 @@ nav:
       - Choose a path: getting-started.md
       - Installation: getting-started/installation.md
       - Five-minute local quickstart: getting-started/quickstart.md
+      - Native Windows preview: getting-started/native-preview.md
   - Tutorials:
       - Choose a tutorial: cookbook/index.md
       - Govern tool execution: cookbook/governed-tools.md

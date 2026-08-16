@@ -2,8 +2,10 @@ package cli
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"testing"
+	"time"
 )
 
 func TestVersionDoesNotEnterWorkspace(t *testing.T) {
@@ -28,6 +30,27 @@ func TestVersionDoesNotEnterWorkspace(t *testing.T) {
 	}
 	if opened {
 		t.Fatal("version command opened the terminal workspace")
+	}
+}
+
+func TestQualificationIdleCommandUsesInjectedProbe(t *testing.T) {
+	called := false
+	cmd := NewRoot(Dependencies{
+		Version: "test",
+		Out:     io.Discard,
+		ErrOut:  io.Discard,
+		IdleProbe: func(_ context.Context, duration time.Duration) error {
+			called = duration == 5*time.Millisecond
+			return nil
+		},
+	})
+	cmd.SetArgs([]string{"qualification-idle", "--duration", "5ms"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+	if !called {
+		t.Fatal("qualification idle command did not use the injected duration")
 	}
 }
 

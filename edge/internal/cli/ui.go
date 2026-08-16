@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
+	"runtime"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/contracts"
@@ -56,6 +59,22 @@ func runWorkspace(model *workspace.Model, input io.Reader, output io.Writer) err
 	program := tea.NewProgram(model, tea.WithInput(input), tea.WithOutput(output))
 	_, err := program.Run()
 	return err
+}
+
+func IdleWorkspace(ctx context.Context, duration time.Duration, hardware contracts.HardwareProfile) error {
+	model := workspace.New(workspace.Dependencies{Hardware: hardware})
+	model.Update(tea.WindowSizeMsg{Width: 120, Height: 32})
+	view := model.View()
+	timer := time.NewTimer(duration)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		runtime.KeepAlive(model)
+		runtime.KeepAlive(view)
+		return nil
+	}
 }
 
 func readerIsTerminal(reader io.Reader) bool {

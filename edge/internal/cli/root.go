@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/contracts"
 	"github.com/spf13/cobra"
@@ -17,6 +18,7 @@ type Dependencies struct {
 	ErrOut           io.Writer
 	OpenWorkspace    func() error
 	DiscoverHardware func(context.Context) (contracts.HardwareProfile, error)
+	IdleProbe        func(context.Context, time.Duration) error
 }
 
 func NewRoot(deps Dependencies) *cobra.Command {
@@ -42,6 +44,7 @@ func NewRoot(deps Dependencies) *cobra.Command {
 	root.SetOut(deps.Out)
 	root.SetErr(deps.ErrOut)
 	root.AddCommand(newDoctorCommand(deps))
+	root.AddCommand(newQualificationIdleCommand(deps))
 	root.AddCommand(&cobra.Command{
 		Use:   "ui",
 		Short: "Open the local agent workspace",

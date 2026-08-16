@@ -1,0 +1,45 @@
+name: Native edge CI
+
+on:
+  push:
+    branches: [dev, test, main]
+    paths:
+      - "edge/**"
+      - "schemas/**"
+      - ".github/workflows/edge-ci.yml"
+  pull_request:
+    branches: [dev, test, main]
+    paths:
+      - "edge/**"
+      - "schemas/**"
+      - ".github/workflows/edge-ci.yml"
+
+jobs:
+  native:
+    name: Go / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    defaults:
+      run:
+        working-directory: edge
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: edge/go.mod
+          cache-dependency-path: edge/go.sum
+
+      - name: Test
+        run: go test ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build -trimpath -o muru${{ runner.os == 'Windows' && '.exe' || '' }} ./cmd/muru

@@ -28,6 +28,7 @@ def test_public_navigation_follows_customer_tasks() -> None:
         "Choose a path",
         "Installation",
         "Five-minute local quickstart",
+        "Native Windows preview",
     ]
 
     public_labels = yaml.safe_dump(navigation)
@@ -136,3 +137,11 @@ def test_server_and_deployment_guides_cover_operational_boundaries() -> None:
         "database path",
     ):
         assert phrase.lower() in combined.lower()
+
+
+def test_native_preview_is_not_documented_as_released() -> None:
+    text = _read("docs/getting-started/native-preview.md")
+
+    assert "not included in the current PyPI release" in text
+    for command in ("muru doctor --json", "muru ui", "Ctrl+P"):
+        assert command in text

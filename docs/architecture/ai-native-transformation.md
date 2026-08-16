@@ -13,6 +13,9 @@
 - Added standard-library SQLite persistence for sessions, messages, runs, events, artifacts,
   approvals, and idempotency with atomic sequence allocation and restart recovery.
 - Added complete scenario, clean-wheel, server, Workspace, and documentation qualification.
+- Added a native edge foundation with shared schemas, Windows hardware classification,
+  append-before-publish JSONL events, and a responsive terminal workspace with safe session
+  restore. This foundation is a source preview, not part of the current PyPI release.
 
 ## Removed
 
@@ -28,3 +31,8 @@ analysis, strict documentation, built distributions, and a second isolated wheel
 with no source-path injection. SQLite and in-memory stores are implemented. Databricks
 adapter contracts and optional imports are tested, but hosted credential verification is
 separate. Production model providers and PostgreSQL remain planned.
+
+Native preview evidence is tracked separately: Go tests, vet, Windows/Linux development
+builds, deterministic terminal snapshots, and a Windows idle resource report. Model
+download, generated-agent execution, effect isolation, and Pentium qualification are not
+claimed until their later gates pass.

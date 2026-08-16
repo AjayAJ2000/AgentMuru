@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/cli"
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/config"
@@ -38,6 +39,13 @@ func main() {
 		},
 		DiscoverHardware: func(ctx context.Context) (contracts.HardwareProfile, error) {
 			return platform.Discover(ctx, paths)
+		},
+		IdleProbe: func(ctx context.Context, duration time.Duration) error {
+			hardware, err := platform.Discover(ctx, paths)
+			if err != nil {
+				return err
+			}
+			return cli.IdleWorkspace(ctx, duration, hardware)
 		},
 	})
 	if err := cmd.Execute(); err != nil {
