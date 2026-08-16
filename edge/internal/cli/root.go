@@ -1,19 +1,22 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 
+	"github.com/AjayAJ2000/AgentMuru/edge/internal/contracts"
 	"github.com/spf13/cobra"
 )
 
 type Dependencies struct {
-	Version       string
-	Out           io.Writer
-	ErrOut        io.Writer
-	OpenWorkspace func() error
+	Version          string
+	Out              io.Writer
+	ErrOut           io.Writer
+	OpenWorkspace    func() error
+	DiscoverHardware func(context.Context) (contracts.HardwareProfile, error)
 }
 
 func NewRoot(deps Dependencies) *cobra.Command {
@@ -38,6 +41,7 @@ func NewRoot(deps Dependencies) *cobra.Command {
 	}
 	root.SetOut(deps.Out)
 	root.SetErr(deps.ErrOut)
+	root.AddCommand(newDoctorCommand(deps))
 	root.AddCommand(&cobra.Command{
 		Use:   "version",
 		Short: "Print the AgentMuru version",
