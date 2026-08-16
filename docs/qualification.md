@@ -37,3 +37,19 @@ All required checks passed.
 
 SQLite evidence covers one active Runtime process per file and modest concurrency.
 It does not claim multi-tenant write scaling or built-in encryption.
+
+## Native preview fixture evidence
+
+The native preview has a separate, repeatable fixture gate:
+
+```powershell
+.\qualification\edge\action_router_simulation.ps1 -GoExecutable go
+```
+
+It builds the native CLI, runs the pack/compiler/router/evaluator/policy tests, measures all
+40 cases in `packs/action-router`, requires at least 95% correct routing, and requires zero
+executed effects. The result is written to
+`.tmp/qualification/action-router-simulation.json` using the shared edge qualification schema.
+
+This is fixture evidence. It does not qualify a public model artifact, clean-machine install,
+Pentium-class device, Android device, container boundary, or live internet retrieval.

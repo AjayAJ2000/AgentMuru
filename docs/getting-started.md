@@ -14,6 +14,8 @@ contribute or run examples directly from the source repository.
 | --- | --- |
 | Install the verified 0.2 release | [Install AgentMuru](getting-started/installation.md) |
 | Build and run a local agent | [Five-minute local quickstart](getting-started/quickstart.md) |
+| Evaluate the native terminal preview | [Try the adaptive local preview](getting-started/native-preview.md) |
+| Compile and measure a portable agent pack | [Try the measured action router](getting-started/action-router.md) |
 | Learn with complete runnable examples | [Choose a tutorial](cookbook/index.md) |
 | Add restart-safe local history | [Persist sessions with SQLite](guides/sqlite-persistence.md) |
 | Operate the server and browser Workspace | [Run the server and Workspace](guides/server-and-workspace.md) |

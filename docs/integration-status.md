@@ -43,6 +43,12 @@ model artifacts.
 | Authenticated local supervisor | Fixture-qualified | Loopback child, token, Job Object, event order | Fixture child process |
 | Constrained action decision | Fixture-qualified | Grammar, JSON, allowlist, redaction tests | Fixture HTTP backend |
 | Pentium 8 GB model/runtime pair | Planned | Hardware contract fixture only | No reference-device report |
+| Native terminal workspace | Fixture-qualified | Responsive golden tests and 60-second idle probe | Source/prerelease preview |
+| Portable agent-pack compiler | Fixture-qualified | Strict loader, compiler, checksum, and contract tests | Directory packs; simulation only |
+| Action-router sample | Fixture-qualified | 40 measured cases, at least 95% routing gate | Deterministic router; not model quality |
+| Trusted-host capability broker | Fixture-qualified | Path, process, web-target, and default-deny tests | Effect execution remains disabled |
+| Optional internet retrieval | Planned | HTTPS/host/IP authorization primitives only | No fetcher is shipped |
+| Android runtime | Planned | Product target only | No Android build or device report |
 
 The latest machine-readable and rendered evidence is in
 [AgentMuru qualification evidence](qualification.md).

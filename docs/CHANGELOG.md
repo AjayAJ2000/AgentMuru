@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.0-alpha.1 native preview
+
+- Added the native `muru` terminal workspace, hardware discovery, responsive layouts, durable
+  redacted events, and session restore.
+- Added signed model catalogs, atomic model installation, compatible llama.cpp runtime
+  selection, authenticated loopback supervision, constrained decisions, and bounded residency.
+- Added portable agent-pack contracts, deterministic requirements compilation, simulation-only
+  routing, persisted explanations, and measured evaluation gates.
+- Added the 40-case `action-router` pack and a repeatable fixture qualification report.
+- Added a trusted-host, default-deny capability broker for scoped reads, exact process rules,
+  approvals, and validated HTTPS targets.
+
+Limitations: this is a GitHub prerelease, not the PyPI package. The public model catalog is
+empty, effects remain simulated, optional internet retrieval and Android are not shipped, and
+no low-end model/runtime pair is claimed until a reference-device report passes.
+
 ## 0.2.0
 
 - Added `SQLitePersistence` for sessions, messages, runs, atomic ordered events, artifacts,

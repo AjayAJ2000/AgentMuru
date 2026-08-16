@@ -73,6 +73,25 @@ and [integration status](https://ajayaj2000.github.io/AgentMuru/integration-stat
 Credential-backed Databricks calls are recorded separately and are not claimed by the
 offline contract gate. Production model providers and PostgreSQL are planned follow-ons.
 
+## Native adaptive-agent preview
+
+The separate `0.3.0-alpha.1` native preview adds machine profiling, a responsive terminal
+workspace, portable agent-pack compilation, a measured simulation router, and the verified
+local-model plumbing needed for future automatic selection. Build it from source:
+
+```powershell
+cd edge
+go test ./...
+go build -trimpath -o ..\.tmp\muru.exe .\cmd\muru
+cd ..
+.\.tmp\muru.exe doctor --json
+.\.tmp\muru.exe benchmark --pack .\packs\action-router --fixture
+```
+
+Effects remain simulated and the signed public model catalog is empty until clean-machine and
+low-end reference-device gates pass. See the [adaptive local preview](https://ajayaj2000.github.io/AgentMuru/getting-started/native-preview/)
+and [measured action-router tutorial](https://ajayaj2000.github.io/AgentMuru/getting-started/action-router/).
+
 ## Security and SQLite limits
 
 Tool permissions are deny-by-default when declared but not granted. Risky actions pause

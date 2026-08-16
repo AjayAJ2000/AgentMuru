@@ -28,7 +28,8 @@ def test_public_navigation_follows_customer_tasks() -> None:
         "Choose a path",
         "Installation",
         "Five-minute local quickstart",
-        "Native Windows preview",
+        "Adaptive local preview",
+        "Try a measured agent pack",
     ]
 
     public_labels = yaml.safe_dump(navigation)
@@ -142,9 +143,24 @@ def test_server_and_deployment_guides_cover_operational_boundaries() -> None:
 def test_native_preview_is_not_documented_as_released() -> None:
     text = _read("docs/getting-started/native-preview.md")
 
-    assert "not included in the current PyPI release" in text
+    assert "distributed separately through GitHub Releases" in text
+    assert "public model catalog is intentionally empty" in text
     for command in ("muru doctor --json", "muru ui", "Ctrl+P"):
         assert command in text
+
+
+def test_action_router_tutorial_is_measured_and_simulation_only() -> None:
+    text = _read("docs/getting-started/action-router.md")
+
+    for phrase in (
+        "40 cases",
+        "--fixture",
+        "at least 95% routing accuracy",
+        "effects_executed: 0",
+        "muru create",
+        "Model output cannot grant itself",
+    ):
+        assert phrase in text
 
 
 def test_local_model_status_separates_qualification_levels() -> None:

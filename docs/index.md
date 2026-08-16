@@ -38,6 +38,8 @@ application = Application(
 | Goal | Start here |
 | --- | --- |
 | Evaluate AgentMuru without provider credentials | [Five-minute local quickstart](getting-started/quickstart.md) |
+| Evaluate adaptive local agents in the terminal | [Adaptive local preview](getting-started/native-preview.md) |
+| Compile, measure, run, and explain an agent pack | [Measured action-router tutorial](getting-started/action-router.md) |
 | Add governed tool execution | [Govern tool execution](cookbook/governed-tools.md) |
 | Reopen sessions after restart | [Persist sessions with SQLite](guides/sqlite-persistence.md) |
 | Operate the server and browser Workspace | [Run the server and Workspace](guides/server-and-workspace.md) |

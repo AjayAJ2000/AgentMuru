@@ -16,3 +16,13 @@ python qualification/run_clean_install.py `
 The command exits nonzero when any required check fails. Live Databricks calls
 remain opt-in and are explicitly reported as not attempted by the offline gate.
 
+## Native action-router simulation
+
+Build the native CLI and measure the flagship 40-case portable pack:
+
+```powershell
+.\qualification\edge\action_router_simulation.ps1 -GoExecutable go
+```
+
+The report is fixture-level evidence. It verifies compilation, routing, default-deny policy,
+and zero executed effects; it does not substitute for a model or reference-device report.
