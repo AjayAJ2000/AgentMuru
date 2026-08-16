@@ -19,6 +19,7 @@ type Dependencies struct {
 	OpenWorkspace    func() error
 	DiscoverHardware func(context.Context) (contracts.HardwareProfile, error)
 	IdleProbe        func(context.Context, time.Duration) error
+	Models           ModelService
 }
 
 func NewRoot(deps Dependencies) *cobra.Command {
@@ -44,6 +45,7 @@ func NewRoot(deps Dependencies) *cobra.Command {
 	root.SetOut(deps.Out)
 	root.SetErr(deps.ErrOut)
 	root.AddCommand(newDoctorCommand(deps))
+	root.AddCommand(newModelsCommand(deps))
 	root.AddCommand(newQualificationIdleCommand(deps))
 	root.AddCommand(&cobra.Command{
 		Use:   "ui",

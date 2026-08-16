@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/AjayAJ2000/AgentMuru/edge/internal/catalog"
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/cli"
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/config"
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/contracts"
@@ -21,10 +22,17 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+	bootstrap, err := catalog.LoadBootstrap()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "embedded model catalog failed verification:", err)
+		os.Exit(1)
+	}
+	models := catalog.NewLocalModels(bootstrap, catalog.NewCache(filepath.Join(paths.Cache, "models")), nil)
 	cmd := cli.NewRoot(cli.Dependencies{
 		Version: version,
 		Out:     os.Stdout,
 		ErrOut:  os.Stderr,
+		Models:  models,
 		OpenWorkspace: func() error {
 			hardware, err := platform.Discover(context.Background(), paths)
 			if err != nil {
