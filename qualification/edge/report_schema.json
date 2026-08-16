@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentmuru.dev/qualification/edge-report.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_at", "qualification_level", "passed", "checks"],
+  "properties": {
+    "schema_version": { "const": "qualification.agentmuru.dev/edge-runtime/v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "qualification_level": { "enum": ["fixture", "clean-machine", "reference-device"] },
+    "passed": { "type": "boolean" },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "passed": { "type": "boolean" },
+          "detail": { "type": "string" }
+        }
+      }
+    }
+  }
+}

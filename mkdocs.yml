@@ -37,6 +37,7 @@ nav:
       - Persist sessions with SQLite: guides/sqlite-persistence.md
       - Deploy AgentMuru: guides/deployment.md
       - Add a model provider: guides/model-provider.md
+      - Run verified local models: guides/local-model-runtime.md
       - Add a session store: guides/session-store.md
       - Secure a deployment: guides/security.md
       - Connect Databricks: guides/databricks.md

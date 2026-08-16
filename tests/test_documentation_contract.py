@@ -145,3 +145,15 @@ def test_native_preview_is_not_documented_as_released() -> None:
     assert "not included in the current PyPI release" in text
     for command in ("muru doctor --json", "muru ui", "Ctrl+P"):
         assert command in text
+
+
+def test_local_model_status_separates_qualification_levels() -> None:
+    status = _read("docs/integration-status.md")
+    guide = _read("docs/guides/local-model-runtime.md")
+
+    for level in ("Fixture-qualified", "Clean-machine-qualified", "Reference-device-qualified"):
+        assert level in status
+    assert "No catalog model is reference-device-qualified" in status
+    assert "signed catalog" in guide
+    assert "muru models install" in guide
+    assert "--accept-license" in guide
