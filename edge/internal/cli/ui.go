@@ -16,6 +16,7 @@ type WorkspaceDependencies struct {
 	Out               io.Writer
 	Hardware          contracts.HardwareProfile
 	Events            <-chan contracts.Event
+	SessionPath       string
 	InputInteractive  func(io.Reader) bool
 	OutputInteractive func(io.Writer) bool
 	Run               func(*workspace.Model, io.Reader, io.Writer) error
@@ -44,8 +45,9 @@ func OpenWorkspace(dependencies WorkspaceDependencies) error {
 	}
 
 	model := workspace.New(workspace.Dependencies{
-		Events:   dependencies.Events,
-		Hardware: dependencies.Hardware,
+		Events:      dependencies.Events,
+		Hardware:    dependencies.Hardware,
+		SessionPath: dependencies.SessionPath,
 	})
 	return dependencies.Run(model, dependencies.In, dependencies.Out)
 }

@@ -1,0 +1,29 @@
+AgentMuru  LOCAL-FIRST AGENT WORKSPACE
+single  ·  demo-session  ·  2 events  ·  navigate
+
+┌─ ● Agent map ────────────────────────────────────────────┐
+│ local team                                               │
+│ ├─ router         RUN                                    │
+│ └─ writer         WAIT                                   │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+Ctrl+P commands  ·  ? help  ·  Tab focus  ·  g jump  ·  q quit

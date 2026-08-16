@@ -3,9 +3,12 @@ package cli
 import (
 	"bytes"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	tea "charm.land/bubbletea/v2"
 	ui "github.com/AjayAJ2000/AgentMuru/edge/internal/ui"
 )
 
@@ -53,6 +56,31 @@ func TestOpenWorkspaceRunsOnlyWithInteractiveInputAndOutput(t *testing.T) {
 	}
 	if !started {
 		t.Fatal("interactive workspace was not started")
+	}
+}
+
+func TestOpenWorkspacePassesTheSessionPathToTheModel(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.json")
+	err := OpenWorkspace(WorkspaceDependencies{
+		In:                strings.NewReader(""),
+		Out:               io.Discard,
+		SessionPath:       path,
+		InputInteractive:  func(io.Reader) bool { return true },
+		OutputInteractive: func(io.Writer) bool { return true },
+		Run: func(model *ui.Model, _ io.Reader, _ io.Writer) error {
+			_, command := model.Update(tea.KeyPressMsg{Code: tea.KeyTab})
+			if command == nil {
+				t.Fatal("navigation did not persist the session")
+			}
+			command()
+			return nil
+		},
+	})
+	if err != nil {
+		t.Fatalf("OpenWorkspace() error = %v", err)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("session snapshot was not written: %v", err)
 	}
 }
 

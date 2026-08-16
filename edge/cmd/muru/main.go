@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/cli"
 	"github.com/AjayAJ2000/AgentMuru/edge/internal/config"
@@ -29,9 +30,10 @@ func main() {
 				return err
 			}
 			return cli.OpenWorkspace(cli.WorkspaceDependencies{
-				In:       os.Stdin,
-				Out:      os.Stdout,
-				Hardware: hardware,
+				In:          os.Stdin,
+				Out:         os.Stdout,
+				Hardware:    hardware,
+				SessionPath: filepath.Join(paths.State, "workspace.json"),
 			})
 		},
 		DiscoverHardware: func(ctx context.Context) (contracts.HardwareProfile, error) {
