@@ -1,0 +1,29 @@
+[
+  {
+    "id": "classify_document",
+    "description": "classify a document into a declared category",
+    "owner_agent": "router",
+    "input_schema": {"type": "object", "additionalProperties": false, "required": ["text"], "properties": {"text": {"type": "string"}}},
+    "output_schema": {"type": "object", "additionalProperties": false, "required": ["category"], "properties": {"category": {"type": "string"}}},
+    "capabilities": [],
+    "effect_class": "proposed"
+  },
+  {
+    "id": "search_files",
+    "description": "find and search files invoices notes and reports in an approved root",
+    "owner_agent": "router",
+    "input_schema": {"type": "object", "additionalProperties": false, "required": ["query"], "properties": {"query": {"type": "string"}}},
+    "output_schema": {"type": "object", "additionalProperties": false, "required": ["matches"], "properties": {"matches": {"type": "array"}}},
+    "capabilities": ["fs.read"],
+    "effect_class": "proposed"
+  },
+  {
+    "id": "summarize_text",
+    "description": "summarize supplied text notes articles and documents",
+    "owner_agent": "router",
+    "input_schema": {"type": "object", "additionalProperties": false, "required": ["text"], "properties": {"text": {"type": "string"}}},
+    "output_schema": {"type": "object", "additionalProperties": false, "required": ["summary"], "properties": {"summary": {"type": "string"}}},
+    "capabilities": [],
+    "effect_class": "proposed"
+  }
+]

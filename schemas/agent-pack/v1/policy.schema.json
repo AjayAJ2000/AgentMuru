@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentmuru.dev/agent-pack/v1/policy.schema.json",
+  "title": "AgentMuru Agent Pack Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["capabilities", "network_mode"],
+  "properties": {
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+    },
+    "network_mode": {"enum": ["offline", "allowlist"]}
+  }
+}

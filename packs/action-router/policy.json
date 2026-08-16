@@ -1,0 +1,6 @@
+{
+  "capabilities": {
+    "fs.read": ["USER_SELECTED_ROOT"]
+  },
+  "network_mode": "offline"
+}

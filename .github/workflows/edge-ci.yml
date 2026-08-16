@@ -12,12 +12,16 @@ on:
     branches: [dev, test, main]
     paths:
       - "edge/**"
+      - "packs/**"
+      - "qualification/edge/**"
       - "schemas/**"
       - ".github/workflows/edge-ci.yml"
   pull_request:
     branches: [dev, test, main]
     paths:
       - "edge/**"
+      - "packs/**"
+      - "qualification/edge/**"
       - "schemas/**"
       - ".github/workflows/edge-ci.yml"
 
@@ -50,6 +54,12 @@ jobs:
 
       - name: Build
         run: go build -trimpath -o muru${{ runner.os == 'Windows' && '.exe' || '' }} ./cmd/muru
+
+      - name: Qualify action-router simulation
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: .
+        run: ./qualification/edge/action_router_simulation.ps1 -GoExecutable go
 
   llama-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.build_llama

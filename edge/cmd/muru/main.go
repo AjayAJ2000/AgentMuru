@@ -29,10 +29,11 @@ func main() {
 	}
 	models := catalog.NewLocalModels(bootstrap, catalog.NewCache(filepath.Join(paths.Cache, "models")), nil)
 	cmd := cli.NewRoot(cli.Dependencies{
-		Version: version,
-		Out:     os.Stdout,
-		ErrOut:  os.Stderr,
-		Models:  models,
+		Version:  version,
+		Out:      os.Stdout,
+		ErrOut:   os.Stderr,
+		Models:   models,
+		StateDir: paths.State,
 		OpenWorkspace: func() error {
 			hardware, err := platform.Discover(context.Background(), paths)
 			if err != nil {

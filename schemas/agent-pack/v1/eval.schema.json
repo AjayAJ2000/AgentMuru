@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentmuru.dev/agent-pack/v1/eval.schema.json",
+  "title": "AgentMuru Agent Pack Eval Case v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "category", "input"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "category": {"enum": ["accepted", "ambiguous", "rejected", "unsafe"]},
+    "input": {"type": "string", "minLength": 1},
+    "expected_action": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$"},
+    "expected_result": {"type": "string", "minLength": 1}
+  }
+}

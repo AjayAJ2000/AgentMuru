@@ -1,0 +1,8 @@
+[
+  {
+    "id": "router",
+    "role": "Route a user request to one typed simulated action",
+    "actions": ["classify_document", "search_files", "summarize_text"],
+    "handoffs": []
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentmuru.dev/agent-pack/v1/actions.schema.json",
+  "title": "AgentMuru Agent Pack Actions v1",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "description", "owner_agent", "input_schema", "output_schema", "capabilities", "effect_class"],
+    "properties": {
+      "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$"},
+      "description": {"type": "string", "minLength": 1, "maxLength": 512},
+      "owner_agent": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$"},
+      "input_schema": {"type": "object", "minProperties": 1},
+      "output_schema": {"type": "object", "minProperties": 1},
+      "capabilities": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+      "effect_class": {"enum": ["proposed", "read", "write", "process", "network"]}
+    }
+  }
+}

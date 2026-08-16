@@ -20,6 +20,7 @@ type Dependencies struct {
 	DiscoverHardware func(context.Context) (contracts.HardwareProfile, error)
 	IdleProbe        func(context.Context, time.Duration) error
 	Models           ModelService
+	StateDir         string
 }
 
 func NewRoot(deps Dependencies) *cobra.Command {
@@ -45,6 +46,10 @@ func NewRoot(deps Dependencies) *cobra.Command {
 	root.SetOut(deps.Out)
 	root.SetErr(deps.ErrOut)
 	root.AddCommand(newDoctorCommand(deps))
+	root.AddCommand(newCreateCommand())
+	root.AddCommand(newRunCommand(deps))
+	root.AddCommand(newExplainCommand(deps))
+	root.AddCommand(newBenchmarkCommand(deps))
 	root.AddCommand(newModelsCommand(deps))
 	root.AddCommand(newQualificationIdleCommand(deps))
 	root.AddCommand(&cobra.Command{
