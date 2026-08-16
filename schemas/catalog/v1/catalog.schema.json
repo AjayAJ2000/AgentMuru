@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentmuru.dev/catalog/v1/catalog.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "revision", "max_artifact_bytes", "artifacts"],
+  "properties": {
+    "schema_version": { "const": "catalog.agentmuru.dev/v1" },
+    "revision": { "type": "string", "minLength": 1 },
+    "max_artifact_bytes": { "type": "integer", "minimum": 1, "maximum": 734003200 },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "model_id", "revision", "format", "url", "size_bytes", "sha256", "runtime_variants", "minimum_memory_bytes", "license"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "model_id": { "type": "string", "minLength": 1 },
+          "revision": { "type": "string", "pattern": "^(sha256:)?[0-9a-f]{16,64}$" },
+          "format": { "const": "gguf" },
+          "url": { "type": "string", "pattern": "^https://" },
+          "size_bytes": { "type": "integer", "minimum": 1, "maximum": 734003200 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "runtime_variants": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+          "minimum_memory_bytes": { "type": "integer", "minimum": 0 },
+          "license": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "gated", "license_url"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "gated": { "type": "boolean" },
+              "license_url": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
