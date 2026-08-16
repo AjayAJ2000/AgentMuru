@@ -6,8 +6,9 @@ import (
 )
 
 func TestPathsForWindowsLocalAppData(t *testing.T) {
-	paths := PathsForWindows(`C:\Users\muru\AppData\Local`)
-	root := filepath.Clean(`C:\Users\muru\AppData\Local\AgentMuru`)
+	localAppData := `C:\Users\muru\AppData\Local`
+	paths := PathsForWindows(localAppData)
+	root := filepath.Join(localAppData, "AgentMuru")
 
 	if paths.Config != filepath.Join(root, "config") {
 		t.Fatalf("Config = %q", paths.Config)
