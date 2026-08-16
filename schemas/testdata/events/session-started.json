@@ -1,0 +1,13 @@
+{
+  "id": "event-fixture-1",
+  "type": "session.started",
+  "timestamp": "2026-08-16T00:00:00Z",
+  "session_id": "session-fixture-1",
+  "sequence": 1,
+  "run_id": null,
+  "trace_id": null,
+  "parent_id": null,
+  "payload": {
+    "title": "Fixture session"
+  }
+}

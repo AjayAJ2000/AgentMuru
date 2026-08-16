@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentmuru.dev/hardware/v1/profile.schema.json",
+  "title": "AgentMuru Hardware Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "os",
+    "cpu",
+    "memory",
+    "storage",
+    "terminal",
+    "runtime_variants",
+    "support"
+  ],
+  "properties": {
+    "schema_version": {"const": "hardware.agentmuru.dev/v1"},
+    "os": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "architecture"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "version": {"type": "string"},
+        "architecture": {"type": "string", "minLength": 1}
+      }
+    },
+    "cpu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vendor", "model", "physical_cores", "logical_cores", "flags"],
+      "properties": {
+        "vendor": {"type": "string"},
+        "model": {"type": "string"},
+        "physical_cores": {"type": "integer", "minimum": 1},
+        "logical_cores": {"type": "integer", "minimum": 1},
+        "flags": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9._-]+$"}}
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_bytes", "available_bytes"],
+      "properties": {
+        "total_bytes": {"type": "integer", "minimum": 0},
+        "available_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cache_path", "free_bytes"],
+      "properties": {
+        "cache_path": {"type": "string", "minLength": 1},
+        "free_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "terminal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interactive", "true_color", "mouse", "width"],
+      "properties": {
+        "interactive": {"type": "boolean"},
+        "true_color": {"type": "boolean"},
+        "mouse": {"type": "boolean"},
+        "width": {"type": "integer", "minimum": 0}
+      }
+    },
+    "runtime_variants": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "reasons"],
+      "properties": {
+        "level": {"enum": ["supported", "experimental", "unsupported"]},
+        "reasons": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

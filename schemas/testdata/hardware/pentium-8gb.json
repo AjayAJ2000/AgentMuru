@@ -1,0 +1,34 @@
+{
+  "schema_version": "hardware.agentmuru.dev/v1",
+  "os": {
+    "name": "windows",
+    "version": "11",
+    "architecture": "amd64"
+  },
+  "cpu": {
+    "vendor": "GenuineIntel",
+    "model": "Pentium reference fixture",
+    "physical_cores": 2,
+    "logical_cores": 2,
+    "flags": ["avx", "sse4.2"]
+  },
+  "memory": {
+    "total_bytes": 8589934592,
+    "available_bytes": 4294967296
+  },
+  "storage": {
+    "cache_path": "C:\\Users\\fixture\\AppData\\Local\\AgentMuru\\cache",
+    "free_bytes": 5368709120
+  },
+  "terminal": {
+    "interactive": true,
+    "true_color": true,
+    "mouse": true,
+    "width": 120
+  },
+  "runtime_variants": ["windows-x64-baseline", "windows-x64-avx"],
+  "support": {
+    "level": "experimental",
+    "reasons": ["AVX2 is unavailable; reference qualification is required"]
+  }
+}

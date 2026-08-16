@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentmuru.dev/events/v1/event.schema.json",
+  "title": "AgentMuru Runtime Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "type", "timestamp", "session_id", "sequence", "run_id", "trace_id", "parent_id", "payload"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "type": {"type": "string", "minLength": 1},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "session_id": {"type": "string", "minLength": 1},
+    "sequence": {"type": "integer", "minimum": 1},
+    "run_id": {"type": ["string", "null"]},
+    "trace_id": {"type": ["string", "null"]},
+    "parent_id": {"type": ["string", "null"]},
+    "payload": {"type": "object"}
+  }
+}
