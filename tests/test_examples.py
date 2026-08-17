@@ -34,6 +34,16 @@ def test_complete_scenario_gallery_imports_without_credentials() -> None:
         assert importlib.import_module(module_name) is not None
 
 
+def test_provider_examples_export_applications_without_network_calls() -> None:
+    for module_name in (
+        "examples.providers.openai_agent",
+        "examples.providers.anthropic_agent",
+        "examples.providers.google_agent",
+    ):
+        module = importlib.import_module(module_name)
+        assert isinstance(module.application, Application)
+
+
 @pytest.mark.parametrize(
     ("example", "page"),
     [

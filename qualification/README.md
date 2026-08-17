@@ -9,7 +9,7 @@ the installed HTTP server on a free loopback port.
 ```powershell
 python -m build
 python qualification/run_clean_install.py `
-  --wheel dist/agentmuru-0.2.0-py3-none-any.whl `
+  --wheel dist/agentmuru-0.3.0-py3-none-any.whl `
   --report .tmp/qualification.json
 ```
 

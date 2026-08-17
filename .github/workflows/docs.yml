@@ -52,7 +52,7 @@ jobs:
       - name: Qualify installed wheel
         run: >-
           python qualification/run_clean_install.py
-          --wheel dist/agentmuru-0.2.0-py3-none-any.whl
+          --wheel dist/agentmuru-0.3.0-py3-none-any.whl
           --report .tmp/qualification.json
 
   build:

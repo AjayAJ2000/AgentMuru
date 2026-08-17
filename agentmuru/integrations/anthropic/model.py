@@ -43,11 +43,8 @@ class AnthropicModel:
         if not model.strip():
             raise ProviderConfigurationError("model must not be empty")
         self.model_id = model
-        self._client = client or anthropic.AsyncAnthropic(
-            api_key=api_key,
-            base_url=base_url,
-            max_retries=0,
-        )
+        self._client = client
+        self._client_options = {"api_key": api_key, "base_url": base_url, "max_retries": 0}
 
     async def stream(self, request: ModelRequest) -> AsyncIterator[ModelEvent]:
         kwargs = self._request_kwargs(request)
@@ -56,6 +53,8 @@ class AnthropicModel:
         output_tokens = 0
         tool_blocks: dict[int, dict[str, Any]] = {}
         try:
+            if self._client is None:
+                self._client = anthropic.AsyncAnthropic(**self._client_options)
             provider_stream = await self._client.messages.create(**kwargs)
             async for event in provider_stream:
                 event_type = getattr(event, "type", "")

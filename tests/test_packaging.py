@@ -21,18 +21,23 @@ def test_distribution_package_and_cli_are_agentmuru_only() -> None:
     assert config["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == ["agentmuru"]
     assert (ROOT / "agentmuru" / "frontend" / "dist" / "index.html").exists()
     assert not (ROOT / "brickflowui").exists()
-    assert config["project"]["version"] == "0.2.0"
-    assert agentmuru.__version__ == "0.2.0"
+    assert config["project"]["version"] == "0.3.0"
+    assert agentmuru.__version__ == "0.3.0"
     assert json.loads((ROOT / "frontend" / "package.json").read_text(encoding="utf-8"))[
         "version"
-    ] == "0.2.0"
+    ] == "0.3.0"
     assert "/qualification" in config["tool"]["hatch"]["build"]["targets"]["sdist"]["include"]
 
 
 def test_optional_all_extra_references_agentmuru() -> None:
     config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    extras = config["project"]["optional-dependencies"]
+    assert extras["openai"] == ["openai>=3.1.0,<4"]
+    assert extras["anthropic"] == ["anthropic>=0.122.0,<1"]
+    assert extras["google"] == ["google-genai>=2.18.1,<3"]
+    assert extras["providers"] == ["agentmuru[openai,anthropic,google]"]
     assert config["project"]["optional-dependencies"]["all"] == [
-        "agentmuru[databricks,dev,docs]"
+        "agentmuru[databricks,dev,docs,providers]"
     ]
 
 
@@ -42,7 +47,7 @@ def test_ci_and_docs_workflows_require_clean_wheel_qualification() -> None:
         assert "qualification" in workflow["jobs"]
         rendered = (ROOT / relative).read_text(encoding="utf-8")
         assert "qualification/run_clean_install.py" in rendered
-        assert "agentmuru-0.2.0-py3-none-any.whl" in rendered
+        assert "agentmuru-0.3.0-py3-none-any.whl" in rendered
 
 
 def test_publish_workflow_builds_once_and_requires_qualification() -> None:

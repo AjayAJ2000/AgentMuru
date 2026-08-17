@@ -26,7 +26,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .[dev]
+          python -m pip install -e .[dev,providers]
 
       - name: Run Python tests
         run: python -m pytest -q -p no:cacheprovider
@@ -57,7 +57,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .[dev]
+          python -m pip install -e .[dev,providers]
           python -m pip install mkdocs mkdocs-material build
 
       - name: Install frontend dependencies
@@ -120,7 +120,7 @@ jobs:
       - name: Qualify installed wheel
         run: >-
           python qualification/run_clean_install.py
-          --wheel dist/agentmuru-0.2.0-py3-none-any.whl
+          --wheel dist/agentmuru-0.3.0-py3-none-any.whl
           --report .tmp/qualification.json
 
       - name: Upload qualification evidence

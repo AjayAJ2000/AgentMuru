@@ -44,7 +44,8 @@ class GoogleGenAIModel:
         if not model.strip():
             raise ProviderConfigurationError("model must not be empty")
         self.model_id = model
-        self._client = client or genai.Client(api_key=api_key)
+        self._client = client
+        self._client_options = {"api_key": api_key}
 
     async def stream(self, request: ModelRequest) -> AsyncIterator[ModelEvent]:
         kwargs = self._request_kwargs(request)
@@ -53,6 +54,8 @@ class GoogleGenAIModel:
         output_tokens = 0
         generated_call_id = 0
         try:
+            if self._client is None:
+                self._client = genai.Client(**self._client_options)
             provider_stream = await self._client.aio.models.generate_content_stream(**kwargs)
             async for chunk in provider_stream:
                 for candidate in getattr(chunk, "candidates", None) or []:
