@@ -32,6 +32,12 @@ updates:
       frontend-dependencies:
         patterns:
           - "*"
+    ignore:
+      # typescript-eslint 8.67 supports TypeScript <6.1. Keep the supported
+      # 6.0 line current and let Dependabot resume 7.x after that range moves.
+      - dependency-name: "typescript"
+        versions:
+          - ">=7"
 
   - package-ecosystem: "github-actions"
     directory: "/"
