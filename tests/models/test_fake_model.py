@@ -27,6 +27,7 @@ async def test_fake_model_streams_scripted_events_deterministically() -> None:
     assert events[1].arguments == {"id": "42"}
     assert events[2].usage.total_tokens == 5
     assert model.capabilities == ModelCapabilities(text=True, streaming=True, tool_calling=True)
+    assert model.model_id == "fake"
 
 
 @pytest.mark.asyncio

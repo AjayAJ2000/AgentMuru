@@ -73,6 +73,7 @@ ModelEvent = TextDelta | ToolCall | ModelCompleted | ModelFailed
 
 class ModelProvider(Protocol):
     name: str
+    model_id: str
     capabilities: ModelCapabilities
 
     def stream(self, request: ModelRequest) -> AsyncIterator[ModelEvent]: ...

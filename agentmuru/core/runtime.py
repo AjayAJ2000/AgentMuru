@@ -17,7 +17,14 @@ from agentmuru.core.context import RunContext, _current_run
 from agentmuru.core.errors import AgentMuruError, RunNotFoundError
 from agentmuru.models import ModelCompleted, ModelFailed, ModelRequest, TextDelta, ToolCall
 from agentmuru.observability import Tracer
-from agentmuru.sessions import Message, MessageRole, RunRecord, RunStatus, Session
+from agentmuru.sessions import (
+    AssistantToolCall,
+    Message,
+    MessageRole,
+    RunRecord,
+    RunStatus,
+    Session,
+)
 from agentmuru.tools import PermissionDecision, PermissionPolicy
 
 from .application import Application
@@ -30,6 +37,10 @@ class PermissionDeniedError(AgentMuruError):
 
 class ModelExecutionError(AgentMuruError):
     code = "model_failed"
+
+    def __init__(self, code: str = "model_failed") -> None:
+        self.code = code
+        super().__init__("Model execution failed")
 
 
 class ToolRuntimeError(AgentMuruError):
@@ -299,8 +310,8 @@ class Runtime:
         )
         try:
             for turn in range(self.max_model_turns):
-                used_tool = False
                 assistant_text: list[str] = []
+                collected_calls: list[ToolCall] = []
                 model_span = self.tracer.start_span(
                     trace.id, name="model", kind="model", attributes={"turn": turn + 1}
                 )
@@ -322,7 +333,11 @@ class Runtime:
                     run_id=run.id,
                     trace_id=trace.id,
                     parent_id=model_span.id,
-                    payload={"provider": agent.model.name, "turn": turn + 1},
+                    payload={
+                        "provider": agent.model.name,
+                        "model_id": getattr(agent.model, "model_id", agent.model.name),
+                        "turn": turn + 1,
+                    },
                 )
                 request = ModelRequest(
                     messages=tuple(self.sessions.get(session.id).messages),
@@ -342,13 +357,7 @@ class Runtime:
                             payload={"delta": event.text},
                         )
                     elif isinstance(event, ToolCall):
-                        used_tool = True
-                        await self._handle_tool_call(
-                            run=run,
-                            trace_id=trace.id,
-                            parent_span_id=model_span.id,
-                            call=event,
-                        )
+                        collected_calls.append(event)
                     elif isinstance(event, ModelCompleted):
                         self.tracer.record_usage(trace.id, event.usage)
                         self._emit(
@@ -364,7 +373,7 @@ class Runtime:
                             },
                         )
                     elif isinstance(event, ModelFailed):
-                        raise ModelExecutionError("Model execution failed")
+                        raise ModelExecutionError(event.code)
                 completed_model_span = self.tracer.finish_span(model_span.id)
                 self._emit(
                     EventType.TRACE_SPAN_COMPLETED,
@@ -384,19 +393,49 @@ class Runtime:
                     run_id=run.id,
                     trace_id=trace.id,
                     parent_id=model_span.id,
-                    payload={"provider": agent.model.name, "turn": turn + 1},
+                    payload={
+                        "provider": agent.model.name,
+                        "model_id": getattr(agent.model, "model_id", agent.model.name),
+                        "turn": turn + 1,
+                    },
                 )
-                if assistant_text:
-                    message = Message(role=MessageRole.ASSISTANT, content="".join(assistant_text))
-                    self.sessions.append_message(session.id, message)
-                    self._emit(
-                        EventType.ASSISTANT_MESSAGE_COMPLETED,
-                        session_id=session.id,
-                        run_id=run.id,
-                        trace_id=trace.id,
-                        payload={"message_id": message.id, "content": message.content},
+                normalized_calls: list[AssistantToolCall] = []
+                for call in collected_calls:
+                    try:
+                        resolved_tool = agent.tool(call.name)
+                    except KeyError as exc:
+                        self._tool_failure(run, trace.id, call, "tool_not_found", str(exc))
+                        raise AgentMuruError(str(exc)) from exc
+                    normalized_calls.append(
+                        AssistantToolCall(
+                            id=call.id,
+                            name=resolved_tool.name,
+                            arguments=resolved_tool.redact_arguments(call.arguments),
+                        )
                     )
-                if not used_tool:
+                if assistant_text or normalized_calls:
+                    message = Message(
+                        role=MessageRole.ASSISTANT,
+                        content="".join(assistant_text),
+                        tool_calls=tuple(normalized_calls),
+                    )
+                    self.sessions.append_message(session.id, message)
+                    if assistant_text:
+                        self._emit(
+                            EventType.ASSISTANT_MESSAGE_COMPLETED,
+                            session_id=session.id,
+                            run_id=run.id,
+                            trace_id=trace.id,
+                            payload={"message_id": message.id, "content": message.content},
+                        )
+                for call in collected_calls:
+                    await self._handle_tool_call(
+                        run=run,
+                        trace_id=trace.id,
+                        parent_span_id=model_span.id,
+                        call=call,
+                    )
+                if not collected_calls:
                     break
             else:
                 raise ModelExecutionError("Agent exceeded the maximum number of model turns")

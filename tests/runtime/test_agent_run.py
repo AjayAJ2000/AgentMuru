@@ -31,6 +31,10 @@ async def test_runtime_streams_and_persists_a_complete_agent_run() -> None:
     assert EventType.MODEL_TOKEN_DELTA in event_types
     assert event_types[-1] is EventType.RUN_COMPLETED
     assert runtime.tracer.traces_for_run(run.id)[0].status == "completed"
+    request = next(
+        event for event in session.events if event.type is EventType.MODEL_REQUEST_STARTED
+    )
+    assert request.payload == {"provider": "fake", "model_id": "fake", "turn": 1}
 
 
 @pytest.mark.asyncio
