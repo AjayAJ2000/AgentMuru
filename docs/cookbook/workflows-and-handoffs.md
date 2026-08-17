@@ -1,25 +1,51 @@
 # Run workflows and handoffs
 
-**Outcome:** keep workflows deterministic and make agent transfer an explicit new run.
+Use a workflow for deterministic state transitions and a handoff when another agent definition
+owns the next model turn.
 
-Handoff module: `examples.handoff_agent`
+## Run a workflow
 
-```powershell
-python examples/handoff_agent.py
-```
-
-Expected: researcher and writer runs both complete with one `agent.handoff` event carrying
-the reason and target run ID. Muru Workspace shows each run and the ordered transfer.
-
-Workflow module: `examples.workflow_agent`
+The executable scenario is `examples.workflow_agent`.
 
 ```powershell
 python examples/workflow_agent.py
 ```
 
-Expected: `research` and `summarize` checkpoints and the summary “AgentMuru verified 2
-facts.” Unknown target agents fail before a target run; workflow handler failures return a
-stable failure code after configured retries.
+```python
+workflow = Workflow(
+    name="research-report",
+    steps=(
+        Step("research", research, retries=1),
+        Step("summarize", summarize),
+    ),
+)
+result = await WorkflowRunner().run(
+    workflow,
+    initial_state={"query": "AgentMuru"},
+)
+```
 
-Qualified by `tests/qualification/test_scenarios.py::test_handoff_scenario_runs_both_agents`,
-`test_workflow_scenario_returns_checkpoint_evidence`, and focused handoff/workflow tests.
+The result contains terminal status, final state, ordered checkpoints, and an error code when a
+step exhausts its retries.
+
+## Hand off a session
+
+The executable scenario is `examples.handoff_agent`.
+
+```powershell
+python examples/handoff_agent.py
+```
+
+Declare the target in `Application.agents`, complete the source run, and create the target run:
+
+```python
+target = await runtime.handoff(
+    source.id,
+    to_agent="writer",
+    reason="Turn verified facts into release copy",
+)
+target = await runtime.wait(target.id)
+```
+
+The target agent uses the same session history. Its own provider, tools, permissions, and model
+settings control the new run.

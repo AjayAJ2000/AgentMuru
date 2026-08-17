@@ -1,54 +1,67 @@
-# Current capabilities and limits
+# Capabilities and limits
 
-Use this page to confirm what AgentMuru 0.2 supports before you choose an integration or
-deployment shape. Capability claims use four precise states:
+This page states the current Python 0.3 MVP boundary. Labs experiments are listed separately and
+are not implied by the PyPI package.
 
-- **Implemented**: shipped in the runtime and exercised directly.
-- **Contract tested**: adapter behavior is verified with deterministic fakes.
-- **Credential verified**: exercised against an authorized live service.
-- **Planned**: roadmap work, not a current capability.
+## Runtime
 
-| Capability | State | Evidence | Boundary |
-| --- | --- | --- | --- |
-| FakeModel | Implemented | Runtime and scenario suites | Deterministic; not a production provider |
-| In-memory stores | Implemented | Shared store contracts | Process-local only |
-| SQLite persistence | Implemented | Reopen, concurrency, browser restart, clean wheel | One Runtime process per file |
-| Databricks SDK/SQL imports | Contract tested | Optional-extra clean install and adapter tests | No live workspace call in offline gate |
-| Databricks live workspace | Contract tested | Identity/config behavior | Credential verification is not recorded yet |
-| Production model provider | Planned | Roadmap | FakeModel is the current concrete provider |
-| PostgreSQL store | Planned | Store protocols and roadmap | SQLite is the current durable implementation |
+| Capability | Status | Boundary |
+| --- | --- | --- |
+| Agents and multi-turn model execution | Included | One provider per agent |
+| Typed tools | Included | JSON-schema-compatible Python signatures |
+| Permissions and approvals | Included | Runtime-enforced, deny when a declared permission is not granted |
+| Cancellation | Included | Active runtime task and provider stream |
+| Handoffs | Included | Targets declared in one `Application` |
+| Workflows | Included | In-process deterministic runner and checkpoints |
+| Artifacts | Included | In-memory or SQLite artifact store |
+| Traces and usage | Included | Default tracer is in memory |
 
-## Native local-model qualification
+## Providers
 
-Native edge evidence uses three levels that must not be collapsed into one “supported” label:
+| Provider | SDK path | Text streaming | Tool calls | Usage | Credential-backed qualification |
+| --- | --- | --- | --- | --- | --- |
+| `FakeModel` | Core | Yes | Yes | Deterministic | Offline |
+| OpenAI | Official Responses API | Yes | Yes | Yes | Required per deployment account |
+| Anthropic | Official Messages API | Yes | Yes | Yes | Required per deployment account |
+| Google | Official Gen AI SDK | Yes | Yes | Yes | Required per deployment account |
 
-- **Fixture-qualified**: deterministic signed-catalog, tamper, download, child-process,
-  constrained-decision, residency, and terminal tests pass with local fixtures.
-- **Clean-machine-qualified**: a packaged archive installs on a fresh Windows image, downloads
-  a declared test artifact, starts the pinned runtime, returns a constrained decision, and
-  records redacted resource evidence.
-- **Reference-device-qualified**: the exact published model/runtime pair passes the same flow
-  on a named low-end device profile, including latency and working-set thresholds.
+Adapter contract tests run without keys or network calls. They validate request translation,
+stream handling, complete tool arguments, usage, cancellation behavior, and safe errors. A real
+deployment must verify model access, region, quota, billing, safety policy, and data handling in
+its provider accounts.
 
-The source preview is Fixture-qualified. Clean-machine qualification and the Windows native
-archive are not yet published. **No catalog model is reference-device-qualified**, including
-the Pentium 8 GB target; therefore the signed bootstrap catalog currently contains no public
-model artifacts.
+Structured output, vision, audio, reasoning-specific controls, and embeddings are not declared
+as portable 0.3 capabilities.
 
-| Native capability | State | Evidence | Boundary |
-| --- | --- | --- | --- |
-| Signed catalog verification | Fixture-qualified | Ed25519 mutation and semantic tests | Empty production bootstrap |
-| Atomic GGUF download | Fixture-qualified | Size, digest, cancellation, promotion tests | No public artifact entry |
-| llama.cpp variant selection | Fixture-qualified | Feature-subset tests | Build outputs require qualification |
-| Authenticated local supervisor | Fixture-qualified | Loopback child, token, Job Object, event order | Fixture child process |
-| Constrained action decision | Fixture-qualified | Grammar, JSON, allowlist, redaction tests | Fixture HTTP backend |
-| Pentium 8 GB model/runtime pair | Planned | Hardware contract fixture only | No reference-device report |
-| Native terminal workspace | Fixture-qualified | Responsive golden tests and 60-second idle probe | Source/prerelease preview |
-| Portable agent-pack compiler | Fixture-qualified | Strict loader, compiler, checksum, and contract tests | Directory packs; simulation only |
-| Action-router sample | Fixture-qualified | 40 measured cases, at least 95% routing gate | Deterministic router; not model quality |
-| Trusted-host capability broker | Fixture-qualified | Path, process, web-target, and default-deny tests | Effect execution remains disabled |
-| Optional internet retrieval | Planned | HTTPS/host/IP authorization primitives only | No fetcher is shipped |
-| Android runtime | Planned | Product target only | No Android build or device report |
+## Persistence
 
-The latest machine-readable and rendered evidence is in
-[AgentMuru qualification evidence](qualification.md).
+| Store | Status | Boundary |
+| --- | --- | --- |
+| In-memory sessions and artifacts | Included | One process lifetime |
+| SQLite sessions, events, approvals, artifacts, and idempotency | Included | One active runtime process per file, modest writes |
+| PostgreSQL | Not included | Implement behind public store protocols |
+| Durable trace backend | Not included | Export or replace the default tracer |
+
+SQLite uses WAL, foreign keys, schema migration, bounded busy retries, atomic event sequences,
+and interrupted-run recovery. It is not encrypted by AgentMuru.
+
+## Server and Workspace
+
+The package includes the FastAPI HTTP API, session WebSocket replay, bundled browser Workspace,
+trusted-host middleware, explicit HTTP and WebSocket origin controls, authentication protocols,
+session ownership, payload limits, and security headers.
+
+The default anonymous configuration is for local use. AgentMuru does not ship a production user
+directory, identity provider, TLS terminator, tool sandbox, distributed scheduler, or managed
+deployment control plane.
+
+## Databricks
+
+Databricks SDK, SQL, and Unity Catalog helpers are optional. Offline tests verify configuration,
+serialization, identity isolation, and input safety. Credential-backed workspace behavior must be
+qualified in the target account.
+
+## Labs
+
+Go-native compilation, machine profiling, adaptive action routing, and local-model catalog work
+remain under [Labs](labs/index.md). They are not part of the PyPI 0.3.0 MVP or its support claim.

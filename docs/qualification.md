@@ -1,55 +1,66 @@
-# AgentMuru qualification evidence
+# Qualification
 
-Evidence time: `2026-08-09T08:54:18.015188Z`
+AgentMuru release claims come from repeatable gates. Offline contracts and credential-backed live
+checks remain separate so fixture evidence cannot be mistaken for provider or device evidence.
 
-This page is generated from the clean-wheel qualification report. Contract tests and
-credential-backed live verification are intentionally separate.
+## Python and package gate
 
-## Capability matrix
+CI runs Python 3.10, 3.11, 3.12, and 3.13. The gate includes:
 
-| Capability | Result | Evidence | Limitation |
-| --- | --- | --- | --- |
-| Runtime execution | Passed | installed_smoke |  |
-| Approval resume | Passed | installed_smoke |  |
-| Agent handoff | Passed | installed_smoke |  |
-| Workflow execution | Passed | installed_smoke |  |
-| SQLite restart | Passed | installed_smoke | One Runtime process per file |
-| Databricks optional imports | Passed | installed_smoke | No live workspace call |
-| Databricks live | Not executed | credential-backed environment | Live network qualification requires an explicit opt-in environment. |
+- the full Pytest suite;
+- Ruff and MyPy;
+- provider request, streaming, tool-call, usage, failure, and cancellation contracts without
+  network access;
+- CLI, scaffold, examples, packaging, branding, and documentation contracts;
+- source distribution and wheel construction plus metadata inspection.
 
-## Isolated commands
+## Workspace gate
 
-| Command | Result | Duration (seconds) |
-| --- | --- | ---: |
-| create_venv | Passed | 7.658 |
-| install_wheel_with_databricks_extra | Passed | 76.926 |
-| pip_check | Passed | 1.231 |
-| cli_version | Passed | 0.702 |
-| cli_doctor | Passed | 0.63 |
-| cli_init | Passed | 0.638 |
-| scaffold_import | Passed | 0.249 |
-| installed_smoke | Passed | 15.734 |
-| installed_server_health | Passed | 1.211 |
+The frontend gate installs from `package-lock.json`, then runs component tests, lint, TypeScript
+checks, production build, bundle tests, and bundle budgets. Browser flows cover the real server,
+session interaction, reconnect, approval states, and restart behavior.
 
-## Result
+## Documentation gate
 
-All required checks passed.
+MkDocs builds with `--strict`. The contract verifies current installation commands, task-based
+navigation, provider pages, operational limits, stable references, Labs separation, asset links,
+and absence of legacy public identity.
 
-SQLite evidence covers one active Runtime process per file and modest concurrency.
-It does not claim multi-tenant write scaling or built-in encryption.
+## Clean-wheel gate
 
-## Native preview fixture evidence
+`qualification/run_clean_install.py` creates an isolated virtual environment, disables user-site
+and inherited Python paths, installs the built wheel, checks dependency consistency, runs the CLI,
+imports a generated scaffold, starts the packaged server, and exercises installed runtime paths.
 
-The native preview has a separate, repeatable fixture gate:
+Run it after building:
 
 ```powershell
-.\qualification\edge\action_router_simulation.ps1 -GoExecutable go
+python -m build
+python qualification/run_clean_install.py `
+  --wheel dist/agentmuru-0.3.0-py3-none-any.whl `
+  --report .tmp/qualification.json
 ```
 
-It builds the native CLI, runs the pack/compiler/router/evaluator/policy tests, measures all
-40 cases in `packs/action-router`, requires at least 95% correct routing, and requires zero
-executed effects. The result is written to
-`.tmp/qualification/action-router-simulation.json` using the shared edge qualification schema.
+The installed smoke path covers runtime execution, approvals, handoff, workflow, durable SQLite
+reopen, interrupted-run recovery, and optional integration imports.
 
-This is fixture evidence. It does not qualify a public model artifact, clean-machine install,
-Pentium-class device, Android device, container boundary, or live internet retrieval.
+## Credential-backed checks
+
+Official provider contract tests do not prove that a deployment account can use a model. Before
+release into an environment, run one restricted live request per selected provider and record:
+
+- account and region without secrets;
+- model ID and access outcome;
+- text streaming and one harmless tool call;
+- token usage and stable failure handling;
+- quota and billing controls;
+- provider data retention and privacy configuration.
+
+Databricks live checks follow the same opt-in rule.
+
+## Native Labs evidence
+
+The action-router fixture gate builds the Go CLI, runs native tests, measures all 40 included
+cases, requires at least 95% correct routing, validates every result, and requires zero executed
+effects. It does not qualify a public model, low-end device, Android device, container boundary,
+or live internet retrieval.

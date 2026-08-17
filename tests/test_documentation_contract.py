@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import agentmuru
 import yaml
@@ -13,163 +14,183 @@ def _read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def test_public_navigation_follows_customer_tasks() -> None:
-    navigation = yaml.safe_load(_read("mkdocs.yml"))["nav"]
+def _navigation() -> list[dict[str, Any]]:
+    return yaml.safe_load(_read("mkdocs.yml"))["nav"]
+
+
+def _nav_paths(items: list[Any]) -> list[str]:
+    paths: list[str] = []
+    for item in items:
+        if isinstance(item, str):
+            paths.append(item)
+            continue
+        for value in item.values():
+            if isinstance(value, str):
+                paths.append(value)
+            else:
+                paths.extend(_nav_paths(value))
+    return paths
+
+
+def test_public_navigation_matches_the_python_first_product() -> None:
+    navigation = _navigation()
 
     assert [next(iter(section)) for section in navigation] == [
         "Home",
-        "Start",
-        "Tutorials",
-        "How-to guides",
-        "Concepts",
+        "Get started",
+        "Build",
+        "Providers",
+        "Operate",
         "Reference",
+        "Labs",
+        "Project",
     ]
-    assert [next(iter(page)) for page in navigation[1]["Start"]] == [
-        "Choose a path",
-        "Installation",
-        "Five-minute local quickstart",
-        "Adaptive local preview",
-        "Try a measured agent pack",
-    ]
+    config = yaml.safe_load(_read("mkdocs.yml"))
+    assert "superpowers/**" in config["exclude_docs"]
 
-    public_labels = yaml.safe_dump(navigation)
-    for internal_label in (
-        "Qualification",
-        "Integration status",
-        "Architecture",
-        "Current state",
-        "Target state",
-        "Transformation log",
-        "Decisions",
-    ):
-        assert internal_label not in public_labels
+    paths = _nav_paths(navigation)
+    assert len(paths) == len(set(paths))
+    assert all((ROOT / "docs" / path).is_file() for path in paths)
+    assert "migration-from-legacy-ui.md" not in paths
+    assert "architecture/ai-native-transformation.md" not in paths
 
 
-def test_start_pages_separate_selection_installation_and_quickstart() -> None:
-    installation_path = ROOT / "docs/getting-started/installation.md"
-    quickstart_path = ROOT / "docs/getting-started/quickstart.md"
-    assert installation_path.is_file()
-    assert quickstart_path.is_file()
+def test_homepage_has_one_current_install_path_and_real_workspace_visual() -> None:
+    homepage = _read("docs/index.md")
 
-    choices = _read("docs/getting-started.md")
-    installation = installation_path.read_text(encoding="utf-8")
-    quickstart = quickstart_path.read_text(encoding="utf-8")
+    assert "Build agents you can see, steer, and trust." in homepage
+    assert "python -m pip install agentmuru==0.3.0" in homepage
+    assert "getting-started/quickstart.md" in homepage
+    assert "getting-started/real-model.md" in homepage
+    assert "assets/workspace-overview.png" in homepage
+    assert "Native adaptive-agent preview" not in homepage
 
-    assert "Choose your path" in choices
-    assert "getting-started/installation.md" in choices
-    assert "getting-started/quickstart.md" in choices
-    assert "python -m pip install agentmuru==0.2.0" in installation
-    assert installation.index("agentmuru==0.2.0") < installation.index("pip install -e")
+
+def test_getting_started_path_is_runnable_and_task_complete() -> None:
+    installation = _read("docs/getting-started/installation.md")
+    quickstart = _read("docs/getting-started/quickstart.md")
+    tour = _read("docs/getting-started/workspace-tour.md")
+    real_model = _read("docs/getting-started/real-model.md")
+
+    assert "python -m pip install agentmuru==0.3.0" in installation
+    assert installation.index("agentmuru==0.3.0") < installation.index("pip install -e")
     for expected in (
         "muru doctor",
         "muru init",
         "muru run app:application",
         "http://127.0.0.1:8000",
         "What you should see",
-        "Next steps",
+        "Stop the server",
     ):
         assert expected in quickstart
+    for workspace_area in ("Sessions", "Timeline", "Approvals", "Artifacts"):
+        assert workspace_area in tour
+    for provider in ("openai", "anthropic", "google"):
+        assert f"--provider {provider}" in real_model
 
 
-def test_homepage_routes_readers_by_goal() -> None:
-    homepage = _read("docs/index.md")
+def test_official_provider_pages_match_shipped_adapters() -> None:
+    expectations = {
+        "openai": ("OpenAIModel", "OPENAI_API_KEY", "gpt-5.6-terra"),
+        "anthropic": ("AnthropicModel", "ANTHROPIC_API_KEY", "claude-sonnet-5"),
+        "google": ("GoogleGenAIModel", "GOOGLE_API_KEY", "gemini-3.5-flash"),
+    }
+    overview = _read("docs/providers/index.md")
+    for provider, (class_name, environment_variable, model) in expectations.items():
+        page = _read(f"docs/providers/{provider}.md")
+        assert f"agentmuru[{provider}]" in page
+        assert class_name in page
+        assert environment_variable in page
+        assert model in page
+        assert f"({provider}.md)" in overview
 
-    assert "Choose your goal" in homepage
-    assert "How the docs are organized" in homepage
-    for destination in (
-        "getting-started/quickstart.md",
-        "guides/sqlite-persistence.md",
-        "cookbook/governed-tools.md",
-        "reference/public-api.md",
-        "integration-status.md",
-    ):
-        assert destination in homepage
 
-
-def test_public_api_reference_matches_stable_exports() -> None:
-    reference = _read("docs/reference/public-api.md")
+def test_reference_pages_cover_the_stable_surface() -> None:
+    public_api = _read("docs/reference/public-api.md")
+    cli = _read("docs/reference/cli.md")
+    events = _read("docs/reference/events.md")
+    providers = _read("docs/reference/providers.md")
+    configuration = _read("docs/reference/configuration.md")
 
     for name in agentmuru.__all__:
-        assert f"`{name}`" in reference
-    assert "from agentmuru import SQLitePersistence" in reference
-
-
-def test_persistence_guide_contains_verified_contract_and_limits() -> None:
-    guide = _read("docs/guides/sqlite-persistence.md")
-
-    assert 'SQLitePersistence("agentmuru.db")' in guide
-    assert "one active AgentMuru runtime process" in guide
-    assert "BEGIN IMMEDIATE" in guide
-    assert "storage_busy" in guide
-    assert "process_interrupted" in guide
-    assert "WAL" in guide
-    assert "5,000 ms" in guide
-    assert "not encrypted" in guide
-
-
-def test_custom_store_migration_lists_every_explicit_mutation() -> None:
-    migration = _read("docs/migration-custom-stores-0.2.md")
-    for method in (
-        "append_message",
-        "create_run",
-        "update_run",
-        "get_run",
-        "get_idempotent_run",
-        "bind_idempotency_key",
-        "recover_interrupted_runs",
-        "append_event",
+        assert f"`{name}`" in public_api
+    for command in ("muru version", "muru doctor", "muru init", "muru dev", "muru run"):
+        assert command in cli
+    for event_type in (
+        "agent.started",
+        "model.request.started",
+        "tool.call.requested",
+        "run.completed",
     ):
-        assert f"`{method}`" in migration
+        assert event_type in events
+    for setting in ("max_output_tokens", "temperature", "top_p", "stop", "tool_choice"):
+        assert setting in providers
+    for variable in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY"):
+        assert variable in configuration
 
 
-def test_server_and_deployment_guides_cover_operational_boundaries() -> None:
-    server = _read("docs/guides/server-and-workspace.md")
-    deployment = _read("docs/guides/deployment.md")
-    combined = server + deployment + _read("docs/guides/security.md")
-
+def test_operational_docs_state_real_boundaries() -> None:
+    combined = "\n".join(
+        _read(path)
+        for path in (
+            "docs/operations/server-and-workspace.md",
+            "docs/operations/sqlite.md",
+            "docs/operations/observability.md",
+            "docs/operations/security.md",
+            "docs/operations/deployment.md",
+        )
+    )
     for phrase in (
         "/health",
         "WebSocket",
+        "one active AgentMuru runtime process",
+        "WAL",
+        "storage_busy",
+        "process_interrupted",
         "trusted hosts",
+        "authentication",
         "TLS",
         "backup",
-        "payload",
-        "authentication",
-        "database path",
     ):
         assert phrase.lower() in combined.lower()
 
 
-def test_native_preview_is_not_documented_as_released() -> None:
-    text = _read("docs/getting-started/native-preview.md")
+def test_labs_are_explicitly_separate_from_the_python_mvp() -> None:
+    labs = _read("docs/labs/index.md")
+    native = _read("docs/labs/native-preview.md")
+    local_models = _read("docs/labs/local-models.md")
 
-    assert "distributed separately through GitHub Releases" in text
-    assert "public model catalog is intentionally empty" in text
-    for command in ("muru doctor --json", "muru ui", "Ctrl+P"):
-        assert command in text
+    assert "not part of the PyPI 0.3.0 MVP" in labs
+    assert "distributed separately through GitHub Releases" in native.replace("\n", " ")
+    assert "public model catalog is intentionally empty" in native
+    assert "No catalog model is reference-device-qualified" in local_models
 
 
-def test_action_router_tutorial_is_measured_and_simulation_only() -> None:
-    text = _read("docs/getting-started/action-router.md")
+def test_public_docs_have_no_legacy_identity_or_stale_current_version() -> None:
+    config = yaml.safe_load(_read("mkdocs.yml"))
+    public_paths = _nav_paths(config["nav"])
+    failures: list[str] = []
+    stale: list[str] = []
+    dashes: list[str] = []
+    for relative in public_paths:
+        text = _read(f"docs/{relative}")
+        lowered = text.lower()
+        if "brickflowui" in lowered or "brickflow ui" in lowered:
+            failures.append(relative)
+        if relative != "CHANGELOG.md" and "agentmuru 0.2" in lowered:
+            stale.append(relative)
+        if "—" in text or "–" in text:
+            dashes.append(relative)
+    assert failures == []
+    assert stale == []
+    assert dashes == []
 
-    for phrase in (
-        "40 cases",
-        "--fixture",
-        "at least 95% routing accuracy",
-        "effects_executed: 0",
-        "muru create",
-        "Model output cannot grant itself",
+
+def test_removed_public_history_pages_are_absent() -> None:
+    for relative in (
+        "docs/migration-from-legacy-ui.md",
+        "docs/migration-custom-stores-0.2.md",
+        "docs/architecture/current-state.md",
+        "docs/architecture/ai-native-transformation.md",
     ):
-        assert phrase in text
-
-
-def test_local_model_status_separates_qualification_levels() -> None:
-    status = _read("docs/integration-status.md")
-    guide = _read("docs/guides/local-model-runtime.md")
-
-    for level in ("Fixture-qualified", "Clean-machine-qualified", "Reference-device-qualified"):
-        assert level in status
-    assert "No catalog model is reference-device-qualified" in status
-    assert "signed catalog" in guide
-    assert "muru models install" in guide
-    assert "--accept-license" in guide
+        assert not (ROOT / relative).exists()

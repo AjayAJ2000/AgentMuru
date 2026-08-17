@@ -1,45 +1,62 @@
-# Build your first local agent
+# Quickstart
 
-Create and run an AgentMuru application in about five minutes. The generated starter uses
-`FakeModel`, so this path does not require provider credentials or a network call after
-installation.
+This path creates a working AgentMuru application with deterministic output. It does not use
+an API key or make a model request over the network.
 
-## Prerequisites
-
-- complete [installation](installation.md);
-- confirm that `muru doctor` passes;
-- choose a directory where AgentMuru can create a project folder.
-
-## Create the application
+## Check the installation
 
 ```powershell
-muru init hello-muru --name "Hello Muru"
-cd hello-muru
+muru doctor
 ```
 
-The scaffold creates an `app.py` module with an `application` object that the AgentMuru
-server can load.
+Both Python and Workspace assets should report `ready`.
 
-## Run the application
+## Create the starter
 
 ```powershell
+muru init my-agent --name "My first AgentMuru app"
+cd my-agent
+```
+
+The directory contains:
+
+- `app.py`, which exports `application`.
+- `requirements.txt`, constrained to AgentMuru 0.3.
+- `README.md`, with the exact run command.
+
+The default model is `FakeModel`. Open `app.py` and change its fixed response if you want a
+different local result.
+
+## Start the runtime
+
+```powershell
+python -m pip install -r requirements.txt
 muru run app:application
 ```
 
-Open `http://127.0.0.1:8000` in a browser.
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in a browser.
 
-## What you should see
+## Send the first message
 
-Muru Workspace loads the starter application and projects its runtime state in the
-browser. The first interaction uses the deterministic fake model, so AgentMuru should not
-request provider credentials. Stop the server with `Ctrl+C` when you finish.
+Create a session in the left rail, enter a message, and submit it. The fixed assistant reply
+appears while the Timeline records the run, model request, streamed content, and completion.
 
-If the server does not start, rerun `muru doctor`, confirm that port 8000 is available,
-and review [server and Workspace operations](../guides/server-and-workspace.md).
+### What you should see
+
+- A session remains available in the session list.
+- The conversation contains your message and the deterministic assistant reply.
+- Timeline entries have a stable sequence and event type.
+- The run ends in `completed`.
+
+Refresh the page. The in-memory starter remains useful for one process lifetime. Add
+[SQLite persistence](../operations/sqlite.md) when sessions must survive a restart.
+
+## Stop the server
+
+Return to the terminal and press `Ctrl+C`.
 
 ## Next steps
 
-- [Govern tool execution](../cookbook/governed-tools.md).
-- [Persist sessions with SQLite](../guides/sqlite-persistence.md).
-- [Understand agents and models](../concepts/agents-and-models.md).
-- [Look up the stable public API](../reference/public-api.md).
+- [Understand the Workspace](workspace-tour.md)
+- [Use a real model](real-model.md)
+- [Create a governed tool](../cookbook/governed-tools.md)

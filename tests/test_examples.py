@@ -51,7 +51,7 @@ def test_provider_examples_export_applications_without_network_calls() -> None:
         ("examples/artifact_agent.py", "docs/cookbook/artifacts.md"),
         ("examples/durable_agent.py", "docs/cookbook/durable-sessions.md"),
         ("examples/handoff_agent.py", "docs/cookbook/workflows-and-handoffs.md"),
-        ("examples/databricks_agent.py", "docs/cookbook/databricks.md"),
+        ("examples/databricks_agent.py", "docs/operations/databricks.md"),
     ],
 )
 def test_scenario_has_cookbook_page(example: str, page: str) -> None:

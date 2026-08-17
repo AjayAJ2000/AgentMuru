@@ -1,21 +1,45 @@
 # Reopen durable sessions
 
-**Outcome:** complete a run, release the first Runtime, reopen the same database, and read
-the original run, two messages, and twelve ordered events.
-
-Module: `examples.durable_agent`
+The executable scenario is `examples.durable_agent`.
 
 ```powershell
 python examples/durable_agent.py
 ```
 
-`create_application(database_path)` returns an `Application` and `SQLitePersistence` for
-explicit Runtime composition. Expected status is `completed` with one session/run, two
-messages, and twelve events.
+The scenario creates a SQLite-backed application, completes one run, constructs a new runtime
+over the same file, and verifies that the session, run, messages, and events reopen.
 
-Muru Workspace hydrates the snapshot then follows new events after its last sequence. A
-restart during nonterminal work produces `process_interrupted`; it does not resume Python
-coroutines. Lock exhaustion surfaces as `storage_busy`.
+## Compose persistence
 
-Qualified by `tests/qualification/test_scenarios.py::test_durable_scenario_restores_history_from_same_file`,
-SQLite Runtime tests, HTTP/WebSocket reopen tests, and the Chromium restart flow.
+```python
+from agentmuru import Application, Runtime, SQLitePersistence
+
+persistence = SQLitePersistence("agentmuru.db")
+application = Application(
+    agent=agent,
+    session_store=persistence.sessions,
+    artifact_store=persistence.artifacts,
+)
+runtime = Runtime(application, approvals=persistence.approval_service())
+```
+
+Use the stores from the same `SQLitePersistence` object so sessions, artifacts, and approval
+records share one database and schema lifecycle.
+
+## Make submissions idempotent
+
+```python
+run = await runtime.submit(
+    session.id,
+    "persist this",
+    idempotency_key="client-request-1842",
+)
+```
+
+Retrying with the same key returns the bound run instead of creating another run.
+
+## Reopen safely
+
+Create a new persistence object and runtime after the first process is fully stopped. The
+bundled SQLite profile is designed for one active AgentMuru runtime process per database file.
+See [SQLite operations](../operations/sqlite.md) for locking, backups, and recovery.
