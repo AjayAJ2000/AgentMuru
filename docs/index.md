@@ -9,8 +9,8 @@ hide:
     <h1>Build agents you can see, steer, and trust.</h1>
     <p>One Python runtime for model calls, governed tools, durable state, and an operator-ready workspace.</p>
     <div class="muru-actions">
-      <a class="md-button md-button--primary" href="getting-started/quickstart.md">Run the quickstart</a>
-      <a class="md-button" href="getting-started/real-model.md">Connect a model</a>
+      <a class="md-button md-button--primary" href="getting-started/quickstart/">Run the quickstart</a>
+      <a class="md-button" href="getting-started/real-model/">Connect a model</a>
     </div>
   </div>
   <figure class="muru-hero__visual">
@@ -33,17 +33,17 @@ muru init my-agent
   <article>
     <h3>Run the MVP</h3>
     <p>Create a project, send a message, inspect its timeline, and reopen the session.</p>
-    <a href="getting-started/quickstart.md">Follow the quickstart</a>
+    <a href="getting-started/quickstart/">Follow the quickstart</a>
   </article>
   <article>
     <h3>Use a real model</h3>
     <p>Choose OpenAI, Anthropic, or Google without changing runtime code.</p>
-    <a href="getting-started/real-model.md">Configure a provider</a>
+    <a href="getting-started/real-model/">Configure a provider</a>
   </article>
   <article>
     <h3>Build governed behavior</h3>
     <p>Turn typed Python functions into tools, require permissions, pause risky work for approval, and replay every decision.</p>
-    <a href="cookbook/governed-tools.md">Build a governed tool</a>
+    <a href="cookbook/governed-tools/">Build a governed tool</a>
   </article>
 </div>
 
@@ -73,7 +73,7 @@ model turn.
 
 <div class="muru-boundary">
   <strong>Clear boundary.</strong> The PyPI package is the supported Python-first MVP. Native
-  compilation, adaptive routing, and local-model catalog work live under <a href="labs/index.md">Labs</a>.
+  compilation, adaptive routing, and local-model catalog work live under <a href="labs/">Labs</a>.
 </div>
 
 ## Continue from here

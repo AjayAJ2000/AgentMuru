@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -60,10 +61,21 @@ def test_homepage_has_one_current_install_path_and_real_workspace_visual() -> No
 
     assert "Build agents you can see, steer, and trust." in homepage
     assert "python -m pip install agentmuru==0.3.0" in homepage
-    assert "getting-started/quickstart.md" in homepage
-    assert "getting-started/real-model.md" in homepage
+    assert 'href="getting-started/quickstart/"' in homepage
+    assert 'href="getting-started/real-model/"' in homepage
     assert "assets/workspace-overview.png" in homepage
     assert "Native adaptive-agent preview" not in homepage
+
+
+def test_raw_html_internal_links_use_published_urls() -> None:
+    failures: list[str] = []
+    for page in (ROOT / "docs").rglob("*.md"):
+        text = page.read_text(encoding="utf-8")
+        for href in re.findall(r'href=["\']([^"\']+)["\']', text):
+            if href.split("#", 1)[0].endswith(".md"):
+                failures.append(f"{page.relative_to(ROOT)} -> {href}")
+
+    assert failures == []
 
 
 def test_getting_started_path_is_runnable_and_task_complete() -> None:
