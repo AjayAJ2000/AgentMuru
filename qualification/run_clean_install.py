@@ -50,6 +50,22 @@ def build_smoke_command(venv_dir: Path, smoke_script: Path) -> CommandSpec:
     )
 
 
+def build_install_command(venv_dir: Path, wheel: Path, workdir: Path) -> CommandSpec:
+    return CommandSpec(
+        name="install_wheel_with_optional_integrations",
+        argv=(
+            str(_venv_python(venv_dir)),
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            f"{wheel}[databricks,providers]",
+        ),
+        cwd=workdir,
+        environment=clean_environment(),
+    )
+
+
 def _run(command: CommandSpec, *, timeout: float = 600) -> dict[str, object]:
     started = time.perf_counter()
     completed = subprocess.run(
@@ -184,22 +200,7 @@ def qualify(
     )
     python = _venv_python(venv_dir)
     if python.is_file():
-        execute(
-            CommandSpec(
-                name="install_wheel_with_databricks_extra",
-                argv=(
-                    str(python),
-                    "-m",
-                    "pip",
-                    "install",
-                    "--disable-pip-version-check",
-                    f"{wheel}[databricks]",
-                ),
-                cwd=workdir,
-                environment=environment,
-            ),
-            timeout=900,
-        )
+        execute(build_install_command(venv_dir, wheel, workdir), timeout=900)
         execute(
             CommandSpec(
                 name="pip_check",

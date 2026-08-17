@@ -54,6 +54,10 @@ def render_report(report: Mapping[str, Any]) -> str:
             ]
             passed = all(imports)
             rows.append(("Databricks optional imports", "Passed" if passed else "Failed", "installed_smoke", "No live workspace call"))
+        provider_sdks = scenarios.get("provider_sdks")
+        if isinstance(provider_sdks, Mapping):
+            passed = all(bool(value) for value in provider_sdks.values())
+            rows.append(("Official provider extras", "Passed" if passed else "Failed", "installed_smoke", "No credential-backed model call"))
     elif isinstance(scenarios, Sequence) and not isinstance(scenarios, (str, bytes)):
         for scenario in scenarios:
             if isinstance(scenario, Mapping):

@@ -16,6 +16,9 @@ from agentmuru import (
     tool,
 )
 from agentmuru.approvals import ApprovalDecision
+from agentmuru.integrations.anthropic import AnthropicModel
+from agentmuru.integrations.google import GoogleGenAIModel
+from agentmuru.integrations.openai import OpenAIModel
 from agentmuru.models import ModelCompleted, TextDelta, ToolCall
 from agentmuru.workflows import Step, StepResult, Workflow, WorkflowRunner
 
@@ -114,6 +117,11 @@ async def qualify() -> dict[str, object]:
     )
 
     package_origin = Path(agentmuru.__file__).resolve()
+    providers = (
+        OpenAIModel(api_key="qualification"),
+        AnthropicModel(api_key="qualification"),
+        GoogleGenAIModel(api_key="qualification"),
+    )
     return {
         "version": agentmuru.__version__,
         "package_origin": str(package_origin),
@@ -127,9 +135,14 @@ async def qualify() -> dict[str, object]:
         "workflow_status": workflow.status.value,
         "databricks_sdk": importlib.util.find_spec("databricks.sdk") is not None,
         "databricks_sql": importlib.util.find_spec("databricks.sql") is not None,
+        "provider_adapters": [provider.name for provider in providers],
+        "provider_sdks": {
+            "openai": importlib.util.find_spec("openai") is not None,
+            "anthropic": importlib.util.find_spec("anthropic") is not None,
+            "google_genai": importlib.util.find_spec("google.genai") is not None,
+        },
     }
 
 
 if __name__ == "__main__":
     print(json.dumps(asyncio.run(qualify()), sort_keys=True))
-

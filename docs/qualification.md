@@ -3,6 +3,24 @@
 AgentMuru release claims come from repeatable gates. Offline contracts and credential-backed live
 checks remain separate so fixture evidence cannot be mistaken for provider or device evidence.
 
+## 0.3.0 release evidence
+
+The release candidate was qualified on 18 August 2026 with these results:
+
+- 182 Python tests across runtime, persistence, providers, server, CLI, packaging, and docs;
+- Ruff and MyPy with no reported issues;
+- 9 frontend unit tests, 2 bundle tests, and 3 Chromium end-to-end flows;
+- zero serious or critical accessibility violations in the Workspace and zero homepage violations;
+- strict MkDocs build in light, dark, desktop, and 390-pixel mobile layouts;
+- wheel and source distribution accepted by Twine 7 with no internal planning files;
+- clean-wheel installation with OpenAI, Anthropic, Google Gen AI, and Databricks extras;
+- all Go tests and vet, a native build, and 40 of 40 correctly routed fixture cases with zero
+  simulated unsafe effects.
+
+Credential-backed model calls, a live Databricks workspace, and reference-device native testing
+were not executed. Those remain deployment-specific gates and are not implied by the offline
+results above.
+
 ## Python and package gate
 
 CI runs Python 3.10, 3.11, 3.12, and 3.13. The gate includes:
