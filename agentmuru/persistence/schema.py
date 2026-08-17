@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 MIGRATION_1 = (
     """
@@ -105,3 +105,12 @@ MIGRATION_1 = (
     "CREATE INDEX artifacts_session_created ON artifacts(session_id, created_at)",
     "CREATE INDEX approvals_session_requested ON approvals(session_id, requested_at)",
 )
+
+MIGRATION_2 = (
+    "ALTER TABLE messages ADD COLUMN tool_calls TEXT NOT NULL DEFAULT '[]'",
+)
+
+MIGRATIONS = {
+    1: MIGRATION_1,
+    2: MIGRATION_2,
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -16,6 +17,13 @@ class MessageRole(str, Enum):
     SYSTEM = "system"
 
 
+@dataclass(frozen=True, slots=True)
+class AssistantToolCall:
+    id: str
+    name: str
+    arguments: Mapping[str, Any] = field(default_factory=dict)
+
+
 @dataclass(slots=True)
 class Message:
     role: MessageRole
@@ -24,6 +32,7 @@ class Message:
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     name: str | None = None
     tool_call_id: str | None = None
+    tool_calls: tuple[AssistantToolCall, ...] = field(default_factory=tuple)
 
 
 class RunStatus(str, Enum):

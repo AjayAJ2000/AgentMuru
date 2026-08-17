@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from agentmuru.sessions import (
+    AssistantToolCall,
     InMemorySessionStore,
     Message,
     MessageRole,
@@ -29,8 +30,30 @@ def assert_session_store_contract(store: SessionStore) -> None:
     assert store.get_idempotent_run(session.id, "missing") is None
 
 
+def assert_assistant_tool_call_contract(store: SessionStore) -> None:
+    session = store.create()
+    call = AssistantToolCall(
+        id="call-1",
+        name="lookup",
+        arguments={"query": "muru", "limit": 3},
+    )
+    message = store.append_message(
+        session.id,
+        Message(role=MessageRole.ASSISTANT, content="Checking.", tool_calls=(call,)),
+    )
+
+    loaded = store.get(session.id).messages[-1]
+
+    assert loaded == message
+    assert loaded.tool_calls == (call,)
+
+
 def test_in_memory_store_satisfies_explicit_mutation_contract() -> None:
     assert_session_store_contract(InMemorySessionStore())
+
+
+def test_in_memory_store_preserves_normalized_assistant_tool_calls() -> None:
+    assert_assistant_tool_call_contract(InMemorySessionStore())
 
 
 def test_in_memory_store_recovers_only_nonterminal_runs() -> None:
