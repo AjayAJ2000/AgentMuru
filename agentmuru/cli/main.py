@@ -143,7 +143,8 @@ def init_project(
             content = source.read_text(encoding="utf-8")
             for marker, value in replacements.items():
                 content = content.replace(marker, value)
-            (target / source.name).write_text(content, encoding="utf-8")
+            output_name = source.name.removesuffix(".template")
+            (target / output_name).write_text(content, encoding="utf-8")
     typer.echo(f"Created AgentMuru project at {target}")
     typer.echo(f"Next: cd {target.name} && muru dev app:application")
 

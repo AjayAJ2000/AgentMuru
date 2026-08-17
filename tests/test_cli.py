@@ -33,6 +33,7 @@ def test_init_creates_small_runtime_first_project(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "from agentmuru import Agent, Application, FakeModel, tool" in (target / "app.py").read_text()
     assert "agentmuru>=0.3,<0.4" in (target / "requirements.txt").read_text()
+    assert not (target / "requirements.txt.template").exists()
     assert "muru run app:application" in (target / "README.md").read_text()
 
 
