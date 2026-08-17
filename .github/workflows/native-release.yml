@@ -4,16 +4,15 @@ on:
   release:
     types: [published]
 
-permissions:
-  contents: write
-
 jobs:
   windows:
     if: github.event.release.prerelease
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: edge/go.mod
           cache-dependency-path: edge/go.sum
@@ -39,9 +38,11 @@ jobs:
   linux:
     if: github.event.release.prerelease
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: edge/go.mod
           cache-dependency-path: edge/go.sum

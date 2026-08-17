@@ -9,8 +9,11 @@ import pytest
 from agentmuru.core.events import EventType, RuntimeEvent
 from agentmuru.persistence.database import SQLiteDatabase
 from agentmuru.persistence.session_store import SQLiteSessionStore
-from agentmuru.sessions import Message, MessageRole, RunRecord, RunStatus
-from tests.sessions.test_store_contract import assert_session_store_contract
+from agentmuru.sessions import AssistantToolCall, Message, MessageRole, RunRecord, RunStatus
+from tests.sessions.test_store_contract import (
+    assert_assistant_tool_call_contract,
+    assert_session_store_contract,
+)
 
 
 def test_sqlite_store_satisfies_contract_and_survives_reopen(tmp_path: Path) -> None:
@@ -47,6 +50,23 @@ def test_sqlite_store_round_trips_session_metadata_and_message_fields(tmp_path: 
     assert loaded.title == "After"
     assert loaded.metadata == {"rank": 2, "team": "முரு"}
     assert loaded.messages == [message]
+
+
+def test_sqlite_store_preserves_normalized_assistant_tool_calls(tmp_path: Path) -> None:
+    path = tmp_path / "agentmuru.db"
+    first = SQLiteSessionStore(SQLiteDatabase(path))
+
+    assert_assistant_tool_call_contract(first)
+
+    reopened = SQLiteSessionStore(SQLiteDatabase(path))
+    [loaded] = reopened.list()
+    assert loaded.messages[0].tool_calls == (
+        AssistantToolCall(
+            id="call-1",
+            name="lookup",
+            arguments={"limit": 3, "query": "muru"},
+        ),
+    )
 
 
 def test_two_store_instances_allocate_unique_monotonic_sequences(tmp_path: Path) -> None:

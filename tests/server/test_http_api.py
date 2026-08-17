@@ -44,6 +44,7 @@ def test_http_api_creates_session_submits_message_and_exposes_replay() -> None:
         assert events["protocol_version"] == 1
         session = client.get(f"/api/v1/sessions/{session_id}").json()
         assert session["messages"][-1]["content"] == "hello"
+        assert session["messages"][-1]["tool_calls"] == []
 
 
 def test_application_metadata_describes_agents_and_tools() -> None:

@@ -1,5 +1,7 @@
 # {{APP_NAME}}
 
+{{PROVIDER_SETUP}}
+
 ```powershell
 python -m pip install -r requirements.txt
 muru run app:application

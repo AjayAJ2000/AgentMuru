@@ -13,42 +13,13 @@ ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_URL = "https://github.com/AjayAJ2000/AgentMuru"
 DOCUMENTATION_URL = "https://ajayaj2000.github.io/AgentMuru/"
 APPROVED_MARK_SHA256 = "44dc00f0415775733b6a3aef3dd0f037c9666afbced6d6676552b76b2f54c5a2"
-ALLOWED_HISTORY = {
-    ROOT / "docs" / "migration-from-legacy-ui.md",
-    ROOT / "docs" / "architecture" / "current-state.md",
-    ROOT / "docs" / "architecture" / "ai-native-transformation.md",
-    ROOT / "docs" / "superpowers" / "specs" / "2026-08-08-agentmuru-ai-native-rearchitecture-design.md",
-    ROOT / "docs" / "superpowers" / "plans" / "2026-08-08-agentmuru-ai-native-rearchitecture.md",
-    ROOT
-    / "docs"
-    / "superpowers"
-    / "specs"
-    / "2026-08-09-agentmuru-qualification-persistence-and-launch-design.md",
-    ROOT
-    / "docs"
-    / "superpowers"
-    / "plans"
-    / "2026-08-09-agentmuru-persistence-and-qualification.md",
-    ROOT
-    / "docs"
-    / "superpowers"
-    / "plans"
-    / "2026-08-09-agentmuru-documentation-and-release.md",
-    ROOT
-    / "docs"
-    / "superpowers"
-    / "plans"
-    / "2026-08-09-agentmuru-landing-and-launch.md",
-}
-
-
 def test_public_repository_copy_uses_agentmuru_identity() -> None:
     candidates = [ROOT / "README.md", ROOT / "pyproject.toml", ROOT / "mkdocs.yml"]
-    candidates += list((ROOT / "docs").rglob("*.md"))
+    candidates += [
+        path for path in (ROOT / "docs").rglob("*.md") if "superpowers" not in path.parts
+    ]
     failures = []
     for path in candidates:
-        if path in ALLOWED_HISTORY:
-            continue
         text = path.read_text(encoding="utf-8", errors="replace").lower()
         if "brickflowui" in text or "brickflow ui" in text:
             failures.append(str(path.relative_to(ROOT)))
@@ -68,10 +39,11 @@ def test_frontend_source_has_no_legacy_protocol_identity() -> None:
 def test_public_release_urls_use_exact_agentmuru_identity() -> None:
     package = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert package["project"]["urls"] == {
-        "Homepage": REPOSITORY_URL,
+        "Homepage": DOCUMENTATION_URL,
         "Documentation": DOCUMENTATION_URL,
         "Repository": REPOSITORY_URL,
         "Issues": f"{REPOSITORY_URL}/issues",
+        "Changelog": f"{DOCUMENTATION_URL}CHANGELOG/",
     }
 
     docs = yaml.safe_load((ROOT / "mkdocs.yml").read_text(encoding="utf-8"))
@@ -83,7 +55,7 @@ def test_public_release_urls_use_exact_agentmuru_identity() -> None:
         (ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml").read_text(encoding="utf-8")
     )
     assert issue_config["contact_links"][0]["url"] == DOCUMENTATION_URL
-    assert issue_config["contact_links"][1]["url"] == f"{REPOSITORY_URL}/blob/main/SECURITY.md"
+    assert issue_config["contact_links"][1]["url"] == f"{REPOSITORY_URL}/security/advisories/new"
 
 
 def test_public_install_and_documentation_are_featured() -> None:
@@ -104,11 +76,11 @@ def test_docs_use_agentmuru_product_family_identity() -> None:
     assert "assets/agentmuru-mark.png" in config
     assert "stylesheets/agentmuru.css" in config
     assert all(color in css for color in ("#0A7C7F", "#0D5F8A", "#C48A1F", "#0D0F14", "#F4F7FB"))
-    assert all(font in config for font in ("Inter", "JetBrains Mono"))
+    assert all(font in config for font in ("DM Sans", "IBM Plex Mono"))
     assert "Build agents you can see, steer, and trust." in index
 
 
-def test_every_bundled_mark_is_the_approved_datamuru_master() -> None:
+def test_every_bundled_mark_matches_the_approved_agentmuru_asset() -> None:
     marks = (
         ROOT / "docs" / "assets" / "agentmuru-mark.png",
         ROOT / "frontend" / "public" / "agentmuru-mark.png",
@@ -121,16 +93,14 @@ def test_every_bundled_mark_is_the_approved_datamuru_master() -> None:
     } == {path.relative_to(ROOT).as_posix(): APPROVED_MARK_SHA256 for path in marks}
 
 
-def test_release_copy_describes_verified_agentmuru_0_2() -> None:
+def test_release_copy_describes_agentmuru_0_3_as_current() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     changelog = (ROOT / "docs" / "CHANGELOG.md").read_text(encoding="utf-8")
-    transformation = (
-        ROOT / "docs" / "architecture" / "ai-native-transformation.md"
-    ).read_text(encoding="utf-8")
 
-    assert "python -m pip install agentmuru==0.2.0" in readme
+    assert "python -m pip install agentmuru==0.3.0" in readme
     assert "SQLitePersistence" in readme
+    assert "## 0.3.0" in changelog
+    assert "OpenAIModel" in changelog
     assert "## 0.2.0" in changelog
     assert "process_interrupted" in changelog
-    assert "124 Python tests" in transformation
-    assert "durable external stores" not in readme
+    assert "Production model providers and PostgreSQL are planned" not in readme

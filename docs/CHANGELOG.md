@@ -1,47 +1,48 @@
-# Changelog
+# Release notes
+
+## 0.3.0
+
+- Added `OpenAIModel`, `AnthropicModel`, and `GoogleGenAIModel` on the official provider SDKs.
+- Added normalized provider settings, tool calls, usage, safe error codes, cancellation cleanup,
+  and optional dependency guidance.
+- Persisted complete assistant tool calls before tool results and migrated SQLite to the current
+  schema.
+- Added provider-aware `muru init --provider` starters and executable provider examples.
+- Added provider extras with verified SDK floors and aligned Python, frontend, workflow, and
+  distribution versions.
+- Rebuilt the documentation around Get started, Build, Providers, Operate, Reference, Labs, and
+  Project tasks.
+- Clarified that the Python package and browser Workspace are the MVP while native work remains
+  in Labs.
+
+Limitations: use one active runtime process per SQLite file. The package does not include
+PostgreSQL, durable trace export, a tool sandbox, or production identity management. Real provider
+access and quotas remain deployment-specific.
 
 ## 0.3.0-alpha.1 native preview
 
-- Added the native `muru` terminal workspace, hardware discovery, responsive layouts, durable
+- Added a separate native terminal workspace, hardware discovery, responsive layouts, durable
   redacted events, and session restore.
-- Added signed model catalogs, atomic model installation, compatible llama.cpp runtime
+- Added signed model-catalog verification, atomic installation, compatible llama.cpp runtime
   selection, authenticated loopback supervision, constrained decisions, and bounded residency.
 - Added portable agent-pack contracts, deterministic requirements compilation, simulation-only
-  routing, persisted explanations, and measured evaluation gates.
-- Added the 40-case `action-router` pack and a repeatable fixture qualification report.
-- Added a trusted-host, default-deny capability broker for scoped reads, exact process rules,
-  approvals, and validated HTTPS targets.
+  routing, explanations, and measured fixture gates.
 
-Limitations: this is a GitHub prerelease, not the PyPI package. The public model catalog is
-empty, effects remain simulated, optional internet retrieval and Android are not shipped, and
-no low-end model/runtime pair is claimed until a reference-device report passes.
+This remains a separate GitHub prerelease. The public model catalog is empty and action effects
+remain simulated.
 
 ## 0.2.0
 
-- Added `SQLitePersistence` for sessions, messages, runs, atomic ordered events, artifacts,
-  approvals, and idempotency using the Python standard library.
-- Replaced implicit session-list mutation with explicit store operations and shared adapter
-  contracts.
-- Added WAL, foreign keys, schema versioning, `BEGIN IMMEDIATE` event counters, a 5-second
-  busy timeout, bounded retries, safe serialization, and storage error codes.
-- Added honest restart behavior: nonterminal runs become failed with `process_interrupted`
-  and durable history remains replayable.
-- Qualified SQLite HTTP/WebSocket restore, Muru Workspace reconnect/restart, approvals,
-  artifacts, cancellation, handoffs, workflows, and optional Databricks imports.
-- Added six runnable scenario examples, an isolated clean-wheel harness, generated evidence,
-  operator/deployment guides, migration notes, and an executable cookbook.
-- Adopted the DataMuru product-family Hybrid Vel Eye mark, Peacock Teal, Cobalt Wing, and
-  Eye Gold documentation identity.
-
-Limitations: use one active Runtime process per SQLite file; SQLite is not encrypted;
-credential-backed Databricks calls, production model providers, and PostgreSQL are not
-claimed as completed in this release.
+- Added `SQLitePersistence` for sessions, messages, runs, ordered events, artifacts, approvals,
+  and idempotency.
+- Added WAL, foreign keys, schema versioning, atomic event counters, bounded busy retries, and
+  stable storage errors.
+- Added honest restart recovery with `process_interrupted`.
+- Qualified browser reconnect, restart, approvals, artifacts, cancellation, handoffs, workflows,
+  CLI scaffolding, and optional Databricks imports.
 
 ## 0.1.0
 
-- Re-founded the project as AgentMuru.
-- Added provider-neutral agents, models, typed tools, permissions, sessions, events, runtime, and cancellation.
-- Added resumable approvals, artifacts, traces, usage, deterministic workflows, and typed handoffs.
-- Added protocol version 1 HTTP/WebSocket server and Muru Workspace.
-- Added `muru` CLI, runtime-first examples, architecture documentation, and migration guide.
-- Removed the former component/VDOM public architecture and all compatibility aliases.
+- Established the AgentMuru Python runtime, Workspace, CLI, provider-neutral models, typed tools,
+  permissions, sessions, events, cancellation, approvals, artifacts, traces, workflows, and
+  handoffs.

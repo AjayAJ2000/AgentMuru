@@ -4,6 +4,7 @@ import importlib
 import os
 import platform
 import sys
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,50 @@ app = typer.Typer(
     help="Build and run observable, governed AI applications with AgentMuru.",
     no_args_is_help=True,
 )
+
+
+class ProviderChoice(str, Enum):
+    FAKE = "fake"
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    GOOGLE = "google"
+
+
+PROVIDER_TEMPLATES = {
+    ProviderChoice.FAKE: {
+        "import": "from agentmuru import Agent, Application, FakeModel, tool",
+        "model": 'FakeModel.responses("AgentMuru is ready. Choose a provider when you are ready.")',
+        "requirement": "agentmuru>=0.3,<0.4",
+        "setup": "This starter uses AgentMuru's deterministic fake model, so no credentials are required.",
+    },
+    ProviderChoice.OPENAI: {
+        "import": (
+            "from agentmuru import Agent, Application, tool\n"
+            "from agentmuru.integrations.openai import OpenAIModel"
+        ),
+        "model": "OpenAIModel()",
+        "requirement": "agentmuru[openai]>=0.3,<0.4",
+        "setup": "Set `OPENAI_API_KEY` in your environment before starting the application.",
+    },
+    ProviderChoice.ANTHROPIC: {
+        "import": (
+            "from agentmuru import Agent, Application, tool\n"
+            "from agentmuru.integrations.anthropic import AnthropicModel"
+        ),
+        "model": "AnthropicModel()",
+        "requirement": "agentmuru[anthropic]>=0.3,<0.4",
+        "setup": "Set `ANTHROPIC_API_KEY` in your environment before starting the application.",
+    },
+    ProviderChoice.GOOGLE: {
+        "import": (
+            "from agentmuru import Agent, Application, tool\n"
+            "from agentmuru.integrations.google import GoogleGenAIModel"
+        ),
+        "model": "GoogleGenAIModel()",
+        "requirement": "agentmuru[google]>=0.3,<0.4",
+        "setup": "Set `GOOGLE_API_KEY` in your environment before starting the application.",
+    },
+}
 
 
 def load_application(target: str) -> Application:
@@ -65,6 +110,12 @@ def doctor() -> None:
 def init_project(
     path: Path = typer.Argument(..., help="Directory for the new project"),
     name: str = typer.Option("My AgentMuru App", "--name", help="Application display name"),
+    provider: ProviderChoice = typer.Option(
+        ProviderChoice.FAKE,
+        "--provider",
+        help="Model provider to configure",
+        case_sensitive=False,
+    ),
 ) -> None:
     """Create a minimal local AgentMuru project."""
     target = path.expanduser().resolve()
@@ -73,9 +124,25 @@ def init_project(
         raise typer.Exit(code=2)
     target.mkdir(parents=True, exist_ok=True)
     template_root = Path(__file__).resolve().parent / "templates" / "default"
+    provider_template = PROVIDER_TEMPLATES[provider]
+    replacements = {
+        "{{APP_NAME}}": name,
+        (
+            "from agentmuru import Agent, Application, FakeModel, tool  "
+            "# {{PROVIDER_IMPORT}}"
+        ): provider_template["import"],
+        (
+            '    model=FakeModel.responses("AgentMuru starter"),  '
+            "# {{MODEL_CONSTRUCTOR}}"
+        ): f'    model={provider_template["model"]},',
+        "{{REQUIREMENT}}": provider_template["requirement"],
+        "{{PROVIDER_SETUP}}": provider_template["setup"],
+    }
     for source in template_root.iterdir():
         if source.is_file():
-            content = source.read_text(encoding="utf-8").replace("{{APP_NAME}}", name)
+            content = source.read_text(encoding="utf-8")
+            for marker, value in replacements.items():
+                content = content.replace(marker, value)
             (target / source.name).write_text(content, encoding="utf-8")
     typer.echo(f"Created AgentMuru project at {target}")
     typer.echo(f"Next: cd {target.name} && muru dev app:application")

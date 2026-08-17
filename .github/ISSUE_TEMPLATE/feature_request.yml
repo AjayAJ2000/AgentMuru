@@ -1,0 +1,47 @@
+name: Feature request
+description: Propose a focused runtime, Workspace, provider, operations, or Labs capability.
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user outcome that is difficult or impossible today.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Product area
+      options:
+        - Runtime
+        - Tools and approvals
+        - Persistence
+        - Model providers
+        - Server and Workspace
+        - Observability
+        - CLI and packaging
+        - Databricks integration
+        - Labs native runtime
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed contract or experience
+      description: Show the smallest useful API, event, command, or operator flow.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Product boundary
+      options:
+        - label: This keeps model calls, tools, approvals, and persistence in the Python runtime.
+          required: true

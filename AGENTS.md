@@ -50,5 +50,6 @@ python -m mkdocs build --strict
 python -m build
 ```
 
-Update concepts, examples, migration notes, and `docs/architecture/ai-native-transformation.md`
-when behavior or boundaries change. Never document an unverified capability as complete.
+Update the relevant Get started, Build, Providers, Operate, Reference, or Labs page when
+behavior or boundaries change. Never document an unverified capability as complete, and keep
+experimental native work under `docs/labs/`.

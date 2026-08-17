@@ -1,31 +1,28 @@
-# Choose a starting path
+# Get started
 
-AgentMuru can be evaluated locally without provider credentials. Choose the shortest path
-that matches what you need to accomplish.
+The first AgentMuru run is deliberately local and deterministic. Start with `FakeModel` to
+learn the runtime and Workspace, then switch the generated project to one official provider.
 
-## Before you begin
+## Recommended path
 
-You need Python 3.10 or later and a terminal. Git is required only if you plan to
-contribute or run examples directly from the source repository.
+1. [Install AgentMuru](getting-started/installation.md) and run the environment checks.
+2. [Complete the quickstart](getting-started/quickstart.md) with a credential-free model.
+3. [Tour the Workspace](getting-started/workspace-tour.md) and learn what each panel means.
+4. [Use a real model](getting-started/real-model.md) from OpenAI, Anthropic, or Google.
+5. [Govern a tool](cookbook/governed-tools.md) before connecting side effects.
 
-## Choose your path
+## Choose another entry point
 
 | Goal | Start here |
 | --- | --- |
-| Install the verified 0.2 release | [Install AgentMuru](getting-started/installation.md) |
-| Build and run a local agent | [Five-minute local quickstart](getting-started/quickstart.md) |
-| Evaluate the native terminal preview | [Try the adaptive local preview](getting-started/native-preview.md) |
-| Compile and measure a portable agent pack | [Try the measured action router](getting-started/action-router.md) |
-| Learn with complete runnable examples | [Choose a tutorial](cookbook/index.md) |
-| Add restart-safe local history | [Persist sessions with SQLite](guides/sqlite-persistence.md) |
-| Operate the server and browser Workspace | [Run the server and Workspace](guides/server-and-workspace.md) |
-| Check supported integrations and limits | [Current capabilities and limits](integration-status.md) |
-| Look up a stable import | [Stable public API](reference/public-api.md) |
+| Add AgentMuru to an existing Python project | [Installation](getting-started/installation.md#install-into-an-existing-project) |
+| Create a durable local application | [SQLite persistence](operations/sqlite.md) |
+| Implement a custom model adapter | [Provider contract](reference/providers.md) |
+| Deploy the HTTP and WebSocket server | [Deployment](operations/deployment.md) |
+| Explore the Go-native experiments | [Labs](labs/index.md) |
 
-## Understand the 0.2 boundary
+## What you will have
 
-AgentMuru 0.2 includes the Python runtime, governed tools and approvals, replayable session
-events, artifacts, workflows, the browser Workspace, and SQLite persistence for one local
-runtime process with modest write concurrency. Production model providers and PostgreSQL
-persistence remain planned. Review [current capabilities and limits](integration-status.md)
-before choosing a deployment shape.
+At the end of the recommended path you will have a Python module exporting one
+`Application`, a browser Workspace at `http://127.0.0.1:8000`, and a model provider that can
+stream text and tool calls into the same runtime contract.

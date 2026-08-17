@@ -1,66 +1,113 @@
 site_name: AgentMuru
-site_description: Python-native runtime and workspace for observable, governed AI applications
+site_description: Python runtime and operator workspace for observable, governed AI applications
 site_url: https://ajayaj2000.github.io/AgentMuru/
 repo_url: https://github.com/AjayAJ2000/AgentMuru
 repo_name: AjayAJ2000/AgentMuru
+copyright: AgentMuru is open source under the MIT License.
+exclude_docs: |
+  superpowers/**
+  assets/BRAND.md
 theme:
   name: material
-  logo: assets/agentmuru-mark.png # exact DataMuru approved Hybrid Vel Eye master
+  logo: assets/agentmuru-mark.png
   favicon: assets/agentmuru-favicon-64.png
   font:
-    text: Inter
-    code: JetBrains Mono
+    text: DM Sans
+    code: IBM Plex Mono
   palette:
-    scheme: default
-    primary: custom
-    accent: custom
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Use dark theme
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Use light theme
   features:
     - navigation.instant
+    - navigation.tabs
     - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.suggest
     - content.code.copy
+    - content.tabs.link
 nav:
   - Home: index.md
-  - Start:
-      - Choose a path: getting-started.md
-      - Installation: getting-started/installation.md
-      - Five-minute local quickstart: getting-started/quickstart.md
-      - Adaptive local preview: getting-started/native-preview.md
-      - Try a measured agent pack: getting-started/action-router.md
-  - Tutorials:
-      - Choose a tutorial: cookbook/index.md
-      - Govern tool execution: cookbook/governed-tools.md
-      - Create artifacts: cookbook/artifacts.md
-      - Reopen durable sessions: cookbook/durable-sessions.md
-      - Run workflows and handoffs: cookbook/workflows-and-handoffs.md
-      - Check Databricks readiness: cookbook/databricks.md
-  - How-to guides:
-      - Run the server and Workspace: guides/server-and-workspace.md
-      - Persist sessions with SQLite: guides/sqlite-persistence.md
-      - Deploy AgentMuru: guides/deployment.md
-      - Add a model provider: guides/model-provider.md
-      - Run verified local models: guides/local-model-runtime.md
-      - Add a session store: guides/session-store.md
-      - Secure a deployment: guides/security.md
-      - Connect Databricks: guides/databricks.md
-  - Concepts:
-      - Runtime and events: concepts/runtime-and-events.md
+  - Get started:
+      - Overview: getting-started.md
+      - Install: getting-started/installation.md
+      - Quickstart: getting-started/quickstart.md
+      - Workspace tour: getting-started/workspace-tour.md
+      - Use a real model: getting-started/real-model.md
+  - Build:
+      - Core concepts: concepts/index.md
       - Agents and models: concepts/agents-and-models.md
       - Tools and approvals: concepts/tools-and-approvals.md
+      - Runtime and events: concepts/runtime-and-events.md
       - Sessions and memory: concepts/sessions-and-memory.md
       - Artifacts and traces: concepts/artifacts-and-traces.md
       - Workflows and handoffs: concepts/workflows-and-handoffs.md
+      - Recipes: cookbook/index.md
+      - Governed tools: cookbook/governed-tools.md
+      - Durable sessions: cookbook/durable-sessions.md
+      - Artifacts: cookbook/artifacts.md
+      - Workflows and handoffs: cookbook/workflows-and-handoffs.md
+  - Providers:
+      - Choose a provider: providers/index.md
+      - OpenAI: providers/openai.md
+      - Anthropic: providers/anthropic.md
+      - Google Gen AI: providers/google.md
+  - Operate:
+      - Server and Workspace: operations/server-and-workspace.md
+      - SQLite persistence: operations/sqlite.md
+      - Observability: operations/observability.md
+      - Security: operations/security.md
+      - Deployment: operations/deployment.md
+      - Databricks: operations/databricks.md
   - Reference:
-      - Stable public API: reference/public-api.md
-      - Current capabilities and limits: integration-status.md
+      - Public Python API: reference/public-api.md
+      - CLI: reference/cli.md
+      - Events: reference/events.md
+      - Provider contract: reference/providers.md
+      - Configuration: reference/configuration.md
+      - Capabilities and limits: integration-status.md
+  - Labs:
+      - Labs boundary: labs/index.md
+      - Native preview: labs/native-preview.md
+      - Action router: labs/action-router.md
+      - Local models: labs/local-models.md
+  - Project:
+      - Roadmap: product/roadmap.md
       - Release notes: CHANGELOG.md
-      - Upgrade custom stores to 0.2: migration-custom-stores-0.2.md
-      - Move from the legacy UI: migration-from-legacy-ui.md
-      - Product roadmap: product/roadmap.md
+      - Qualification: qualification.md
+      - Architecture: architecture/target-state.md
+      - Decisions: architecture/decisions.md
+plugins:
+  - search
 markdown_extensions:
   - admonition
   - attr_list
-  - pymdownx.highlight
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
 strict: true
 extra_css:
   - stylesheets/agentmuru.css
+extra_javascript:
+  - javascripts/accessibility.js

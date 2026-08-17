@@ -6,6 +6,7 @@ __pycache__/
 .venv/
 .worktrees/
 .superpowers/
+/docs/superpowers/
 
 # Local scratch and temporary build folders
 .tmp/
@@ -31,5 +32,3 @@ frontend/playwright-report/
 
 # Local-only branding/vendor drop folder
 Branding_Files/
-
-scripts/

@@ -1,43 +1,52 @@
 # Architecture decisions
 
-## Runtime first
+These decisions describe the active 0.3 product, not an earlier project direction.
 
-Agent execution is the application. UI is a projection so runtime tests need no browser.
+## Execution is the application
 
-## Events before rendering
+Agent definitions, runtime state, tools, policy, approvals, and stores are the application. User
+interfaces project that state. Runtime tests therefore need no browser.
 
-Events support streaming, replay, observability, and multiple consumers without frontend coupling.
+## Events precede rendering
 
-## Explicit sessions
+Ordered events support streaming, replay, observability, recovery, and multiple consumers without
+coupling execution to React or FastAPI.
 
-Sessions define ownership and persistence boundaries; no global mutable application state exists.
+## Sessions are explicit
 
-## Provider neutrality
+Sessions define ownership, conversation, run, event, artifact, and idempotency boundaries. There
+is no global mutable conversation state.
 
-Normalized model events keep vendor SDK semantics outside agents and runtime code.
+## Provider SDKs stay at the edge
 
-## Governed tools
+Official SDK adapters translate request and stream shapes into `ModelEvent`. Runtime code never
+imports provider response types. Provider-specific fields require an explicit options mapping.
 
-Permissions and approvals exist because Python callbacks are not an adequate enterprise security model.
+## Assistant tool calls are durable
 
-## First-class artifacts
+The runtime persists complete assistant tool calls before linked tool results. SQLite stores call
+IDs, names, and object arguments. This ordering makes replay valid for the next hosted-model turn.
 
-AI applications produce structured work, not only chat text. Artifacts have stable identities and storage.
+## Tools are governed capabilities
 
-## Explicit store mutations
+Python callbacks alone are not a security model. Tool schema, declared permission, granted
+permission, risk, side-effect classification, redaction, approval, timeout, and retries are
+separate controls.
 
-Runtime calls abstract operations such as `append_message`, `create_run`, `update_run`,
-and `append_event`. It does not use mutation of retrieved in-memory objects as persistence.
-This keeps dependency direction inward and makes every durable write auditable and testable.
+## Store writes are explicit
 
-## SQLite as the local durable default
+Runtime calls protocol mutations such as `append_message`, `create_run`, `update_run`, and
+`append_event`. Adapters can make each operation atomic and auditable.
 
-SQLite is the best standard-library, zero-service default for a single-file local Runtime.
-AgentMuru uses foreign keys, WAL, schema versioning, transactions, a busy timeout, bounded
-retry, and `BEGIN IMMEDIATE` counter allocation. PostgreSQL remains the planned server-scale
-adapter rather than an unnecessary default dependency.
+## SQLite is the durable local default
 
-## Honest process recovery
+SQLite provides a zero-service, standard-library path for one active runtime process. AgentMuru
+uses foreign keys, WAL, migration, bounded busy retries, and `BEGIN IMMEDIATE` sequence
+allocation. Higher-concurrency deployments should replace the store, not add hidden SQLite
+coordination.
 
-Python coroutines cannot be resurrected after process loss. Nonterminal durable runs are
-failed with `process_interrupted`; users continue from history with a new run.
+## Process recovery is honest
+
+A Python coroutine cannot be recreated after process loss. Nonterminal durable runs fail with
+`process_interrupted`, while their messages, tool calls, events, approvals, and artifacts remain
+available for inspection and a new run.

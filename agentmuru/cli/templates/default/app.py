@@ -1,4 +1,4 @@
-from agentmuru import Agent, Application, FakeModel, tool
+from agentmuru import Agent, Application, FakeModel, tool  # {{PROVIDER_IMPORT}}
 
 
 @tool(permission="knowledge.read")
@@ -11,7 +11,7 @@ agent = Agent(
     name="assistant",
     description="A governed local assistant",
     instructions="Answer clearly and use tools when they improve the result.",
-    model=FakeModel.responses("AgentMuru is ready. Configure a provider to begin."),
+    model=FakeModel.responses("AgentMuru starter"),  # {{MODEL_CONSTRUCTOR}}
     tools=(search_notes,),
     permissions=frozenset({"knowledge.read"}),
 )

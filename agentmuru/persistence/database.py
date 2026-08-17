@@ -13,7 +13,7 @@ from agentmuru.core.errors import (
     StorageMigrationError,
 )
 
-from .schema import MIGRATION_1, SCHEMA_VERSION
+from .schema import MIGRATIONS, SCHEMA_VERSION
 
 T = TypeVar("T")
 
@@ -117,8 +117,9 @@ class SQLiteDatabase:
                     connection.execute(
                         "CREATE TABLE schema_metadata(version INTEGER NOT NULL)"
                     )
-                    for statement in MIGRATION_1:
-                        connection.execute(statement)
+                    for migration_version in range(1, SCHEMA_VERSION + 1):
+                        for statement in MIGRATIONS[migration_version]:
+                            connection.execute(statement)
                     connection.execute(
                         "INSERT INTO schema_metadata(version) VALUES (?)",
                         (SCHEMA_VERSION,),
@@ -138,7 +139,19 @@ class SQLiteDatabase:
                     "Storage schema is newer than this AgentMuru version"
                 )
             if version < SCHEMA_VERSION:
-                raise StorageMigrationError("Storage schema version is unsupported")
+                connection.execute("BEGIN IMMEDIATE")
+                try:
+                    for migration_version in range(version + 1, SCHEMA_VERSION + 1):
+                        for statement in MIGRATIONS[migration_version]:
+                            connection.execute(statement)
+                        connection.execute(
+                            "UPDATE schema_metadata SET version = ?",
+                            (migration_version,),
+                        )
+                    connection.commit()
+                except Exception:
+                    connection.rollback()
+                    raise
         except sqlite3.DatabaseError as exc:
             raise _translate_database_error(exc) from exc
         finally:

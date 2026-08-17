@@ -1,18 +1,19 @@
 # AgentMuru development
 
-Requires Python 3.10 or newer and Node.js 20 or newer.
+Use Python 3.10 through 3.13 and Node.js 24. Go 1.25.9 is required only for the experimental
+Labs runtime under `edge/`.
 
 ```powershell
-python -m pip install -e ".[dev,docs]"
+python -m pip install -e ".[dev,docs,providers]"
 cd frontend
-npm install
+npm ci
 cd ..
 python -m pytest -q
 ```
 
-The Python core is tested without FastAPI or a browser. Server tests use the ASGI
-adapter. Frontend reducer tests replay real protocol event shapes. `FakeModel` is the
-only model used by the local and CI suites.
+The deterministic test suite never calls a paid model API. Provider adapter tests use recorded
+SDK-shaped fakes, server tests use the ASGI adapter, and frontend tests replay protocol version 1
+events.
 
 Run a development workspace:
 
@@ -30,3 +31,20 @@ python -m build
 ```
 
 See `AGENTS.md` for architectural boundaries and the full verification contract.
+
+## Full verification
+
+```powershell
+python -m ruff check agentmuru tests qualification examples
+python -m mypy agentmuru
+cd frontend
+npm test -- --run
+npm run lint
+npm run typecheck
+npm run build
+npm run test:bundle
+npm run check:bundle
+cd ..
+python -m mkdocs build --strict
+python -m build
+```

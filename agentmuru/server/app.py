@@ -71,6 +71,10 @@ def _message_dict(message: Message) -> dict[str, Any]:
         "content": message.content,
         "name": message.name,
         "tool_call_id": message.tool_call_id,
+        "tool_calls": [
+            {"id": call.id, "name": call.name, "arguments": dict(call.arguments)}
+            for call in message.tool_calls
+        ],
         "created_at": message.created_at.isoformat(),
     }
 

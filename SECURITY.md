@@ -1,7 +1,15 @@
 # AgentMuru security
 
-Report vulnerabilities privately through the repository security advisory workflow.
+Report vulnerabilities through the repository's
+[private security advisory form](https://github.com/AjayAJ2000/AgentMuru/security/advisories/new).
 Do not open a public issue containing exploit details, credentials, or sensitive traces.
+
+## Supported versions
+
+| Version | Security updates |
+| --- | --- |
+| 0.3.x | Yes |
+| Earlier versions | No |
 
 ## Security boundary
 

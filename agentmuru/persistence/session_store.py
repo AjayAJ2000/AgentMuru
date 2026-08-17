@@ -14,7 +14,14 @@ from agentmuru.core.errors import (
     StorageCorruptError,
 )
 from agentmuru.core.events import EventType, RuntimeEvent
-from agentmuru.sessions import Message, MessageRole, RunRecord, RunStatus, Session
+from agentmuru.sessions import (
+    AssistantToolCall,
+    Message,
+    MessageRole,
+    RunRecord,
+    RunStatus,
+    Session,
+)
 
 from .codecs import decode_json, encode_json
 from .database import SQLiteDatabase
@@ -42,6 +49,27 @@ def _metadata(value: str) -> dict[str, Any]:
     return decoded
 
 
+def _tool_calls(value: str) -> tuple[AssistantToolCall, ...]:
+    decoded = decode_json(value)
+    if not isinstance(decoded, list):
+        raise StorageCorruptError("Stored assistant tool calls are invalid")
+    calls: list[AssistantToolCall] = []
+    for item in decoded:
+        if not isinstance(item, dict):
+            raise StorageCorruptError("Stored assistant tool calls are invalid")
+        call_id = item.get("id")
+        name = item.get("name")
+        arguments = item.get("arguments")
+        if not isinstance(call_id, str) or not call_id:
+            raise StorageCorruptError("Stored assistant tool call ID is invalid")
+        if not isinstance(name, str) or not name:
+            raise StorageCorruptError("Stored assistant tool call name is invalid")
+        if not isinstance(arguments, dict):
+            raise StorageCorruptError("Stored assistant tool call arguments are invalid")
+        calls.append(AssistantToolCall(id=call_id, name=name, arguments=arguments))
+    return tuple(calls)
+
+
 def _message_from_row(row: sqlite3.Row) -> Message:
     created_at = _datetime(str(row["created_at"]))
     assert created_at is not None
@@ -58,6 +86,7 @@ def _message_from_row(row: sqlite3.Row) -> Message:
         tool_call_id=(
             str(row["tool_call_id"]) if row["tool_call_id"] is not None else None
         ),
+        tool_calls=_tool_calls(str(row["tool_calls"])),
     )
 
 
@@ -225,6 +254,13 @@ class SQLiteSessionStore:
         session.updated_at = updated_at
 
     def append_message(self, session_id: str, message: Message) -> Message:
+        tool_calls = encode_json(
+            [
+                {"id": call.id, "name": call.name, "arguments": dict(call.arguments)}
+                for call in message.tool_calls
+            ]
+        )
+
         def insert(connection: sqlite3.Connection) -> None:
             row = connection.execute(
                 "SELECT COALESCE(MAX(position), 0) + 1 FROM messages WHERE session_id = ?",
@@ -235,8 +271,9 @@ class SQLiteSessionStore:
                 connection.execute(
                     """
                     INSERT INTO messages(
-                        id, session_id, position, role, content, created_at, name, tool_call_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        id, session_id, position, role, content, created_at,
+                        name, tool_call_id, tool_calls
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         message.id,
@@ -247,6 +284,7 @@ class SQLiteSessionStore:
                         _timestamp(message.created_at),
                         message.name,
                         message.tool_call_id,
+                        tool_calls,
                     ),
                 )
             except sqlite3.IntegrityError as exc:

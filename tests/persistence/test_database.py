@@ -37,8 +37,12 @@ def test_database_initializes_versioned_schema_and_pragmas(tmp_path: Path) -> No
         assert EXPECTED_TABLES <= tables
         assert connection.execute("PRAGMA foreign_keys").fetchone()[0] == 1
         assert connection.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
-        assert connection.execute("SELECT version FROM schema_metadata").fetchone()[0] == 1
-        assert SCHEMA_VERSION == 1
+        assert connection.execute("SELECT version FROM schema_metadata").fetchone()[0] == 2
+        assert SCHEMA_VERSION == 2
+        message_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(messages)").fetchall()
+        }
+        assert "tool_calls" in message_columns
     finally:
         connection.close()
 
@@ -74,6 +78,59 @@ def test_database_rejects_schema_from_a_newer_agentmuru(tmp_path: Path) -> None:
 
     assert exc_info.value.code == "storage_migration"
     assert str(exc_info.value) == "Storage schema is newer than this AgentMuru version"
+
+
+def test_database_migrates_schema_one_messages_without_data_loss(tmp_path: Path) -> None:
+    path = tmp_path / "schema-one.db"
+    with sqlite3.connect(path) as connection:
+        connection.execute("CREATE TABLE schema_metadata(version INTEGER NOT NULL)")
+        connection.execute("INSERT INTO schema_metadata VALUES (1)")
+        connection.execute(
+            """
+            CREATE TABLE sessions (
+                id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                user_id TEXT,
+                title TEXT,
+                metadata TEXT NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE messages (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                position INTEGER NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                name TEXT,
+                tool_call_id TEXT,
+                UNIQUE(session_id, position)
+            )
+            """
+        )
+        connection.execute(
+            "INSERT INTO sessions VALUES ('s1', '2026-08-09T00:00:00+00:00', "
+            "'2026-08-09T00:00:00+00:00', NULL, NULL, '{}')"
+        )
+        connection.execute(
+            "INSERT INTO messages VALUES ('m1', 's1', 1, 'assistant', 'kept', "
+            "'2026-08-09T00:00:00+00:00', NULL, NULL)"
+        )
+
+    database = SQLiteDatabase(path)
+    connection = database.connect()
+    try:
+        row = connection.execute(
+            "SELECT content, tool_calls FROM messages WHERE id = 'm1'"
+        ).fetchone()
+        assert tuple(row) == ("kept", "[]")
+        assert connection.execute("SELECT version FROM schema_metadata").fetchone()[0] == 2
+    finally:
+        connection.close()
 
 
 def test_database_classifies_invalid_file_as_corrupt(tmp_path: Path) -> None:

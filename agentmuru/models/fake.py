@@ -15,6 +15,7 @@ class FakeModel:
     """Deterministic provider used by tests, examples, and local exploration."""
 
     name = "fake"
+    model_id = "fake"
     capabilities = ModelCapabilities(text=True, streaming=True, tool_calling=True)
 
     def __init__(self, turns: Sequence[Sequence[ModelEvent]]) -> None:

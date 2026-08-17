@@ -40,6 +40,11 @@ export interface SessionSnapshot {
     content: string
     name: string | null
     tool_call_id: string | null
+    tool_calls: Array<{
+      id: string
+      name: string
+      arguments: Record<string, unknown>
+    }>
   }>
   runs: Array<{
     id: string

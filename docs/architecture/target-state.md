@@ -1,43 +1,54 @@
-# AgentMuru architecture
+# Architecture
+
+AgentMuru follows a dependency-inward Python architecture. Application behavior does not depend
+on the browser, server framework, database adapter, Databricks, or a hosted-model SDK.
 
 ```text
-Muru Workspace / CLI / integrations / FastAPI
-                       |
-                 Application
-                       |
-            Runtime / workflows / agents
-                       |
-       events / store protocols / tools / approvals
-                       |
-         SQLite adapters / future PostgreSQL
+Workspace / CLI / FastAPI / integrations
+                    |
+              Application
+                    |
+          Runtime / agents / workflows
+                    |
+ events / tools / approvals / store protocols
+                    |
+ in-memory and SQLite adapters / official model adapters
 ```
 
-Dependencies point inward. Core packages have no browser, server, Databricks, or vendor
-model dependency. Runtime state changes are typed events and explicit store operations.
-SQLite is the implemented durable local adapter; production model providers and PostgreSQL
-are planned adapters. Retrieval, MCP, and exporters remain provider-neutral seams. The
-Workspace consumes protocol version 1 and can be rebuilt without changing execution.
+## Application boundary
 
-## Adaptive edge path
+`Application` declares agents and stores. `Runtime` owns execution and policy. The browser and
+HTTP API consume runtime state instead of embedding a second execution engine.
 
-The native `edge/` module now supplies the first target-state layer: versioned cross-runtime
-contracts, read-only hardware classification, durable append-before-publish events, and a
-responsive event-driven terminal workspace. It is deliberately separated from model
-selection, agent compilation, and tool effects so each higher-risk capability can be gated
-with its own evidence.
+## Provider boundary
 
-```text
-install / launch
-      |
-hardware profile -> verified runtime + model catalog
-      |                         |
-      +--------> agent-pack compiler
-                           |
-                  event-sourced orchestrator
-                           |
-              policy broker -> isolated effects
-```
+`ModelProvider` normalizes text, complete tool calls, completion usage, and safe failures. The
+OpenAI, Anthropic, and Google integrations depend on their official SDKs, while runtime and agent
+packages depend only on AgentMuru model events.
 
-Windows x64 with 8 GB RAM is the first release authority. Android remains a later target
-after the same contracts, model provenance, orchestration limits, and effect policies pass
-on the Windows reference tier.
+## State boundary
+
+Session, artifact, and approval protocols define explicit mutations. The runtime calls methods
+such as append message, create run, update run, bind idempotency, append event, and recover
+interrupted work. Retrieved objects are not treated as magical durable state.
+
+In-memory and SQLite implementations share these protocols. SQLite is the bundled durable local
+adapter. Server-scale stores can implement the same boundary without changing agents or tools.
+
+## Transport boundary
+
+FastAPI exposes snapshots, commands, ordered event replay, and a WebSocket follow stream. Muru
+Workspace hydrates from a snapshot and resumes from a sequence cursor. Protocol state remains
+typed and versioned.
+
+## Security boundary
+
+Model output is treated as untrusted input. Tool registration, schema validation, permissions,
+approval, redaction, timeout, retries, and execution all remain runtime-controlled. Server
+identity and session ownership are independent from provider identity.
+
+## Labs boundary
+
+The Go-native module has separate contracts, release artifacts, and qualification. Machine
+profiling, pack compilation, adaptive routing, local models, and host-capability brokering do not
+expand the Python package claim until they pass their own promotion gates.

@@ -2,7 +2,7 @@ blank_issues_enabled: false
 contact_links:
   - name: Documentation
     url: https://ajayaj2000.github.io/AgentMuru/
-    about: Start with the docs site for setup, runtime concepts, and integration guides.
+    about: Start with the current docs for setup, runtime concepts, providers, and operations.
   - name: Security policy
-    url: https://github.com/AjayAJ2000/AgentMuru/blob/main/SECURITY.md
-    about: Report security-sensitive issues privately instead of opening a public issue.
+    url: https://github.com/AjayAJ2000/AgentMuru/security/advisories/new
+    about: Report vulnerabilities privately instead of opening a public issue.

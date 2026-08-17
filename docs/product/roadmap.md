@@ -1,66 +1,55 @@
-# AgentMuru product roadmap
+# Roadmap
 
-This roadmap is ordered by verified product outcomes. It separates shipped behavior from
-the next implementation targets and keeps legacy UI work out of the active AgentMuru plan.
+The roadmap is ordered by user-visible, qualified outcomes. Shipped work remains in the release
+notes, while active work stays narrow enough to verify.
 
-## Now: AgentMuru 0.2 qualification and durable local persistence
+## Current: Python-first 0.3 MVP
 
-**Status: complete**
+The current release line provides:
 
-AgentMuru 0.2 combines product qualification with a standard-library SQLite persistence
-adapter. The release now has durable sessions, messages, runs, ordered events, artifacts,
-approvals, and idempotency records behind the same store protocols used by the in-memory
-default.
+- official OpenAI Responses, Anthropic Messages, and Google Gen AI adapters;
+- provider-neutral streaming text, complete tool calls, usage, cancellation, and safe failures;
+- durable assistant tool-call replay in SQLite;
+- provider-aware `muru init` starters and executable examples;
+- governed tools, approvals, artifacts, handoffs, workflows, traces, and event replay;
+- a task-oriented documentation site and clean package metadata.
 
-Completion evidence:
+Release completion requires the full Python, frontend, documentation, distribution, and
+clean-wheel qualification gates plus a credential-backed smoke check for each provider account
+used by the project.
 
-- the [qualification report](../qualification.md) passes the clean-wheel CLI, scaffold,
-  server, runtime, approval, handoff, workflow, and SQLite restart checks;
-- the [SQLite operator guide](../guides/sqlite-persistence.md) records schema, transaction,
-  backup, recovery, concurrency, and process-restart behavior;
-- the [integration status](../integration-status.md) separates contract-tested adapters
-  from credential-backed live checks;
-- the [cookbook](../cookbook/index.md) executes every supported scenario from the built
-  wheel; and
-- release workflows gate documentation and package publication on fresh qualification.
+## Next: server-scale persistence
 
-## Next: production model-provider adapter
-
-Add the first production provider without coupling vendor code to the application or
-runtime layers.
+Add and qualify a PostgreSQL store implementation behind the current protocols.
 
 Acceptance signals:
 
-- provider configuration is explicit and secrets stay outside persisted events;
-- streaming text, tool calls, provider errors, cancellation, and usage metadata map to
-  AgentMuru's typed event contract;
-- deterministic `FakeModel` development and qualification remain unchanged;
-- credential-backed tests are opt-in and contract tests run without network access; and
-- installation, operations, failure modes, and cost visibility are documented.
+- explicit tenant and session ownership;
+- migrations, transactions, event ordering, subscriptions, and idempotency;
+- concurrent worker, retry, recovery, and isolation tests;
+- managed backup and point-in-time recovery documentation;
+- no change to agent, tool, provider, or Workspace application contracts.
 
-## After Next: PostgreSQL persistence
+## Next: operational provider evidence
 
-Add a PostgreSQL adapter for multi-tenant and higher-concurrency deployments after the
-provider boundary is proven.
+Turn provider contract support into repeatable deployment evidence.
 
 Acceptance signals:
 
-- the existing store protocols remain the application boundary;
-- migrations, transactions, event ordering, retries, and tenant isolation are explicit;
-- concurrency and recovery tests cover multiple workers; and
-- SQLite remains the zero-service local default.
+- opt-in credential-backed smoke tests with no secret persistence;
+- latency, token, failure, retry, and cost dashboards built from public events and traces;
+- model-access and quota runbooks;
+- documented data-handling and retention decisions per deployment.
 
 ## Later
 
-- Validate Databricks identity and user-scoped operations in an explicit credential-backed
-  environment.
-- Establish sustained load and concurrency envelopes beyond the local SQLite target.
-- Add production observability outcomes for provider latency, tool execution, approvals,
-  persistence contention, and cost.
+- Durable trace exporters and application-owned telemetry backends.
+- A broader authentication integration guide and deployment reference.
+- Sustained load and concurrency envelopes for the server-scale store.
+- Promotion of selected Labs work only after clean-machine, security, and reference-device gates.
 
-## Archived legacy direction
+## Not promised by the MVP
 
-The former component-catalog and virtual-DOM roadmap belonged to the pre-AgentMuru
-UI-framework direction. Those outcomes are not relabeled as completed AgentMuru work and
-do not belong in the active product board. Any useful migration context remains in the
-[legacy UI migration guide](../migration-from-legacy-ui.md).
+The roadmap does not imply automatic production model selection, built-in PostgreSQL,
+distributed scheduling, a tool sandbox, production identity management, or qualified local-model
+artifacts. Those claims require implementation and published evidence.
