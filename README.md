@@ -12,6 +12,10 @@ AgentMuru is a Python runtime and browser Workspace for observable, human-govern
 applications. It keeps model turns, tool calls, approvals, events, sessions, artifacts,
 workflows, and traces inside one explicit application model.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AjayAJ2000/AgentMuru/main/docs/assets/workspace-overview.png" alt="AgentMuru Workspace showing a durable session, messages, artifacts, and trace activity" width="960">
+</p>
+
 ## Run the local MVP
 
 ```powershell

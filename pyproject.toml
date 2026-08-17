@@ -71,10 +71,11 @@ all = [
 muru = "agentmuru.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/AjayAJ2000/AgentMuru"
+Homepage = "https://ajayaj2000.github.io/AgentMuru/"
 Documentation = "https://ajayaj2000.github.io/AgentMuru/"
 Repository = "https://github.com/AjayAJ2000/AgentMuru"
 Issues = "https://github.com/AjayAJ2000/AgentMuru/issues"
+Changelog = "https://ajayaj2000.github.io/AgentMuru/CHANGELOG/"
 
 [tool.hatch.build.targets.wheel]
 packages = ["agentmuru"]
@@ -94,6 +95,9 @@ include = [
     "/examples",
     "/tests",
     "/qualification",
+]
+exclude = [
+    "/docs/superpowers",
 ]
 
 [tool.ruff]

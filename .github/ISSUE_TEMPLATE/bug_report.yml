@@ -1,0 +1,71 @@
+name: Bug report
+description: Report reproducible AgentMuru behavior that differs from the current documentation.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping make the AgentMuru MVP reliable. Remove credentials and sensitive trace data before submitting.
+  - type: dropdown
+    id: version
+    attributes:
+      label: AgentMuru version
+      options:
+        - 0.3.x
+        - Source checkout
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include Python version, operating system, and deployment target.
+      placeholder: Python 3.13, Windows 11, local Workspace
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Runtime or events
+        - Tools or approvals
+        - Sessions or SQLite
+        - OpenAI provider
+        - Anthropic provider
+        - Google provider
+        - Server or Workspace
+        - CLI or packaging
+        - Databricks integration
+        - Labs native runtime
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest application or command sequence that reproduces the issue.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I checked the current documentation and existing issues.
+          required: true
+        - label: I removed secrets, credentials, and sensitive trace content.
+          required: true

@@ -1,12 +1,15 @@
 # Support
 
-## Where To Start
+## Where to start
 
 - Read the docs site first: [https://ajayaj2000.github.io/AgentMuru/](https://ajayaj2000.github.io/AgentMuru/)
-- Use the getting-started guide for setup and runtime concepts.
-- Use the security and integration guides for deployment concerns.
+- Follow [Get started](https://ajayaj2000.github.io/AgentMuru/getting-started/) for the local MVP.
+- Use [Operate](https://ajayaj2000.github.io/AgentMuru/operations/server-and-workspace/)
+  for deployment, persistence, observability, and security concerns.
+- Check [Capabilities and limits](https://ajayaj2000.github.io/AgentMuru/integration-status/)
+  before planning production work.
 
-## When To Open An Issue
+## When to open an issue
 
 Open a GitHub issue when:
 
@@ -23,6 +26,6 @@ Include:
 - whether the issue happens locally, in Databricks Apps, or another deployment
 - a minimal reproduction
 
-## Security Issues
+## Security issues
 
 For security-sensitive problems, use the path in [SECURITY.md](./SECURITY.md) instead of posting exploit details publicly.

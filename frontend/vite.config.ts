@@ -11,9 +11,6 @@ export default defineConfig({
   build: {
     outDir: '../agentmuru/frontend/dist',
     emptyOutDir: true,
-    minify: false,
-    cssMinify: false,
-    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -38,7 +35,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
+      '@': resolve(import.meta.dirname, './src'),
     },
   },
 })

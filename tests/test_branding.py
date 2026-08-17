@@ -39,10 +39,11 @@ def test_frontend_source_has_no_legacy_protocol_identity() -> None:
 def test_public_release_urls_use_exact_agentmuru_identity() -> None:
     package = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert package["project"]["urls"] == {
-        "Homepage": REPOSITORY_URL,
+        "Homepage": DOCUMENTATION_URL,
         "Documentation": DOCUMENTATION_URL,
         "Repository": REPOSITORY_URL,
         "Issues": f"{REPOSITORY_URL}/issues",
+        "Changelog": f"{DOCUMENTATION_URL}CHANGELOG/",
     }
 
     docs = yaml.safe_load((ROOT / "mkdocs.yml").read_text(encoding="utf-8"))
@@ -54,7 +55,7 @@ def test_public_release_urls_use_exact_agentmuru_identity() -> None:
         (ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml").read_text(encoding="utf-8")
     )
     assert issue_config["contact_links"][0]["url"] == DOCUMENTATION_URL
-    assert issue_config["contact_links"][1]["url"] == f"{REPOSITORY_URL}/blob/main/SECURITY.md"
+    assert issue_config["contact_links"][1]["url"] == f"{REPOSITORY_URL}/security/advisories/new"
 
 
 def test_public_install_and_documentation_are_featured() -> None:

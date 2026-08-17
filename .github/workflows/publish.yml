@@ -3,28 +3,36 @@ name: Publish to PyPI
 on:
   release:
     types: [published]
-  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   qualification:
     name: Verify, build, and qualify once
-    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    if: '!github.event.release.prerelease'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
       - name: Set up Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+
+      - name: Verify release tag matches package version
+        shell: bash
+        run: |
+          version="$(python -c 'from agentmuru.version import __version__; print(__version__)')"
+          test "${GITHUB_REF_NAME}" = "agentmuru-v${version}"
 
       - name: Install verification dependencies
         run: |
@@ -64,13 +72,13 @@ jobs:
           --report .tmp/qualification.json
 
       - name: Upload qualified distributions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: agentmuru-qualified-distributions
           path: dist/*
 
       - name: Upload qualification report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: agentmuru-qualification
           path: .tmp/qualification.json
@@ -84,7 +92,7 @@ jobs:
       id-token: write
     steps:
       - name: Download qualified distributions
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: agentmuru-qualified-distributions
           path: dist

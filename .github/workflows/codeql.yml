@@ -2,9 +2,9 @@ name: CodeQL
 
 on:
   push:
-    branches: [dev, test, main]
+    branches: [main]
   pull_request:
-    branches: [dev, test, main]
+    branches: [main]
   schedule:
     - cron: "0 5 * * 2"
 
@@ -24,25 +24,25 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Set up Python
         if: matrix.language == 'python'
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
       - name: Set up Node
         if: matrix.language == 'javascript-typescript'
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -63,4 +63,4 @@ jobs:
         run: npm run build
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4

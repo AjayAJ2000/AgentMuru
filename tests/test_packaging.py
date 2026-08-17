@@ -60,3 +60,35 @@ def test_publish_workflow_builds_once_and_requires_qualification() -> None:
     assert "download-artifact" in publish_steps
     assert "python -m build" not in publish_steps
     assert workflow["jobs"]["publish"]["permissions"] == {"id-token": "write"}
+
+
+def test_workflows_use_current_supported_action_majors() -> None:
+    workflows = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted((ROOT / ".github" / "workflows").glob("*.yml"))
+    )
+
+    for action in (
+        "actions/checkout@v7",
+        "actions/setup-python@v7",
+        "actions/setup-node@v7",
+        "actions/setup-go@v7",
+        "actions/upload-artifact@v7",
+        "actions/download-artifact@v8",
+        "actions/configure-pages@v6",
+        "actions/upload-pages-artifact@v5",
+        "actions/deploy-pages@v5",
+        "github/codeql-action/init@v4",
+        "github/codeql-action/analyze@v4",
+    ):
+        assert action in workflows
+
+    assert "branches: [dev, test, main]" not in workflows
+
+
+def test_source_distribution_excludes_internal_working_documents() -> None:
+    config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    sdist = config["tool"]["hatch"]["build"]["targets"]["sdist"]
+
+    assert "/docs" in sdist["include"]
+    assert "/docs/superpowers" in sdist["exclude"]
