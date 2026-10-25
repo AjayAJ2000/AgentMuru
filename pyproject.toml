@@ -38,7 +38,7 @@ openai = [
     "openai>=3.1.0,<4",
 ]
 anthropic = [
-    "anthropic>=0.122.0,<1",
+    "anthropic>=0.122.0,<3",
 ]
 google = [
     "google-genai>=2.18.1,<3",
